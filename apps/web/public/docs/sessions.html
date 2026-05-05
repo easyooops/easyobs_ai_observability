@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Sessions - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="sessions.html" class="docs-nav-link active">Sessions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Sessions — Detailed Manual</span></header>
+    <article class="docs-content">
+
+      <h1>Sessions — Full Feature Manual</h1>
+      <p class="docs-lede">Sessions group multiple traces (agent turns) into a single logical conversation thread. This enables end-to-end analysis of multi-turn interactions, from first user message to final resolution.</p>
+
+      <div class="docs-hero-placeholder"><div class="placeholder-box">📸 Image: Sessions page — list of sessions with turn count, duration, and status</div></div>
+
+      <h2>Concept</h2>
+      <p>A <strong>session</strong> is a logical grouping of traces that share the same <code>o.sess</code> attribute. Typical use cases:</p>
+      <ul>
+        <li>Multi-turn chatbot conversations (user asks follow-ups)</li>
+        <li>Multi-step agent workflows (agent iterates toward a goal)</li>
+        <li>A/B test cohorts (group traces by experiment ID)</li>
+      </ul>
+
+      <h2>How Sessions Are Created</h2>
+      <p>Sessions are <strong>not</strong> explicitly created — they emerge automatically when traces share the same session ID. Set the session ID in your agent code:</p>
+
+      <h3>Python SDK</h3>
+      <pre><code>from easyobs_agent import init, traced
+
+init(session="conv-abc-123")
+
+@traced
+def handle_turn(user_msg: str):
+    ...</code></pre>
+
+      <h3>OTLP Attributes</h3>
+      <pre><code>span.set_attribute("o.sess", "conv-abc-123")</code></pre>
+
+      <h3>LangChain Callback</h3>
+      <pre><code>from easyobs_agent import init
+init(session="conv-abc-123", auto_langchain=True)</code></pre>
+
+      <h2>Sessions List View</h2>
+      <p>The Sessions page shows a table of all detected sessions:</p>
+      <table class="docs-table">
+        <thead><tr><th>Column</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Session ID</strong></td><td>The <code>o.sess</code> value (truncated with tooltip for full ID)</td></tr>
+          <tr><td><strong>Turns</strong></td><td>Number of traces in the session</td></tr>
+          <tr><td><strong>First Seen</strong></td><td>Timestamp of the earliest trace</td></tr>
+          <tr><td><strong>Last Active</strong></td><td>Timestamp of the most recent trace</td></tr>
+          <tr><td><strong>Duration</strong></td><td>Total time span (last - first)</td></tr>
+          <tr><td><strong>Services</strong></td><td>Distinct service names involved</td></tr>
+          <tr><td><strong>Total Cost</strong></td><td>Sum of all trace costs in the session</td></tr>
+          <tr><td><strong>Total Tokens</strong></td><td>Sum of input + output tokens</td></tr>
+          <tr><td><strong>Status</strong></td><td>Aggregate: all OK (green), any ERROR (red)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Session Detail View</h2>
+      <p>Click any session row to open the detail view. It shows:</p>
+
+      <h3>Timeline</h3>
+      <ul>
+        <li>Chronological list of all traces in the session</li>
+        <li>Each trace shows: operation name, duration, tokens, cost, status</li>
+        <li>Visual timeline bar showing relative timing of each turn</li>
+      </ul>
+
+      <h3>Conversation Replay</h3>
+      <ul>
+        <li>Displays <code>o.q</code> (user query) and <code>o.r</code> (agent response) for each trace</li>
+        <li>Formatted as a chat interface (user on left, agent on right)</li>
+        <li>Shows intermediate tool calls and retrieval results between turns</li>
+      </ul>
+
+      <h3>Session Metrics</h3>
+      <table class="docs-table">
+        <thead><tr><th>Metric</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Total Turns</td><td>Number of back-and-forth exchanges</td></tr>
+          <tr><td>Total Duration</td><td>Wall-clock time from start to end</td></tr>
+          <tr><td>Avg Turn Latency</td><td>Average time per agent turn</td></tr>
+          <tr><td>Total Cost</td><td>Cumulative USD spent</td></tr>
+          <tr><td>Total Tokens</td><td>Input + Output token sum</td></tr>
+          <tr><td>Models Used</td><td>Distinct model names</td></tr>
+          <tr><td>Error Rate</td><td>% of turns that ended in error</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Navigation from Sessions</h2>
+      <ul>
+        <li><strong>Click trace row</strong> → Opens Tracing page with <code>?session=&lt;id&gt;</code> filter pre-applied</li>
+        <li><strong>"Evaluate Session" button</strong> → Jumps to Quality > Runs with source=session and session ID pre-filled</li>
+        <li><strong>"View Trace" button</strong> → Opens individual trace in the Trace Inspector</li>
+      </ul>
+
+      <h2>Filtering &amp; Search</h2>
+      <ul>
+        <li><strong>Time Window:</strong> Only shows sessions with at least one trace in the current time window</li>
+        <li><strong>Search:</strong> Filters session list by session ID substring match</li>
+        <li><strong>Service filter:</strong> Shows only sessions involving a specific service</li>
+      </ul>
+
+      <h2>Session Tagging</h2>
+      <p>Additional context can be attached to traces within a session:</p>
+      <table class="docs-table">
+        <thead><tr><th>Attribute</th><th>Purpose</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><code>o.sess</code></td><td>Session ID (required for grouping)</td><td>"conv-abc-123"</td></tr>
+          <tr><td><code>o.user</code></td><td>End-user identifier</td><td>"user-456"</td></tr>
+          <tr><td><code>o.q</code></td><td>User query text</td><td>"What's the weather?"</td></tr>
+          <tr><td><code>o.r</code></td><td>Agent response text</td><td>"It's 72°F and sunny."</td></tr>
+          <tr><td><code>o.turn</code></td><td>Turn number (auto-incremented)</td><td>3</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Best Practices</h2>
+      <ul>
+        <li>Use consistent, unique session IDs (UUIDs recommended)</li>
+        <li>Set <code>o.user</code> to correlate sessions with end-users</li>
+        <li>Keep session IDs stable across reconnections (e.g., use a persistent conversation ID from your app)</li>
+        <li>For A/B tests, prefix session IDs: <code>exp-v2-{uuid}</code> for easy filtering</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="tracing.html" class="docs-next-card"><strong>Tracing</strong><span>Deep-dive into individual traces</span></a>
+        <a href="metrics.html" class="docs-next-card"><strong>Metrics</strong><span>Aggregate performance dashboard</span></a>
+        <a href="eval-runs.html" class="docs-next-card"><strong>Evaluation Runs</strong><span>Evaluate session quality</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

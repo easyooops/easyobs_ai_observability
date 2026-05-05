@@ -1,0 +1,27 @@
+# =============================================================================
+# EasyObs — backend dependencies (Postgres only).
+#
+# 단일 노드 / 클러스터 leader / 사설망 모두 동일 구성. 운영에서 RDS·CloudSQL
+# 같은 매니지드 Postgres 를 쓴다면 이 compose 파일을 띄우지 말고 .env 의
+# EASYOBS_DATABASE_URL 만 외부 주소로 바꾸면 된다.
+# =============================================================================
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:16}
+    container_name: easyobs-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - easyobs_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+volumes:
+  easyobs_pg_data:

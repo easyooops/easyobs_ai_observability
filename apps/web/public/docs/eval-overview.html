@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Quality Evaluation Overview - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="sessions.html" class="docs-nav-link">Sessions</a><a href="metrics.html" class="docs-nav-link">Metrics</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link active">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Quality Evaluation</span></header>
+    <article class="docs-content">
+      <h1>Quality Evaluation System</h1>
+      <p class="docs-lede">A comprehensive 3-Way evaluation framework combining Rule-based, LLM-as-a-Judge, and Human labeling approaches in a single unified platform.</p>
+
+      <div class="docs-hero-placeholder"><div class="placeholder-box">📸 Image: Quality module overview page with KPI cards and recent runs</div></div>
+
+      <h2>3-Way Evaluation</h2>
+      <table class="docs-table">
+        <thead><tr><th>Method</th><th>Speed</th><th>Cost</th><th>Best For</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Rule-based</strong></td><td>Instant (on ingest)</td><td>Free</td><td>Format checks, length limits, keyword detection, regex patterns</td></tr>
+          <tr><td><strong>LLM-as-a-Judge</strong></td><td>Seconds</td><td>Per-token</td><td>Semantic quality, coherence, relevance, safety</td></tr>
+          <tr><td><strong>Human Labeling</strong></td><td>Hours</td><td>Labor</td><td>Ground truth, edge cases, subjective quality</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Key Differentiators</h2>
+      <ul>
+        <li><strong>Multi-Judge Consensus</strong> — Assign multiple LLMs to the same evaluation item. Choose from 4 consensus policies: <code>single</code>, <code>majority</code>, <code>unanimous</code>, <code>weighted</code>.</li>
+        <li><strong>Cost Governance</strong> — Per-run, per-subject, and monthly budget caps with <code>block</code>, <code>downgrade</code>, or <code>notify</code> policies.</li>
+        <li><strong>Auto-Rule on Ingest</strong> — Rule evaluations fire automatically when traces arrive (fire-and-forget, never blocks ingest).</li>
+        <li><strong>Improvement Packs</strong> — Actionable suggestions derived from low-scoring evaluations, mapped to 52 metrics × 58 categories.</li>
+        <li><strong>Golden Set Regression</strong> — Automated regression testing against curated ground-truth datasets.</li>
+      </ul>
+
+      <h2>Architecture</h2>
+      <pre><code>Trace Ingest
+  └─ Auto-Rule Evaluation (fire-and-forget)
+       └─ Rule DSL Engine (17 built-in rules)
+
+Manual/Scheduled Trigger
+  └─ LLM Judge Runner
+       ├─ Multi-provider (OpenAI, Anthropic, Gemini, Bedrock)
+       ├─ Consensus Engine (4 policies)
+       └─ Cost Guard (budget enforcement)
+
+Results → Runs → Improvements → Applied/Rejected</code></pre>
+
+      <h2>Module Components</h2>
+      <div class="docs-feature-grid">
+        <a href="eval-profiles.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>Profiles</h3>
+          <p>Define what to evaluate, which evaluators to use, and how to combine results.</p>
+        </a>
+        <a href="eval-runs.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>Runs</h3>
+          <p>Execute evaluations against traces and view pass/warn/fail results.</p>
+        </a>
+        <a href="eval-judges.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>LLM Judges</h3>
+          <p>Configure multi-provider LLM judge models with weights and temperature.</p>
+        </a>
+        <a href="eval-golden.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>Golden Sets</h3>
+          <p>Curate ground-truth datasets for regression testing and benchmarking.</p>
+        </a>
+        <a href="eval-improvements.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>Improvements</h3>
+          <p>Actionable suggestions to improve agent quality based on evaluation results.</p>
+        </a>
+      </div>
+
+      <h2>Enable/Disable</h2>
+      <pre><code># .env
+EASYOBS_EVAL_ENABLED=true               # Master switch
+EASYOBS_EVAL_AUTO_RULE_ON_INGEST=true   # Auto-evaluate on trace arrival</code></pre>
+      <p>When disabled, the Quality menu shows an informational page and no evaluation endpoints are registered.</p>
+
+      <div class="docs-next-grid">
+        <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>Create your first evaluation profile</span></a>
+        <a href="eval-judges.html" class="docs-next-card"><strong>LLM Judges</strong><span>Configure judge models</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

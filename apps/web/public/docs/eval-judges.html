@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM Judges - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="sessions.html" class="docs-nav-link">Sessions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link active">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">LLM Judges — Detailed Manual</span></header>
+    <article class="docs-content">
+
+      <h1>LLM Judges — Full Feature Manual</h1>
+      <p class="docs-lede">LLM Judges are external language model endpoints registered in EasyObs to serve as automated evaluators. They assess trace quality by analyzing LLM inputs/outputs and producing verdicts with reasoning.</p>
+
+      <div class="docs-hero-placeholder"><div class="placeholder-box">📸 Image: Judges page — table of registered judges with provider badges</div></div>
+
+      <h2>Concept</h2>
+      <p>An LLM Judge is a configured model endpoint that:</p>
+      <ol>
+        <li>Receives a structured evaluation prompt (trace context + evaluation criteria)</li>
+        <li>Returns a verdict (PASS / WARN / FAIL), a numeric score (0.0–1.0), and reasoning text</li>
+        <li>Can be combined with other judges via consensus policies for more reliable results</li>
+      </ol>
+
+      <h2>Supported Providers</h2>
+      <table class="docs-table">
+        <thead><tr><th>Provider</th><th>ID</th><th>Endpoint</th><th>Required Credentials</th></tr></thead>
+        <tbody>
+          <tr><td><strong>OpenAI</strong></td><td><code>openai</code></td><td>api.openai.com</td><td><code>OPENAI_API_KEY</code></td></tr>
+          <tr><td><strong>Anthropic</strong></td><td><code>anthropic</code></td><td>Claude API</td><td><code>ANTHROPIC_API_KEY</code></td></tr>
+          <tr><td><strong>Google Gemini</strong></td><td><code>google_gemini</code></td><td>Google AI Studio</td><td><code>GOOGLE_API_KEY</code></td></tr>
+          <tr><td><strong>Google Vertex</strong></td><td><code>google_vertex</code></td><td>GCP Vertex AI</td><td><code>GOOGLE_APPLICATION_CREDENTIALS</code>, project_id, location</td></tr>
+          <tr><td><strong>Azure OpenAI</strong></td><td><code>azure_openai</code></td><td>Azure endpoint</td><td><code>AZURE_OPENAI_API_KEY</code>, endpoint, deployment, api_version</td></tr>
+          <tr><td><strong>AWS Bedrock</strong></td><td><code>aws_bedrock</code></td><td>AWS Bedrock</td><td>aws_region, <code>AWS_PROFILE</code></td></tr>
+          <tr><td><strong>On-prem / Custom</strong></td><td><code>onprem_openai_compatible</code></td><td>Any OpenAI-compatible (vLLM, LiteLLM, etc.)</td><td>base_url, api_key_env</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Judge Registration</h2>
+
+      <h3>How to Register</h3>
+      <ol>
+        <li>Navigate to <strong>Quality → Judges</strong></li>
+        <li>Click <strong>"Register judge"</strong> (requires PO/SA role)</li>
+        <li>Fill in the registration form (see fields below)</li>
+        <li>Click <strong>Save</strong></li>
+      </ol>
+
+      <h3>Registration Form Fields</h3>
+      <table class="docs-table">
+        <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Name</strong></td><td>Yes</td><td>Human-readable identifier (e.g., "GPT-4o Judge", "Claude Sonnet Strict")</td></tr>
+          <tr><td><strong>Provider</strong></td><td>Yes</td><td>Select from the 7 supported providers (dropdown with emoji icons)</td></tr>
+          <tr><td><strong>Model</strong></td><td>Yes</td><td>Model identifier (e.g., "gpt-4o", "claude-sonnet-4-20250514", "gemini-1.5-pro")</td></tr>
+          <tr><td><strong>Temperature</strong></td><td>Yes</td><td>Inference temperature (0.0 – 2.0). Lower = more deterministic verdicts. Default: 0</td></tr>
+          <tr><td><strong>Weight</strong></td><td>Yes</td><td>Relative weight in multi-judge consensus (0.01 – 10.0). Default: 1.0</td></tr>
+          <tr><td><strong>Cost per 1k Input Tokens</strong></td><td>Yes</td><td>USD cost for estimating run budgets. Example: 0.0025</td></tr>
+          <tr><td><strong>Cost per 1k Output Tokens</strong></td><td>Yes</td><td>USD cost for estimating run budgets. Example: 0.0100</td></tr>
+          <tr><td><strong>Enabled</strong></td><td>Yes</td><td>Toggle — disabled judges are excluded from runs</td></tr>
+          <tr><td><strong>Connection Config</strong></td><td>Varies</td><td>Provider-specific fields (see table below)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Connection Configuration by Provider</h3>
+
+      <h4>OpenAI</h4>
+      <table class="docs-table">
+        <thead><tr><th>Field</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>OPENAI_API_KEY</td><td>Environment variable name holding the API key</td></tr>
+          <tr><td><code>base_url</code></td><td>(empty)</td><td>Custom base URL (leave empty for default api.openai.com)</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Anthropic</h4>
+      <table class="docs-table">
+        <thead><tr><th>Field</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>ANTHROPIC_API_KEY</td><td>Environment variable name</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Google Gemini</h4>
+      <table class="docs-table">
+        <thead><tr><th>Field</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>GOOGLE_API_KEY</td><td>Google AI Studio API key env var</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Google Vertex</h4>
+      <table class="docs-table">
+        <thead><tr><th>Field</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>GOOGLE_APPLICATION_CREDENTIALS</td><td>Path to service account JSON</td></tr>
+          <tr><td><code>project_id</code></td><td>(required)</td><td>GCP Project ID</td></tr>
+          <tr><td><code>location</code></td><td>us-central1</td><td>GCP region</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Azure OpenAI</h4>
+      <table class="docs-table">
+        <thead><tr><th>Field</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>AZURE_OPENAI_API_KEY</td><td>Azure API key env var</td></tr>
+          <tr><td><code>endpoint</code></td><td>(required)</td><td>Azure resource endpoint URL</td></tr>
+          <tr><td><code>deployment</code></td><td>(required)</td><td>Deployment name</td></tr>
+          <tr><td><code>api_version</code></td><td>2024-02-15-preview</td><td>Azure API version</td></tr>
+        </tbody>
+      </table>
+
+      <h4>AWS Bedrock</h4>
+      <table class="docs-table">
+        <thead><tr><th>Field</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>aws_region</code></td><td>us-east-1</td><td>AWS region for Bedrock</td></tr>
+          <tr><td><code>credential_env_hint</code></td><td>AWS_PROFILE</td><td>Hint for credential resolution</td></tr>
+        </tbody>
+      </table>
+
+      <h4>On-prem (OpenAI-compatible)</h4>
+      <table class="docs-table">
+        <thead><tr><th>Field</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>base_url</code></td><td>(required)</td><td>Full base URL (e.g., http://vllm-host:8000/v1)</td></tr>
+          <tr><td><code>api_key_env</code></td><td>OPENAI_API_KEY</td><td>API key env var (can be dummy for no-auth endpoints)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Judge Table</h2>
+      <p>The main Judges page shows a table of all registered judges:</p>
+      <table class="docs-table">
+        <thead><tr><th>Column</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Name</td><td>Human-readable judge name</td></tr>
+          <tr><td>Provider / Model</td><td>e.g., "openai / gpt-4o"</td></tr>
+          <tr><td>Temp</td><td>Temperature (2 decimal places)</td></tr>
+          <tr><td>Weight</td><td>Consensus weight (2 decimal places)</td></tr>
+          <tr><td>$/1k in</td><td>Input token cost</td></tr>
+          <tr><td>$/1k out</td><td>Output token cost</td></tr>
+          <tr><td>Enabled</td><td>Green/gray dot indicator</td></tr>
+          <tr><td>Created</td><td>Relative timestamp</td></tr>
+          <tr><td>Actions</td><td>Delete button (trash icon, with confirmation)</td></tr>
+        </tbody>
+      </table>
+      <p>Click any row to open the edit form with pre-filled values.</p>
+
+      <h2>Multi-Judge Consensus</h2>
+      <p>When an evaluation profile uses multiple judges, their verdicts are combined using a <strong>consensus policy</strong> (configured per profile):</p>
+      <table class="docs-table">
+        <thead><tr><th>Policy</th><th>Logic</th><th>Use Case</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Single</strong></td><td>First judge's verdict is final</td><td>Fast, cost-efficient evaluations</td></tr>
+          <tr><td><strong>Majority</strong></td><td>&gt;50% of judges must agree</td><td>Balanced reliability vs. cost</td></tr>
+          <tr><td><strong>Unanimous</strong></td><td>All judges must agree, else WARN</td><td>High-stakes decisions where any doubt = flag</td></tr>
+          <tr><td><strong>Weighted</strong></td><td>Verdicts weighted by judge's <code>weight</code> field</td><td>Expert ensemble (e.g., specialized judge gets 3x weight)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Judge Weight in Weighted Consensus</h2>
+      <p>Example: 3 judges with weights 1.0, 1.0, 3.0 (total = 5.0)</p>
+      <ul>
+        <li>Judge A (w=1.0): PASS → contributes 1.0 to PASS</li>
+        <li>Judge B (w=1.0): FAIL → contributes 1.0 to FAIL</li>
+        <li>Judge C (w=3.0): PASS → contributes 3.0 to PASS</li>
+        <li>Result: PASS score = 4.0/5.0 = 0.80 → verdict PASS</li>
+      </ul>
+
+      <h2>Editing &amp; Deleting</h2>
+      <ul>
+        <li><strong>Edit:</strong> Click any row → form opens with current values → modify → Save</li>
+        <li><strong>Delete:</strong> Click trash icon → confirmation dialog → permanently removes the judge</li>
+        <li>Deleting a judge that is referenced by active profiles will not break existing runs but will prevent new runs from using it</li>
+      </ul>
+
+      <h2>Permissions</h2>
+      <ul>
+        <li><strong>SA / PO:</strong> Full CRUD (create, read, update, delete)</li>
+        <li><strong>DV:</strong> Read-only view of judges table</li>
+      </ul>
+
+      <h2>Best Practices</h2>
+      <ul>
+        <li>Register at least 2 judges from different providers for cross-validation</li>
+        <li>Use <code>temperature: 0</code> for maximum reproducibility</li>
+        <li>Set accurate cost values — they directly affect budget guard calculations</li>
+        <li>Name judges descriptively (e.g., "GPT-4o Strict Safety" vs. "Claude Helpfulness")</li>
+        <li>Disable judges you're experimenting with to exclude them from production runs</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>Configure evaluation criteria &amp; consensus</span></a>
+        <a href="eval-runs.html" class="docs-next-card"><strong>Runs</strong><span>Launch evaluations using registered judges</span></a>
+        <a href="eval-golden.html" class="docs-next-card"><strong>Golden Sets</strong><span>Ground truth for judge calibration</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

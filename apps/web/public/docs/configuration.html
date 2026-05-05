@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Configuration - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link active">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="sessions.html" class="docs-nav-link">Sessions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP (Any Language)</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain Integration</a><div class="docs-nav-group">Quality (Evaluation)</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations &amp; RBAC</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Configuration</span></header>
+    <article class="docs-content">
+      <h1>Configuration</h1>
+      <p class="docs-lede">All environment variables are optional. Defaults are defined in <code>src/easyobs/settings.py</code>.</p>
+      <div class="docs-info"><strong>💡 How to set:</strong> Add to a <code>.env</code> file, or inject as real environment variables in your container/serverless runtime.</div>
+
+      <h2>Storage</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>EASYOBS_DATA_DIR</code></td><td><code>./data</code></td><td>Directory for SQLite catalog, JWT secret, and trace blobs. Wiped by <code>easyobs reset-data</code>.</td></tr>
+          <tr><td><code>EASYOBS_DATABASE_URL</code></td><td>(auto)</td><td>Leave blank → <code>&lt;DATA_DIR&gt;/catalog.sqlite3</code>. Production: <code>postgresql+asyncpg://user:pw@host:5432/easyobs</code></td></tr>
+        </tbody>
+      </table>
+
+      <h2>HTTP Server</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>EASYOBS_API_HOST</code></td><td><code>127.0.0.1</code></td><td>Bind address. Use <code>0.0.0.0</code> in containers.</td></tr>
+          <tr><td><code>EASYOBS_API_PORT</code></td><td><code>8787</code></td><td>API + OTLP/HTTP ingest port</td></tr>
+          <tr><td><code>EASYOBS_CORS_ORIGINS</code></td><td><code>http://127.0.0.1:3000,...</code></td><td>Comma-separated browser origin whitelist</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Authentication / Sessions</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>EASYOBS_JWT_SECRET</code></td><td>(auto-generated)</td><td>HS256 signing key. Auto-created on first boot at <code>&lt;DATA_DIR&gt;/jwt.secret</code>. Production: use <code>openssl rand -hex 32</code>.</td></tr>
+          <tr><td><code>EASYOBS_JWT_TTL_HOURS</code></td><td><code>12</code></td><td>JWT expiration time in hours</td></tr>
+        </tbody>
+      </table>
+
+      <h2>LLM Cost Pricing</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>EASYOBS_PRICING_SOURCE</code></td><td><code>auto</code></td><td>Source for <code>o.price</code> enrichment on ingest. <code>auto</code>: tokencost → litellm → builtin fallback.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Logging / Operational Visibility</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>EASYOBS_LOG_LEVEL</code></td><td><code>INFO</code></td><td>Log level: DEBUG / INFO / WARNING / ERROR</td></tr>
+          <tr><td><code>EASYOBS_LOG_FORMAT</code></td><td><code>console</code></td><td><code>console</code>: human-readable single-line. <code>json</code>: CloudWatch/Loki compatible.</td></tr>
+          <tr><td><code>EASYOBS_LOG_FILE</code></td><td>(none)</td><td>If set, mirrors logs to this file in addition to stdout</td></tr>
+          <tr><td><code>EASYOBS_LOG_REQUEST_BODY</code></td><td><code>false</code></td><td>When true, logs request body (max 4KB). PII risk — off by default.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Demo / Mock Data</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>EASYOBS_SEED_MOCK_DATA</code></td><td><code>false</code></td><td>When true, generates demo traces on first boot</td></tr>
+          <tr><td><code>EASYOBS_SEED_MOCK_TRACES</code></td><td><code>100</code></td><td>Number of synthetic traces to generate</td></tr>
+          <tr><td><code>EASYOBS_SEED_MOCK_WINDOW_HOURS</code></td><td><code>24</code></td><td>Time window for spreading synthetic traces</td></tr>
+          <tr><td><code>EASYOBS_SEED_MOCK_LIVE</code></td><td><code>false</code></td><td>Continuously drip synthetic traces while server runs</td></tr>
+          <tr><td><code>EASYOBS_SEED_MOCK_LIVE_INTERVAL_SEC</code></td><td><code>20</code></td><td>Interval between live synthetic traces (seconds)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Quality (Evaluation) Module</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>EASYOBS_EVAL_ENABLED</code></td><td><code>true</code></td><td>Master switch. When false, all evaluation routes/UI are hidden.</td></tr>
+          <tr><td><code>EASYOBS_EVAL_AUTO_RULE_ON_INGEST</code></td><td><code>true</code></td><td>Auto-trigger rule evaluations on trace ingest</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Alarms (Threshold Alerting)</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>EASYOBS_ALARM_ENABLED</code></td><td><code>true</code></td><td>Master switch for the Alarms module</td></tr>
+          <tr><td><code>EASYOBS_ALARM_EVAL_INTERVAL_SECONDS</code></td><td><code>60</code></td><td>Alarm evaluation cadence (seconds)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Frontend (Web Console)</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>NEXT_PUBLIC_API_URL</code></td><td><code>http://127.0.0.1:8787</code></td><td>API base URL the console calls</td></tr>
+        </tbody>
+      </table>
+
+      <h2>AWS Bedrock (Judge)</h2>
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>AWS_PROFILE</code></td><td><code>default</code></td><td>boto3 session profile (~/.aws/credentials)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Example .env File</h2>
+      <pre><code># === Local Development ===
+EASYOBS_DATA_DIR=./data
+EASYOBS_API_HOST=127.0.0.1
+EASYOBS_API_PORT=8787
+EASYOBS_LOG_LEVEL=INFO
+EASYOBS_LOG_FORMAT=console
+EASYOBS_SEED_MOCK_DATA=true
+EASYOBS_SEED_MOCK_TRACES=1000
+
+# === Production ===
+# EASYOBS_DATABASE_URL=postgresql+asyncpg://user:pw@db:5432/easyobs
+# EASYOBS_API_HOST=0.0.0.0
+# EASYOBS_JWT_SECRET=your-strong-secret-here
+# EASYOBS_LOG_FORMAT=json
+# EASYOBS_SEED_MOCK_DATA=false</code></pre>
+
+      <div class="docs-next-grid">
+        <a href="tracing.html" class="docs-next-card"><strong>Tracing</strong><span>How traces are collected and displayed</span></a>
+        <a href="sdk-python.html" class="docs-next-card"><strong>Python SDK</strong><span>Agent integration guide</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0 &middot; PolyForm Noncommercial License 1.0.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>API Reference - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="sessions.html" class="docs-nav-link">Sessions</a><a href="metrics.html" class="docs-nav-link">Metrics</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link active">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">API Reference</span></header>
+    <article class="docs-content">
+      <h1>API Reference</h1>
+      <p class="docs-lede">EasyObs exposes a RESTful API built with FastAPI. Interactive documentation is available at <code>/docs</code> (Swagger UI).</p>
+
+      <div class="docs-callout">
+        <strong>Interactive API Explorer</strong> — Visit <a href="http://127.0.0.1:8787/docs" target="_blank">http://127.0.0.1:8787/docs</a> for the live Swagger UI with try-it-out functionality.
+        <a href="http://127.0.0.1:8787/docs" target="_blank" class="docs-btn">Open Swagger UI →</a>
+      </div>
+
+      <h2>Authentication</h2>
+      <p>All API requests require authentication via Bearer token:</p>
+      <pre><code>Authorization: Bearer &lt;token&gt;</code></pre>
+      <p>Two token types exist:</p>
+      <table class="docs-table">
+        <thead><tr><th>Type</th><th>Purpose</th><th>How to Obtain</th></tr></thead>
+        <tbody>
+          <tr><td>Session JWT</td><td>Web console / management API</td><td>POST /v1/auth/signin</td></tr>
+          <tr><td>Ingest Token</td><td>OTLP trace ingestion from SDKs</td><td>Organizations &gt; Services</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Base URL</h2>
+      <pre><code>http://127.0.0.1:8787    (local development)
+https://easyobs.your.co  (production behind reverse proxy)</code></pre>
+
+      <h2>Endpoint Groups</h2>
+
+      <h3>Health &amp; System</h3>
+      <table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/healthz</code></td><td>Health check</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Authentication</h3>
+      <table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>POST</td><td><code>/v1/auth/signup</code></td><td>Register new user</td></tr>
+          <tr><td>POST</td><td><code>/v1/auth/signin</code></td><td>Sign in, get JWT</td></tr>
+          <tr><td>GET</td><td><code>/v1/auth/me</code></td><td>Current user info</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Trace Ingestion</h3>
+      <table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>POST</td><td><code>/v1/traces</code></td><td>OTLP/HTTP standard ingest</td></tr>
+          <tr><td>POST</td><td><code>/otlp/v1/traces</code></td><td>Legacy EasyObs ingest path</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Traces &amp; Analytics</h3>
+      <table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/traces</code></td><td>List traces (paginated, filtered)</td></tr>
+          <tr><td>GET</td><td><code>/v1/traces/{id}</code></td><td>Trace detail with spans</td></tr>
+          <tr><td>GET</td><td><code>/v1/sessions</code></td><td>List sessions</td></tr>
+          <tr><td>GET</td><td><code>/v1/analytics/overview</code></td><td>Dashboard KPIs and series</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Organizations</h3>
+      <table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/organizations</code></td><td>List organizations</td></tr>
+          <tr><td>POST</td><td><code>/v1/organizations</code></td><td>Create organization</td></tr>
+          <tr><td>GET</td><td><code>/v1/organizations/{id}</code></td><td>Organization detail</td></tr>
+          <tr><td>GET</td><td><code>/v1/organizations/{id}/services</code></td><td>List services</td></tr>
+          <tr><td>POST</td><td><code>/v1/organizations/{id}/services</code></td><td>Create service + token</td></tr>
+          <tr><td>GET</td><td><code>/v1/organizations/{id}/members</code></td><td>List members</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Evaluations (Quality)</h3>
+      <table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/evaluations/profiles</code></td><td>List profiles</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/profiles</code></td><td>Create profile</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/runs</code></td><td>List runs</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/runs</code></td><td>Start a new run</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/runs/{id}</code></td><td>Run detail + results</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/judges</code></td><td>List judge models</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/judges</code></td><td>Register judge model</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/golden-sets</code></td><td>List golden sets</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/golden-sets</code></td><td>Create golden set</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/golden-sets/{id}/upload</code></td><td>Upload items (CSV/JSONL/xlsx)</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/improvements</code></td><td>List improvement suggestions</td></tr>
+          <tr><td>PATCH</td><td><code>/v1/evaluations/improvements/{id}</code></td><td>Update status (triage/apply/reject)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Alarms</h3>
+      <table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/organizations/{id}/alarms</code></td><td>List alarm rules</td></tr>
+          <tr><td>POST</td><td><code>/v1/organizations/{id}/alarms</code></td><td>Create alarm rule</td></tr>
+          <tr><td>PATCH</td><td><code>/v1/organizations/{id}/alarms/{alarmId}</code></td><td>Update alarm</td></tr>
+          <tr><td>DELETE</td><td><code>/v1/organizations/{id}/alarms/{alarmId}</code></td><td>Delete alarm</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Common Response Codes</h2>
+      <table class="docs-table">
+        <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>200</td><td>Success</td></tr>
+          <tr><td>201</td><td>Created</td></tr>
+          <tr><td>400</td><td>Validation error (check request body)</td></tr>
+          <tr><td>401</td><td>Missing or invalid token</td></tr>
+          <tr><td>403</td><td>Insufficient permissions</td></tr>
+          <tr><td>404</td><td>Resource not found</td></tr>
+          <tr><td>429</td><td>Rate limited</td></tr>
+          <tr><td>500</td><td>Internal server error</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Rate Limiting</h2>
+      <p>Default limits per ingest token:</p>
+      <ul>
+        <li>Trace ingest: 1000 spans/second</li>
+        <li>Management API: 100 requests/minute</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="sdk-python.html" class="docs-next-card"><strong>Python SDK</strong><span>Client library for the API</span></a>
+        <a href="deployment.html" class="docs-next-card"><strong>Deployment</strong><span>Production setup</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

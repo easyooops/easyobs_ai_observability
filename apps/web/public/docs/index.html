@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyObs Documentation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar">
+    <div class="docs-brand">
+      <span class="docs-brand-mark"></span>
+      <div>
+        <div class="docs-brand-name">EasyObs</div>
+        <div class="docs-brand-sub">Documentation</div>
+      </div>
+    </div>
+    <nav class="docs-nav">
+      <div class="docs-nav-group">Getting Started</div>
+      <a href="index.html" class="docs-nav-link active">Introduction</a>
+      <a href="quickstart.html" class="docs-nav-link">Quickstart</a>
+      <a href="installation.html" class="docs-nav-link">Installation</a>
+      <a href="configuration.html" class="docs-nav-link">Configuration</a>
+      <div class="docs-nav-group">Observability</div>
+      <a href="tracing.html" class="docs-nav-link">Tracing</a>
+      <a href="sessions.html" class="docs-nav-link">Sessions</a>
+      <a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a>
+      <div class="docs-nav-group">SDK Integration</div>
+      <a href="sdk-python.html" class="docs-nav-link">Python SDK</a>
+      <a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a>
+      <a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP (Any Language)</a>
+      <a href="sdk-langchain.html" class="docs-nav-link">LangChain Integration</a>
+      <div class="docs-nav-group">Quality (Evaluation)</div>
+      <a href="eval-overview.html" class="docs-nav-link">Overview</a>
+      <a href="eval-profiles.html" class="docs-nav-link">Profiles</a>
+      <a href="eval-runs.html" class="docs-nav-link">Runs</a>
+      <a href="eval-judges.html" class="docs-nav-link">LLM Judges</a>
+      <a href="eval-golden.html" class="docs-nav-link">Golden Sets</a>
+      <a href="eval-improvements.html" class="docs-nav-link">Improvements</a>
+      <div class="docs-nav-group">Platform</div>
+      <a href="organizations.html" class="docs-nav-link">Organizations &amp; RBAC</a>
+      <a href="alarms.html" class="docs-nav-link">Alarms (Threshold Alerting)</a>
+      <a href="deployment.html" class="docs-nav-link">Deployment</a>
+      <a href="api-reference.html" class="docs-nav-link">API Reference</a>
+    </nav>
+    <div class="docs-sidebar-foot">
+      <a href="/workspace/" class="docs-back-link">&larr; Back to Console</a>
+    </div>
+  </aside>
+
+  <main class="docs-main">
+    <header class="docs-header">
+      <button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+      <span class="docs-header-title">EasyObs Documentation</span>
+    </header>
+
+    <article class="docs-content">
+      <h1>EasyObs Documentation</h1>
+      <p class="docs-lede">A lightweight observability platform for LLM agents. OTLP/HTTP-based tracing, multi-tenant RBAC, and a 3-Way evaluation system.</p>
+
+      <div class="docs-hero-placeholder" data-placeholder="hero-screenshot">
+        <div class="placeholder-box">📸 Hero Image: EasyObs Overview Dashboard Screenshot</div>
+      </div>
+
+      <h2>What is EasyObs?</h2>
+      <p>EasyObs is an <strong>open-source observability platform</strong> purpose-built for LLM (Large Language Model) agent services. Based on the OpenTelemetry Protocol (OTLP/HTTP), it collects traces and provides monitoring, analysis, and evaluation through an intuitive web console.</p>
+
+      <h2>Key Features</h2>
+      <div class="docs-feature-grid">
+        <div class="docs-feature-card">
+          <h3>🔍 Tracing</h3>
+          <p>Track every LLM call, retrieval, and tool use as spans. Monitor latency, cost, and token usage in real time.</p>
+        </div>
+        <div class="docs-feature-card">
+          <h3>📊 Sessions</h3>
+          <p>Group multi-turn conversations into sessions. Visually analyze per-user interaction flows.</p>
+        </div>
+        <div class="docs-feature-card">
+          <h3>⚡ Quality Evaluation</h3>
+          <p>3-Way evaluation with Rule-based, LLM-as-a-Judge, and Human labeling. Multi-Judge consensus and cost governance.</p>
+        </div>
+        <div class="docs-feature-card">
+          <h3>🔗 SDK &amp; Integration</h3>
+          <p>Python SDK, TypeScript/JS, LangChain callback handler, and all OTLP-compatible languages supported.</p>
+        </div>
+        <div class="docs-feature-card">
+          <h3>🏢 Multi-Tenant</h3>
+          <p>Organization × Service 2-axis multi-tenancy. SA/PO/DV role-based access control.</p>
+        </div>
+        <div class="docs-feature-card">
+          <h3>🚨 Alarms</h3>
+          <p>Threshold-based alerting. Automatic monitoring and notification for error rate, latency, and cost metrics.</p>
+        </div>
+      </div>
+
+      <h2>Architecture Overview</h2>
+      <div class="docs-hero-placeholder" data-placeholder="architecture-diagram">
+        <div class="placeholder-box">📸 Image: Architecture Diagram (Agent → OTLP/HTTP → API Server → SQLite/Postgres → Web Console)</div>
+      </div>
+      <table class="docs-table">
+        <thead><tr><th>Component</th><th>Tech Stack</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>API Server</td><td>Python 3.11+ / FastAPI / Uvicorn</td><td>OTLP collection, REST API, auth</td></tr>
+          <tr><td>Web Console</td><td>Next.js 14 / React / TypeScript</td><td>Real-time dashboard, configuration UI</td></tr>
+          <tr><td>Catalog DB</td><td>SQLite (dev) / PostgreSQL (prod)</td><td>Metadata, users, organizations</td></tr>
+          <tr><td>Blob Store</td><td>Local FS / S3 / Azure / GCS</td><td>Raw trace data storage</td></tr>
+          <tr><td>Agent SDK</td><td>Python (easyobs_agent) ~15KB</td><td>Sends traces from services</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Get Started Quickly</h2>
+      <div class="docs-callout">
+        <strong>3-Minute Quickstart</strong> — Run EasyObs locally and send your first trace.
+        <a href="quickstart.html" class="docs-btn">Quickstart Guide →</a>
+      </div>
+
+      <div class="docs-steps">
+        <div class="docs-step">
+          <span class="docs-step-num">1</span>
+          <div>
+            <strong>Clone and configure</strong>
+            <pre><code>cd docs/comparison/03.develop/easyobs
+cp .env.sample .env</code></pre>
+          </div>
+        </div>
+        <div class="docs-step">
+          <span class="docs-step-num">2</span>
+          <div>
+            <strong>Start servers (API + Web)</strong>
+            <pre><code>./scripts/run-dev.ps1   # Windows
+./scripts/run-dev.sh    # Linux/macOS</code></pre>
+          </div>
+        </div>
+        <div class="docs-step">
+          <span class="docs-step-num">3</span>
+          <div>
+            <strong>Access the console</strong>
+            <p>Open <code>http://localhost:3000</code>, sign up, and start exploring.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2>Next Steps</h2>
+      <div class="docs-next-grid">
+        <a href="installation.html" class="docs-next-card">
+          <strong>Installation Guide</strong>
+          <span>Prerequisites, detailed setup, production deployment</span>
+        </a>
+        <a href="sdk-python.html" class="docs-next-card">
+          <strong>Python SDK</strong>
+          <span>Instrument your agent with tracing</span>
+        </a>
+        <a href="eval-overview.html" class="docs-next-card">
+          <strong>Evaluation System</strong>
+          <span>3-Way evaluation for agent quality</span>
+        </a>
+        <a href="api-reference.html" class="docs-next-card">
+          <strong>API Reference</strong>
+          <span>OpenAPI-based endpoint documentation</span>
+        </a>
+      </div>
+    </article>
+
+    <footer class="docs-footer">
+      <p>EasyObs v0.1.0 &middot; PolyForm Noncommercial License 1.0.0</p>
+    </footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

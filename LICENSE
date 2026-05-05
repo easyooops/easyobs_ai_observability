@@ -1,0 +1,232 @@
+# PolyForm Noncommercial License 1.0.0
+
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
+
+## Acceptance
+
+In order to get any license under these terms, you must agree
+to them as both strict obligations and conditions to all
+your licenses.
+
+## Copyright License
+
+The licensor grants you a copyright license for the
+software to do everything you might do with the software
+that would otherwise infringe the licensor's copyright
+in it for any permitted purpose.  However, you may
+only distribute the software according to [Distribution
+License](#distribution-license) and make changes or new works
+based on the software according to [Changes and New Works
+License](#changes-and-new-works-license).
+
+## Distribution License
+
+The licensor grants you an additional copyright license
+to distribute copies of the software.  Your license
+to distribute covers distributing the software with
+changes and new works permitted by [Changes and New Works
+License](#changes-and-new-works-license).
+
+## Notices
+
+You must ensure that anyone who gets a copy of any part of
+the software from you also gets a copy of these terms or the
+URL for them above, as well as copies of any plain-text lines
+beginning with `Required Notice:` that the licensor provided
+with the software.  For example:
+
+> Required Notice: Copyright Yoyodyne, Inc. (https://example.com)
+
+## Changes and New Works License
+
+The licensor grants you an additional copyright license to
+make changes and new works based on the software for any
+permitted purpose.
+
+## Patent License
+
+The licensor grants you a patent license for the software that
+covers patent claims the licensor can license, or becomes able
+to license, that you would infringe by using the software.
+
+## Noncommercial Purposes
+
+Any noncommercial purpose is a permitted purpose.
+
+## Personal Uses
+
+Personal use for research, experiment, and testing for
+the benefit of public knowledge, personal study, private
+entertainment, hobby projects, amateur pursuits, or religious
+observance, without any anticipated commercial application,
+is use for a permitted purpose.
+
+## Noncommercial Organizations
+
+Use by any charitable organization, educational institution,
+public research organization, public safety or health
+organization, environmental protection organization,
+or government institution is use for a permitted purpose
+regardless of the source of funding or obligations resulting
+from the funding.
+
+## Fair Use
+
+You may have "fair use" rights for the software under the
+law. These terms do not limit them.
+
+## No Other Rights
+
+These terms do not allow you to sublicense or transfer any of
+your licenses to anyone else, or prevent the licensor from
+granting licenses to anyone else.  These terms do not imply
+any other licenses.
+
+## Patent Defense
+
+If you make any written claim that the software infringes or
+contributes to infringement of any patent, your patent license
+for the software granted under these terms ends immediately. If
+your company makes such a claim, your patent license ends
+immediately for work on behalf of your company.
+
+## Violations
+
+The first time you are notified in writing that you have
+violated any of these terms, or done anything with the software
+not covered by your licenses, your licenses can nonetheless
+continue if you come into full compliance with these terms,
+and take practical steps to correct past violations, within
+32 days of receiving notice.  Otherwise, all your licenses
+end immediately.
+
+## No Liability
+
+***As far as the law allows, the software comes as is, without
+any warranty or condition, and the licensor will not be liable
+to you for any damages arising out of these terms or the use
+or nature of the software, under any kind of legal claim.***
+
+## Definitions
+
+The **licensor** is the individual or entity offering these
+terms, and the **software** is the software the licensor makes
+available under these terms.
+
+**You** refers to the individual or entity agreeing to these
+terms.
+
+**Your company** is any legal entity, sole proprietorship,
+or other kind of organization that you work for, plus all
+organizations that have control over, are under the control of,
+or are under common control with that organization.  **Control**
+means ownership of substantially all the assets of an entity,
+or the power to direct its management and policies by vote,
+contract, or otherwise.  Control can be direct or indirect.
+
+**Your licenses** are all the licenses granted to you for the
+software under these terms.
+
+**Use** means anything you do with the software requiring one
+of your licenses.
+
+---
+
+# EasyObs - Required Notice and Commercial Restriction Addendum
+
+> **Required Notice:** Copyright (c) 2026 EasyObs Authors. All rights reserved.
+
+EasyObs (the "Software") is distributed under the PolyForm
+Noncommercial License 1.0.0 set forth above. This license does
+**not** meet the Open Source Initiative's "Open Source"
+definition. The source code is publicly available, but any
+**commercial use, commercial development, commercial
+distribution, or provision of the Software as part of a
+commercial service is legally prohibited** without a separate
+written commercial license from the licensor.
+
+## 1. Permitted Use
+
+The following uses are expressly permitted under this license:
+
+- Personal study, research, experimentation, evaluation, and
+  hobby projects, without any anticipated commercial
+  application.
+- Internal, noncommercial activities of charitable, educational,
+  public-research, public-safety, public-health, environmental,
+  or governmental organizations.
+- Noncommercial citation and demonstration of the Software in
+  academic papers, technical blog posts, and educational
+  materials.
+- Viewing the source code, forking the repository, and
+  submitting noncommercial contributions (Pull Requests) on a
+  public code-hosting platform.
+
+## 2. Prohibited Use
+
+The following acts are prohibited without the licensor's prior
+**express written consent**. Any violation of this Section
+immediately terminates all of your licenses (see the
+"Violations" clause above), and the licensor reserves the right
+to pursue any and all legal and monetary remedies available
+under applicable copyright and other laws.
+
+1. **Commercial Use** - Any direct or indirect for-profit
+   activity, or any internal operations supporting a for-profit
+   activity, including (without limitation) operating the
+   Software in a paid product or service, deploying it as an
+   internal operations tool of a for-profit entity, or
+   distributing it to employees as a productivity tool of a
+   for-profit entity.
+2. **Commercial Distribution** - Distributing the Software or
+   any derivative work thereof to a third party, whether for a
+   fee or free of charge, as the whole or any part of a product
+   or service, including (without limitation) any paid SaaS,
+   managed service, OEM offering, consulting deliverable, or
+   bundled distribution.
+3. **Commercial Development of Derivative Works** - Developing
+   any derivative work (including forks, modifications, and
+   rebranded versions) based on the Software with the intent
+   to integrate, port, or re-implement it in a commercial
+   product or commercial service.
+4. Removing, altering, or obscuring this license, the copyright
+   notice, or the "Required Notice" above.
+5. Sublicensing or transferring any of your licenses under
+   these terms.
+
+## 3. Commercial License
+
+If you require commercial use, commercial development, or
+commercial distribution rights, you must enter into a separate
+**paid commercial license agreement** with the licensor.
+Contact information for commercial licensing inquiries is
+provided in the project README or through other channels
+designated by the licensor.
+
+## 4. Disclaimer of Warranty and Limitation of Liability
+
+The Software is provided "AS IS", without warranty of any
+kind, express or implied, including but not limited to the
+warranties of merchantability, fitness for a particular
+purpose, and noninfringement. To the maximum extent permitted
+by law, the licensor shall not be liable for any direct,
+indirect, incidental, special, exemplary, or consequential
+damages arising out of or in connection with the Software or
+the use or other dealings in the Software.
+
+## 5. Governing Law and Jurisdiction
+
+This license shall be governed by and construed in accordance
+with the laws of the **Republic of Korea**, without regard to
+its conflict-of-laws principles. Any dispute arising out of or
+in connection with this license shall be submitted to the
+exclusive jurisdiction of the court having territorial
+jurisdiction over the licensor's principal place of business,
+as the court of first instance.
+
+---
+
+If any provision of this Addendum conflicts with the body of
+the PolyForm Noncommercial License 1.0.0 above, the more
+restrictive provision shall prevail with respect to the
+licensee.

@@ -1,0 +1,100 @@
+# =============================================================================
+# EasyObs — single-host cluster (수평 확장 + alarm leader 분리).
+#
+# 사용:
+#   docker compose \
+#     -f docker-compose.deps.yml \
+#     -f docker-compose.cluster.yml \
+#     --env-file .env up -d --scale easyobs-api-worker=${EASYOBS_API_REPLICAS:-2}
+#
+# 구성:
+#   - easyobs-api-leader  : alarm evaluator 활성화, 1대 고정.
+#   - easyobs-api-worker  : alarm 비활성화, --scale N 으로 워커 N대 동시.
+#   - easyobs-web         : Next.js 콘솔.
+#   - nginx               : 80 포트로 호스트 노출. /v1·/otlp·/healthz·/docs
+#                           는 API 풀로, 그 외는 Web 으로 라우팅.
+#
+# 모든 API 컨테이너는 같은 Postgres + 같은 named volume(`easyobs_blob`) 을
+# 공유한다. **여러 호스트 클러스터** 에서는 named volume 대신 NFS/EFS 또는
+# RDS+S3 어댑터로 교체할 것 (Terraform cluster/ 가 EFS 를 사용함).
+# =============================================================================
+
+services:
+  easyobs-api-leader:
+    image: ${EASYOBS_API_IMAGE}
+    container_name: easyobs-api-leader
+    env_file:
+      - .env
+    environment:
+      EASYOBS_DATA_DIR: /var/lib/easyobs
+      EASYOBS_ALARM_ENABLED: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - easyobs_blob:/var/lib/easyobs
+    expose:
+      - "8787"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8787/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
+  easyobs-api-worker:
+    image: ${EASYOBS_API_IMAGE}
+    # container_name 을 두지 않아 `--scale easyobs-api-worker=N` 가능.
+    env_file:
+      - .env
+    environment:
+      EASYOBS_DATA_DIR: /var/lib/easyobs
+      # 워커는 ingest / HTTP API / auto-rule eval 만. alarm 평가자는 끔.
+      EASYOBS_ALARM_ENABLED: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      easyobs-api-leader:
+        condition: service_healthy
+    volumes:
+      - easyobs_blob:/var/lib/easyobs
+    expose:
+      - "8787"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8787/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
+  easyobs-web:
+    image: ${EASYOBS_WEB_IMAGE}
+    container_name: easyobs-web
+    environment:
+      # 클러스터 외부에서는 nginx 가 대신 받으므로 같은 호스트의 80 포트로.
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1}
+    depends_on:
+      easyobs-api-leader:
+        condition: service_healthy
+    expose:
+      - "3000"
+    restart: unless-stopped
+
+  nginx:
+    image: ${NGINX_IMAGE:-nginx:1.27-alpine}
+    container_name: easyobs-nginx
+    depends_on:
+      easyobs-api-leader:
+        condition: service_started
+      easyobs-web:
+        condition: service_started
+    volumes:
+      - ./nginx.cluster.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "${EASYOBS_LB_HTTP_PORT:-80}:80"
+    restart: unless-stopped
+
+volumes:
+  easyobs_blob:

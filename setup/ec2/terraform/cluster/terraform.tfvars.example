@@ -1,0 +1,30 @@
+# Copy to terraform.tfvars and edit:
+#   cp terraform.tfvars.example terraform.tfvars
+
+aws_region              = "ap-northeast-2"
+project_name            = "easyobs"
+environment             = "prod"
+
+instance_type           = "t3.medium"
+ubuntu_codename         = "jammy"
+key_name                = ""
+allow_ssh_cidr          = "203.0.113.10/32"
+allow_alb_cidr          = "0.0.0.0/0"
+
+easyobs_api_image_tag   = "easyobs/api:0.2.0"
+easyobs_web_image_tag   = "easyobs/web:0.2.0"
+
+# 워커 수 (HPA 같은 기능). 트래픽이 늘면 desired_capacity 를 올린다.
+api_worker_min_size         = 1
+api_worker_desired_capacity = 2
+api_worker_max_size         = 6
+
+# RDS Postgres
+rds_instance_class      = "db.t3.medium"
+rds_allocated_storage   = 50
+rds_engine_version      = "16.4"
+rds_multi_az            = false
+rds_skip_final_snapshot = true
+
+# 데모 시드 (운영에서는 false)
+seed_mock_data          = false

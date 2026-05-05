@@ -1,0 +1,36 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "demo-svc" } }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "spanId": "bbbbbbbbbbbbbbbb",
+              "name": "root-operation",
+              "kind": 1,
+              "startTimeUnixNano": "1700000000000000000",
+              "endTimeUnixNano": "1700000000500000000",
+              "status": { "code": "STATUS_CODE_OK" }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "spanId": "cccccccccccccccc",
+              "parentSpanId": "bbbbbbbbbbbbbbbb",
+              "name": "child-step",
+              "kind": 1,
+              "startTimeUnixNano": "1700000000100000000",
+              "endTimeUnixNano": "1700000000400000000",
+              "status": { "code": "STATUS_CODE_OK" }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

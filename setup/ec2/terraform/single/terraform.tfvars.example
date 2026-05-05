@@ -1,0 +1,27 @@
+# Copy to terraform.tfvars and edit:
+#   cp terraform.tfvars.example terraform.tfvars
+
+aws_region            = "ap-northeast-2"
+project_name          = "easyobs"
+environment           = "dev"
+instance_type         = "t3.large"
+ubuntu_codename       = "jammy"
+key_name              = ""
+allow_ssh_cidr        = "203.0.113.10/32"
+allow_easyobs_cidr    = "0.0.0.0/0"
+
+easyobs_api_port      = 8787
+easyobs_web_port      = 3000
+easyobs_api_image_tag = "easyobs/api:0.2.0"
+easyobs_web_image_tag = "easyobs/web:0.2.0"
+
+enable_data_volume    = true
+data_volume_size_gb   = 100
+root_volume_size_gb   = 60
+
+# 데모/시드 데이터 (운영에선 false 권장)
+seed_mock_data        = false
+
+# 소스 트리 경로 (terraform single/ 디렉터리 기준 상대 경로). 보통 변경 불필요.
+# 기본값은 setup/ 의 부모 (= EasyObs 소스 루트)
+# easyobs_source_dir = "../../../.."

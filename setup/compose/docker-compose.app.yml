@@ -1,0 +1,49 @@
+# =============================================================================
+# EasyObs — single-node application (api + web).
+#
+# 사용:
+#   docker compose -f docker-compose.deps.yml -f docker-compose.app.yml --env-file .env up -d
+#
+# 단일 컨테이너 1대에 API+Web 을 띄운다. 데이터는 위 compose 의 Postgres 와
+# 로컬 named volume `easyobs_blob` 에 저장.
+# =============================================================================
+
+services:
+  easyobs-api:
+    image: ${EASYOBS_API_IMAGE}
+    container_name: easyobs-api
+    env_file:
+      - .env
+    environment:
+      EASYOBS_DATA_DIR: /var/lib/easyobs
+      # 단일 노드에서는 alarm evaluator 를 그대로 한 인스턴스에서 돌린다.
+      EASYOBS_ALARM_ENABLED: "${EASYOBS_ALARM_ENABLED:-true}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - easyobs_blob:/var/lib/easyobs
+    ports:
+      - "${EASYOBS_API_HOST_PORT:-8787}:8787"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8787/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
+  easyobs-web:
+    image: ${EASYOBS_WEB_IMAGE}
+    container_name: easyobs-web
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8787}
+    depends_on:
+      easyobs-api:
+        condition: service_healthy
+    ports:
+      - "${EASYOBS_WEB_HOST_PORT:-3000}:3000"
+    restart: unless-stopped
+
+volumes:
+  easyobs_blob:
