@@ -71,6 +71,9 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+*.terraform-staging/
+.terraform-staging/
+*.tfplan
 
 # Next.js / Node
 node_modules/
