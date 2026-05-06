@@ -100,6 +100,99 @@ with span_block("postprocess", kind="tool"):
     out = format_markdown(reply)
     record_tool(name="format.markdown", inp=reply, out=out)`;
 
+// ===========================================================================
+// Python OTel direct setup (air-gapped / no PyPI)
+// ===========================================================================
+
+function pyOtelDirectSnippet(token: string, baseUrl: string, service: string): string {
+  return `from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+# 1. Resource 설정
+resource = Resource.create({"service.name": "${service}"})
+
+# 2. TracerProvider + OTLP Exporter 설정
+provider = TracerProvider(resource=resource)
+exporter = OTLPSpanExporter(
+    endpoint="${baseUrl}/v1/traces",
+    headers={"Authorization": "Bearer ${token}"},
+)
+provider.add_span_processor(BatchSpanProcessor(exporter))
+trace.set_tracer_provider(provider)
+
+# 3. Tracer 얻기
+tracer = trace.get_tracer("my-agent", "0.1.0")
+
+# 4. 스팬 생성 (easyobs_agent 없이 순수 OTel)
+with tracer.start_as_current_span("agent.turn") as span:
+    span.set_attribute("o.kind", "agent")
+    span.set_attribute("o.q", user_query)
+
+    with tracer.start_as_current_span("retrieve") as child:
+        child.set_attribute("o.kind", "retrieve")
+        docs = vector.search(user_query)
+
+    with tracer.start_as_current_span("generate") as child:
+        child.set_attribute("o.kind", "llm")
+        child.set_attribute("o.model", "gpt-4o-mini")
+        reply = llm.invoke(user_query)
+        child.set_attribute("o.tok.in", 128)
+        child.set_attribute("o.tok.out", 256)
+
+    span.set_attribute("o.r", reply)`;
+}
+
+const PY_OTEL_DEPS_SNIPPET = `# requirements.txt (오프라인 설치용)
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-exporter-otlp-proto-http>=1.20.0
+
+# 오프라인 설치 (wheel 파일을 미리 다운로드한 경우)
+pip install --no-index --find-links ./wheels/ \\
+    opentelemetry-api \\
+    opentelemetry-sdk \\
+    opentelemetry-exporter-otlp-proto-http`;
+
+// ===========================================================================
+// Python easyobs_agent source-code direct development (air-gapped)
+// ===========================================================================
+
+const PY_SOURCE_DOWNLOAD_SNIPPET = `# ──────────────────────────────────────────────────────────────
+# 방법 1: Git 저장소에서 easyobs_agent 패키지만 추출
+# ──────────────────────────────────────────────────────────────
+git clone https://github.com/your-org/easyobs_ai_observability.git
+cp -r easyobs_ai_observability/src/easyobs_agent/ ./my_project/easyobs_agent/
+
+# ──────────────────────────────────────────────────────────────
+# 방법 2: git archive로 필요한 디렉토리만 tar 추출
+# ──────────────────────────────────────────────────────────────
+git archive --remote=<repo-url> HEAD src/easyobs_agent/ | tar -x --strip-components=1
+mv easyobs_agent/ ./my_project/easyobs_agent/
+
+# ──────────────────────────────────────────────────────────────
+# 방법 3: 이미 클론된 EasyObs 서버에서 직접 복사
+# ──────────────────────────────────────────────────────────────
+cp -r /opt/easyobs/src/easyobs_agent/ ./my_project/easyobs_agent/
+
+# ──────────────────────────────────────────────────────────────
+# OTel 의존성 wheel 다운로드 (인터넷 환경에서 사전 준비)
+# ──────────────────────────────────────────────────────────────
+pip download -d ./wheels/ \\
+    opentelemetry-api \\
+    opentelemetry-sdk \\
+    opentelemetry-exporter-otlp-proto-http
+
+# ──────────────────────────────────────────────────────────────
+# 폐쇄망에서 설치
+# ──────────────────────────────────────────────────────────────
+pip install --no-index --find-links ./wheels/ \\
+    opentelemetry-api \\
+    opentelemetry-sdk \\
+    opentelemetry-exporter-otlp-proto-http`;
+
 const PY_SPAN_TAG_SNIPPET = `from easyobs_agent import traced, span_tag, span_block, SpanTag
 
 @traced("agent.turn")
@@ -570,6 +663,51 @@ function PythonPanel({ baseUrl, orgName }: { baseUrl: string; orgName: string })
         snippet={PY_SPAN_TAG_SNIPPET}
         lang="py"
         hint={t("sdk.python.spanTagHint")}
+      />
+
+      {/* Air-gapped: OTel direct setup */}
+      <section className="eo-card">
+        <div className="eo-card-h">
+          <h3 className="eo-card-title">{t("sdk.python.otelDirectTitle")}</h3>
+          <span className="eo-card-sub">{t("sdk.python.otelDirectSub")}</span>
+        </div>
+        <p className="eo-hint">{t("sdk.python.otelDirectIntro")}</p>
+      </section>
+
+      <GuideCard
+        title={t("sdk.python.otelDirectDepsTitle")}
+        sub={t("sdk.python.otelDirectDepsSub")}
+        options={strTuples(raw("sdk.python.otelDirectDepsOptions"))}
+        snippet={PY_OTEL_DEPS_SNIPPET}
+        lang="sh"
+        hint={t("sdk.python.otelDirectDepsHint")}
+      />
+
+      <GuideCard
+        title={t("sdk.python.otelDirectCodeTitle")}
+        sub={t("sdk.python.otelDirectCodeSub")}
+        options={strTuples(raw("sdk.python.otelDirectCodeOptions"))}
+        snippet={pyOtelDirectSnippet(TOKEN_PLACEHOLDER, baseUrl, SERVICE_PLACEHOLDER)}
+        lang="py"
+        hint={t("sdk.python.otelDirectCodeHint")}
+      />
+
+      {/* Air-gapped: easyobs_agent source-code direct */}
+      <section className="eo-card">
+        <div className="eo-card-h">
+          <h3 className="eo-card-title">{t("sdk.python.sourceDirectTitle")}</h3>
+          <span className="eo-card-sub">{t("sdk.python.sourceDirectSub")}</span>
+        </div>
+        <p className="eo-hint">{t("sdk.python.sourceDirectIntro")}</p>
+      </section>
+
+      <GuideCard
+        title={t("sdk.python.sourceDirectDownloadTitle")}
+        sub={t("sdk.python.sourceDirectDownloadSub")}
+        options={strTuples(raw("sdk.python.sourceDirectDownloadOptions"))}
+        snippet={PY_SOURCE_DOWNLOAD_SNIPPET}
+        lang="sh"
+        hint={t("sdk.python.sourceDirectDownloadHint")}
       />
     </>
   );

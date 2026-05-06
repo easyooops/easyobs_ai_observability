@@ -179,7 +179,154 @@ def answer(query: str) -> str:
 
     return reply</code></pre>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">?“¸ Image: Traces collected via Python SDK displayed in the web console</div></div>
+      <hr>
+
+      <h2 id="air-gapped-otel">Air-gapped: Direct OTel Setup (&#54224;&#49604;&#47581; OTel &#51649;&#51217; &#49444;&#51221;)</h2>
+      <div class="docs-info">
+        <strong>&#128161; Applies to:</strong> Air-gapped environments without PyPI where you want to collect traces using only vanilla OpenTelemetry packages (no <code>easyobs_agent</code>).
+      </div>
+
+      <h3>Required Packages (3 wheels)</h3>
+      <table class="docs-table">
+        <thead><tr><th>Package</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>opentelemetry-api</code></td><td>Tracer / Span API surface</td></tr>
+          <tr><td><code>opentelemetry-sdk</code></td><td>TracerProvider + BatchSpanProcessor</td></tr>
+          <tr><td><code>opentelemetry-exporter-otlp-proto-http</code></td><td>OTLP/HTTP protobuf exporter</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Offline Installation</h3>
+      <pre><code># Download wheels (internet-connected machine)
+pip download -d ./wheels/ \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp-proto-http
+
+# Install in air-gapped environment
+pip install --no-index --find-links ./wheels/ \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp-proto-http</code></pre>
+
+      <h3>Pure OTel Code Example</h3>
+      <pre><code>from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+# 1. Resource
+resource = Resource.create({"service.name": "my-agent"})
+
+# 2. TracerProvider + OTLP Exporter
+provider = TracerProvider(resource=resource)
+exporter = OTLPSpanExporter(
+    endpoint="http://&lt;easyobs-server&gt;:8787/v1/traces",
+    headers={"Authorization": "Bearer eobs_..."},
+)
+provider.add_span_processor(BatchSpanProcessor(exporter))
+trace.set_tracer_provider(provider)
+
+# 3. Get tracer
+tracer = trace.get_tracer("my-agent", "0.1.0")
+
+# 4. Create spans with o.* attributes
+with tracer.start_as_current_span("agent.turn") as span:
+    span.set_attribute("o.kind", "agent")
+    span.set_attribute("o.q", user_query)
+
+    with tracer.start_as_current_span("retrieve") as child:
+        child.set_attribute("o.kind", "retrieve")
+        docs = vector.search(user_query)
+
+    with tracer.start_as_current_span("generate") as child:
+        child.set_attribute("o.kind", "llm")
+        child.set_attribute("o.model", "gpt-4o-mini")
+        reply = llm.invoke(user_query)
+        child.set_attribute("o.tok.in", 128)
+        child.set_attribute("o.tok.out", 256)
+
+    span.set_attribute("o.r", reply)</code></pre>
+
+      <h3>EasyObs <code>o.*</code> Attribute Mapping</h3>
+      <table class="docs-table">
+        <thead><tr><th>Key</th><th>Meaning</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><code>o.kind</code></td><td>Span role</td><td><code>"agent"</code> | <code>"llm"</code> | <code>"retrieve"</code> | <code>"tool"</code></td></tr>
+          <tr><td><code>o.q</code></td><td>User input</td><td><code>"Summarise yesterday"</code></td></tr>
+          <tr><td><code>o.r</code></td><td>Final response</td><td><code>"Here is..."</code></td></tr>
+          <tr><td><code>o.model</code></td><td>Model name</td><td><code>"gpt-4o-mini"</code></td></tr>
+          <tr><td><code>o.tok.in</code></td><td>Input tokens</td><td><code>128</code></td></tr>
+          <tr><td><code>o.tok.out</code></td><td>Output tokens</td><td><code>256</code></td></tr>
+          <tr><td><code>o.sess</code></td><td>Session ID</td><td><code>"sess_abc123"</code></td></tr>
+          <tr><td><code>o.user</code></td><td>User ID</td><td><code>"alice"</code></td></tr>
+        </tbody>
+      </table>
+      <div class="docs-info">
+        <strong>&#128161; Tip:</strong> As long as you set the <code>o.*</code> attributes correctly, the dashboard, metrics, and alarms work identically to using easyobs_agent.
+      </div>
+
+      <hr>
+
+      <h2 id="air-gapped-source">Air-gapped: easyobs_agent Source Direct (&#49548;&#49828;&#53076;&#46300; &#51649;&#51217; &#44060;&#48156;)</h2>
+      <div class="docs-info">
+        <strong>&#128161; Applies to:</strong> Air-gapped environments where you want the full easyobs_agent API (<code>@traced</code>, <code>span_block</code>, <code>record_llm</code>) without pip install &mdash; copy the source code directly into your project.
+      </div>
+
+      <h3>Package Download Methods</h3>
+      <pre><code># Method 1: Clone repo and copy easyobs_agent only
+git clone https://github.com/your-org/easyobs_ai_observability.git
+cp -r easyobs_ai_observability/src/easyobs_agent/ ./my_project/easyobs_agent/
+
+# Method 2: git archive (extract only the needed directory)
+git archive --remote=&lt;repo-url&gt; HEAD src/easyobs_agent/ | tar -x --strip-components=1
+mv easyobs_agent/ ./my_project/easyobs_agent/
+
+# Method 3: Copy from already-deployed EasyObs server
+cp -r /opt/easyobs/src/easyobs_agent/ ./my_project/easyobs_agent/</code></pre>
+
+      <h3>OTel Dependency Wheels</h3>
+      <pre><code># Download wheels (internet-connected machine)
+pip download -d ./wheels/ \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp-proto-http
+
+# Install in air-gapped environment
+pip install --no-index --find-links ./wheels/ \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp-proto-http</code></pre>
+
+      <h3>Package Files</h3>
+      <table class="docs-table">
+        <thead><tr><th>File</th><th>Role</th><th>Required</th></tr></thead>
+        <tbody>
+          <tr><td><code>__init__.py</code></td><td>Public API (init, traced, span_tag, ...)</td><td>Yes</td></tr>
+          <tr><td><code>boot.py</code></td><td>init() &mdash; TracerProvider + exporter setup</td><td>Yes</td></tr>
+          <tr><td><code>traced.py</code></td><td>@traced decorator (sync &amp; async)</td><td>Yes</td></tr>
+          <tr><td><code>tags.py</code></td><td>SpanTag constants + record_llm/retrieval/tool</td><td>Yes</td></tr>
+          <tr><td><code>span_scope.py</code></td><td>span_block context manager</td><td>Yes</td></tr>
+          <tr><td><code>callbacks/__init__.py</code></td><td>Callback module</td><td>Optional</td></tr>
+          <tr><td><code>callbacks/langchain.py</code></td><td>LangChain auto-callback</td><td>Optional (needs langchain-core)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Installation Steps Summary</h3>
+      <table class="docs-table">
+        <thead><tr><th>Step</th><th>Command</th></tr></thead>
+        <tbody>
+          <tr><td>1. Download OTel wheels (internet)</td><td><code>pip download -d ./wheels/ opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp-proto-http</code></td></tr>
+          <tr><td>2. Copy easyobs_agent source</td><td><code>cp -r /path/to/easyobs/src/easyobs_agent/ ./my_project/easyobs_agent/</code></td></tr>
+          <tr><td>3. Install OTel (air-gapped)</td><td><code>pip install --no-index --find-links ./wheels/ opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp-proto-http</code></td></tr>
+          <tr><td>4. Import in code</td><td><code>from easyobs_agent import init, traced</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="docs-info">
+        <strong>&#128161; Tip:</strong> If you don't need the LangChain callback, skip <code>callbacks/</code>. The 5 core files (<code>__init__.py</code>, <code>boot.py</code>, <code>traced.py</code>, <code>tags.py</code>, <code>span_scope.py</code>) are sufficient.
+      </div>
 
       <div class="docs-next-grid">
         <a href="sdk-typescript.html" class="docs-next-card"><strong>TypeScript / JS</strong><span>OpenTelemetry JS SDK integration</span></a>
