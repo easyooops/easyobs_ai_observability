@@ -11,7 +11,7 @@ import {
   type GoldenSet,
 } from "@/lib/api";
 import { fmtRel } from "@/lib/format";
-import { useBilingual } from "@/lib/i18n/bilingual";
+import { useI18n } from "@/lib/i18n/context";
 
 const DEFAULT_REQUEST_TEMPLATE = {
   message: "{{query_text}}",
@@ -36,7 +36,7 @@ type Props = {
  *   ``{{item_id}}`` are auto-substituted by the worker at run time.
  */
 export function GoldenAgentSettingsCard({ set, writable }: Props) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const initial = set.agentInvoke;
   const [endpointUrl, setEndpointUrl] = useState(initial?.endpointUrl ?? "");
@@ -122,19 +122,13 @@ export function GoldenAgentSettingsCard({ set, writable }: Props) {
   return (
     <div className="eo-card">
       <div className="eo-card-h">
-        <h3 className="eo-card-title">{b("Agent connection", "Agent 연결")}</h3>
+        <h3 className="eo-card-title">{t("pages.golden.detail.agentConnection")}</h3>
         <span className="eo-card-sub">
-          {b(
-            "Target endpoint for Golden Regression Runs",
-            "Golden Regression Run 시 호출 대상",
-          )}
+          {t("pages.golden.detail.targetEndpoint")}
         </span>
       </div>
       <p className="eo-mute" style={{ fontSize: 12, marginBottom: 8 }}>
-        {b(
-          "When a Regression Run starts we POST each Golden item's L1 query to this endpoint. The agent emits OTLP traces, which we auto-match (by metadata or trace id) and score against the Set's ground-truth.",
-          "Regression Run 시 Golden Item 의 L1 query 를 이 endpoint 에 전송하고, 에이전트가 OTLP 로 trace 를 보내면 자동 매칭하여 평가합니다.",
-        )}
+        {t("pages.golden.detail.endpointDescription")}
       </p>
       <label className="eo-field">
         <span>Endpoint URL</span>
@@ -146,7 +140,7 @@ export function GoldenAgentSettingsCard({ set, writable }: Props) {
         />
       </label>
       <label className="eo-field">
-        <span>{b("Request template (JSON)", "Request 템플릿 (JSON)")}</span>
+        <span>{t("pages.golden.detail.requestTemplate")}</span>
         <textarea
           rows={6}
           value={requestTemplate}
@@ -156,13 +150,13 @@ export function GoldenAgentSettingsCard({ set, writable }: Props) {
         />
       </label>
       <p className="eo-mute" style={{ fontSize: 11, margin: "0 0 8px" }}>
-        {b("Variables", "변수")}: <code className="mono">{"{{query_text}}"}</code>{" "}
+        {t("pages.golden.detail.variables")}: <code className="mono">{"{{query_text}}"}</code>{" "}
         <code className="mono">{"{{run_id}}"}</code>{" "}
         <code className="mono">{"{{item_id}}"}</code>
       </p>
       <div className="eo-grid-3" style={{ gap: 8 }}>
         <label className="eo-field">
-          <span>{b("Auth ref (Vault)", "Auth ref (Vault)")}</span>
+          <span>{t("pages.golden.detail.authRef")}</span>
           <input
             value={authRef}
             onChange={(e) => setAuthRef(e.target.value)}
@@ -171,7 +165,7 @@ export function GoldenAgentSettingsCard({ set, writable }: Props) {
           />
         </label>
         <label className="eo-field">
-          <span>{b("Timeout (sec)", "Timeout (초)")}</span>
+          <span>{t("pages.golden.detail.timeoutSec")}</span>
           <input
             type="number"
             value={timeoutSec}
@@ -184,7 +178,7 @@ export function GoldenAgentSettingsCard({ set, writable }: Props) {
           />
         </label>
         <label className="eo-field">
-          <span>{b("Max concurrent", "최대 동시 호출")}</span>
+          <span>{t("pages.golden.detail.maxConcurrent")}</span>
           <input
             type="number"
             value={maxConcurrent}
@@ -218,8 +212,8 @@ export function GoldenAgentSettingsCard({ set, writable }: Props) {
           }}
         >
           {probe.isPending
-            ? b("Testing…", "테스트 중…")
-            : b("Test connection", "연결 테스트")}
+            ? t("pages.golden.detail.testing")
+            : t("pages.golden.detail.testConnection")}
         </button>
         <button
           type="button"
@@ -227,7 +221,7 @@ export function GoldenAgentSettingsCard({ set, writable }: Props) {
           disabled={!writable || save.isPending}
           onClick={() => save.mutate()}
         >
-          {save.isPending ? b("Saving…", "저장 중…") : b("Save", "저장")}
+          {save.isPending ? t("pages.golden.detail.saving") : t("pages.golden.detail.save")}
         </button>
       </div>
     </div>
@@ -236,7 +230,7 @@ export function GoldenAgentSettingsCard({ set, writable }: Props) {
 
 /** Revision list + 4 Trust metrics. */
 export function GoldenRevisionsPanel({ set }: { set: GoldenSet }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const revisions = useQuery({
     queryKey: ["eval", "golden-revisions", set.id],
     queryFn: () => fetchGoldenRevisions(set.id),
@@ -260,17 +254,17 @@ export function GoldenRevisionsPanel({ set }: { set: GoldenSet }) {
     <div className="eo-grid-2" style={{ alignItems: "flex-start" }}>
       <div className="eo-card">
         <div className="eo-card-h">
-          <h3 className="eo-card-title">{b("Revisions", "Revisions")}</h3>
+          <h3 className="eo-card-title">{t("pages.golden.detail.revisions")}</h3>
           <span className="eo-card-sub">{list.length} total</span>
         </div>
         <div className="eo-table-wrap" style={{ maxHeight: 320, overflow: "auto" }}>
           <table className="eo-table">
             <thead>
               <tr>
-                <th>{b("Rev", "Rev")}</th>
-                <th>{b("Status", "Status")}</th>
-                <th>{b("Items", "항목수")}</th>
-                <th>{b("Created", "생성")}</th>
+                <th>{t("pages.golden.detail.rev")}</th>
+                <th>{t("pages.golden.detail.status")}</th>
+                <th>{t("pages.golden.detail.items")}</th>
+                <th>{t("pages.golden.detail.created")}</th>
               </tr>
             </thead>
             <tbody>
@@ -278,7 +272,7 @@ export function GoldenRevisionsPanel({ set }: { set: GoldenSet }) {
                 <tr>
                   <td colSpan={4}>
                     <div className="eo-empty">
-                      {b("No revisions yet.", "아직 revision 이 없습니다.")}
+                      {t("pages.golden.detail.noRevisions")}
                     </div>
                   </td>
                 </tr>
@@ -310,7 +304,7 @@ export function GoldenRevisionsPanel({ set }: { set: GoldenSet }) {
       <div className="eo-card">
         <div className="eo-card-h">
           <h3 className="eo-card-title">
-            {b("Trust (4 metrics)", "Trust (4종 메트릭)")}
+            {t("pages.golden.detail.trustMetrics")}
           </h3>
           <span className="eo-card-sub">
             {activeRev != null ? `rev ${activeRev}` : "—"}
@@ -319,10 +313,7 @@ export function GoldenRevisionsPanel({ set }: { set: GoldenSet }) {
         {trust.isLoading && <div className="eo-empty">Loading…</div>}
         {!trust.isLoading && !trust.data && (
           <div className="eo-empty">
-            {b(
-              "No trust data yet — auto-aggregated after the next evaluation Run.",
-              "아직 신뢰도 데이터가 없습니다 — 평가 Run 후 자동 집계됩니다.",
-            )}
+            {t("pages.golden.detail.noTrustData")}
           </div>
         )}
         {trust.data && (

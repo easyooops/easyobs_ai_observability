@@ -19,7 +19,7 @@ import {
   type EvalRun,
 } from "@/lib/api";
 import { fmtInt, fmtPct, fmtPrice, fmtRel, fmtScore, truncate } from "@/lib/format";
-import { useBilingual } from "@/lib/i18n/bilingual";
+import { useI18n } from "@/lib/i18n/context";
 
 type TabId =
   | "summary"
@@ -31,15 +31,15 @@ type TabId =
   | "report";
 
 function useTabs() {
-  const b = useBilingual();
+  const { t } = useI18n();
   return [
-    { id: "summary" as const, label: b("Summary", "요약") },
-    { id: "results" as const, label: b("Results", "결과") },
-    { id: "trust" as const, label: b("Trust", "신뢰도") },
-    { id: "replay" as const, label: b("Replay", "리플레이") },
-    { id: "findings" as const, label: b("Findings", "발견") },
-    { id: "improvements" as const, label: b("Improvements", "개선") },
-    { id: "report" as const, label: b("Report", "리포트") },
+    { id: "summary" as const, label: t("pages.runs.detail.tabSummary") },
+    { id: "results" as const, label: t("pages.runs.detail.tabResults") },
+    { id: "trust" as const, label: t("pages.runs.detail.tabTrust") },
+    { id: "replay" as const, label: t("pages.runs.detail.tabReplay") },
+    { id: "findings" as const, label: t("pages.runs.detail.tabFindings") },
+    { id: "improvements" as const, label: t("pages.runs.detail.tabImprovements") },
+    { id: "report" as const, label: t("pages.runs.detail.tabReport") },
   ];
 }
 
@@ -245,7 +245,7 @@ function SummaryTab({
   trust: TrustValues;
   results: EvalResult[];
 }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const errorCount = results.filter((r) => r.verdict === "error").length;
   const evaluated = results.length - errorCount;
   const lowTrust = trust.meanStars < 0.6;
@@ -260,35 +260,32 @@ function SummaryTab({
             marginBottom: 10,
           }}
         >
-          {b(
-            `⚠ This Run needs trust review (5-gauge mean ${Math.round(trust.meanStars * 100)}%).`,
-            `⚠ 이 Run 은 신뢰도 검토가 필요합니다 (5종 게이지 평균 ${Math.round(trust.meanStars * 100)}%).`,
-          )}
+          {tsub("pages.runs.detail.trustReviewWarning", { pct: String(Math.round(trust.meanStars * 100)) })}
         </div>
       )}
       <div className="eo-kpi-grid">
         <article className="eo-kpi">
-          <span className="eo-kpi-label">{b("Pass Rate", "Pass Rate")}</span>
+          <span className="eo-kpi-label">{t("pages.runs.detail.passRate")}</span>
           <strong className="eo-kpi-value">{fmtPct(run.passRate * 100)}</strong>
           <span className="eo-kpi-meta">
-            {run.completedCount} / {run.subjectCount} {b("subjects", "대상")}
+            {run.completedCount} / {run.subjectCount} {t("pages.runs.detail.subjects")}
           </span>
         </article>
         <article className="eo-kpi">
-          <span className="eo-kpi-label">{b("Avg Score", "평균 점수")}</span>
+          <span className="eo-kpi-label">{t("pages.runs.detail.avgScore")}</span>
           <strong className="eo-kpi-value">{fmtScore(run.avgScore)}</strong>
-          <span className="eo-kpi-meta">{run.failedCount} {b("fail", "실패")}</span>
+          <span className="eo-kpi-meta">{run.failedCount} {t("pages.runs.detail.fail")}</span>
         </article>
         <article className="eo-kpi" data-tone="warn">
-          <span className="eo-kpi-label">{b("Cost", "비용")}</span>
+          <span className="eo-kpi-label">{t("pages.runs.detail.cost")}</span>
           <strong className="eo-kpi-value">{fmtPrice(run.costActualUsd)}</strong>
-          <span className="eo-kpi-meta">{b("est", "추정")} {fmtPrice(run.costEstimateUsd)}</span>
+          <span className="eo-kpi-meta">{t("pages.runs.detail.est")} {fmtPrice(run.costEstimateUsd)}</span>
         </article>
         <article className="eo-kpi" data-tone={errorCount > 0 ? "err" : "ok"}>
-          <span className="eo-kpi-label">{b("Judge error", "Judge 오류")}</span>
+          <span className="eo-kpi-label">{t("pages.runs.detail.judgeError")}</span>
           <strong className="eo-kpi-value">{errorCount}</strong>
           <span className="eo-kpi-meta">
-            {evaluated} / {results.length} {b("evaluated · excluded from stats", "평가됨 · 통계 집계 제외")}
+            {evaluated} / {results.length} {t("pages.runs.detail.evaluatedExcluded")}
           </span>
         </article>
       </div>
@@ -298,14 +295,14 @@ function SummaryTab({
       >
         <div className="eo-card-h">
           <h3 className="eo-card-title">
-            {b("Five trust gauges — at a glance", "5종 신뢰 게이지 — 한눈에")}
+            {t("pages.runs.detail.fiveTrustGaugesGlance")}
           </h3>
         </div>
         <TrustFiveGrid trust={trust} compact />
       </div>
       {run.notes && (
         <div className="eo-empty" style={{ marginTop: 10 }}>
-          {b("Notes", "메모")}: {run.notes}
+          {t("pages.runs.detail.notes")}: {run.notes}
         </div>
       )}
     </>
@@ -319,7 +316,7 @@ function TrustFiveGrid({
   trust: TrustValues;
   compact?: boolean;
 }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   return (
     <div
       className="eo-grid-3"
@@ -327,16 +324,16 @@ function TrustFiveGrid({
     >
       <Gauge
         symbol="◎"
-        label={b("Coverage", "Coverage")}
+        label={t("pages.runs.detail.coverage")}
         score={trust.coverage}
-        subtitle={b(
-          `${Math.round(trust.coverage * 50)} / 50 recommended`,
-          `${Math.round(trust.coverage * 50)} / 50 권장`,
+        subtitle={tsub(
+          "pages.runs.detail.coverageSubtitle",
+          { count: String(Math.round(trust.coverage * 50)) },
         )}
       />
       <Gauge
         symbol="⊕"
-        label={b("Multi-Judge agreement", "Multi-Judge 합의")}
+        label={t("pages.runs.detail.multiJudgeAgreement")}
         score={trust.agreement}
         subtitle={
           trust.sigmas.length === 0
@@ -351,9 +348,12 @@ function TrustFiveGrid({
         subtitle={
           trust.ruleJudgeMatrix.rrJj === 0
             ? "n/a"
-            : b(
-                `${Math.round((trust.ruleVsJudge ?? 0) * trust.ruleJudgeMatrix.rrJj)} / ${trust.ruleJudgeMatrix.rrJj} match`,
-                `${Math.round((trust.ruleVsJudge ?? 0) * trust.ruleJudgeMatrix.rrJj)} / ${trust.ruleJudgeMatrix.rrJj} 일치`,
+            : tsub(
+                "pages.runs.detail.ruleJudgeMatch",
+                {
+                  matched: String(Math.round((trust.ruleVsJudge ?? 0) * trust.ruleJudgeMatrix.rrJj)),
+                  total: String(trust.ruleJudgeMatrix.rrJj),
+                },
               )
         }
       />
@@ -361,16 +361,13 @@ function TrustFiveGrid({
         symbol="κ"
         label="Human ⇆ Judge"
         score={trust.humanKappa}
-        subtitle={b(
-          "auto-computed once labels accrue",
-          "라벨 누적 시 자동 계산",
-        )}
+        subtitle={t("pages.runs.detail.autoComputedOnLabels")}
       />
       <Gauge
         symbol="δ"
-        label={b("Verdict drift", "Verdict drift")}
+        label={t("pages.runs.detail.verdictDrift")}
         score={trust.drift == null ? null : 1 - trust.drift}
-        subtitle={b("shown on Replay compare", "Replay 비교 시 표시")}
+        subtitle={t("pages.runs.detail.shownOnReplayCompare")}
       />
     </div>
   );
@@ -427,7 +424,7 @@ function Gauge({
 }
 
 function ResultsTab({ run, results }: { run: EvalRun; results: EvalResult[] }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const [pickedSession, setPickedSession] = useState<string | null>(null);
   const sessions = useMemo(() => {
     const m = new Map<string, EvalResult[]>();
@@ -453,7 +450,7 @@ function ResultsTab({ run, results }: { run: EvalRun; results: EvalResult[] }) {
           onClick={() => downloadResults(run, results)}
           disabled={!results.length}
         >
-          {b("Download CSV", "CSV 받기")}
+          {t("pages.runs.detail.downloadCsv")}
         </button>
         <button
           type="button"
@@ -461,25 +458,22 @@ function ResultsTab({ run, results }: { run: EvalRun; results: EvalResult[] }) {
           onClick={() => downloadResultsJson(run, results)}
           disabled={!results.length}
         >
-          {b("Download JSON", "JSON 받기")}
+          {t("pages.runs.detail.downloadJson")}
         </button>
       </div>
       <div className="eo-card-sub">
-        {b(
-          "Session groups — click to refresh the trace grid below",
-          "세션 묶음 — 클릭하면 아래 trace 그리드가 갱신됩니다",
-        )}
+        {t("pages.runs.detail.sessionGroupsHint")}
       </div>
       <div className="eo-table-wrap" style={{ maxHeight: 220, overflow: "auto" }}>
         <table className="eo-table">
           <thead>
             <tr>
-              <th>{b("Session", "세션")}</th>
-              <th>{b("Traces", "트레이스")}</th>
-              <th>{b("Pass", "통과")}</th>
-              <th>{b("Fail", "실패")}</th>
-              <th>{b("Error", "오류")}</th>
-              <th>{b("Avg score", "평균 점수")}</th>
+              <th>{t("pages.runs.detail.session")}</th>
+              <th>{t("pages.runs.detail.traces")}</th>
+              <th>{t("pages.runs.detail.pass")}</th>
+              <th>{t("pages.runs.detail.fail")}</th>
+              <th>{t("pages.runs.detail.error")}</th>
+              <th>{t("pages.runs.detail.avgScore")}</th>
             </tr>
           </thead>
           <tbody>
@@ -519,7 +513,7 @@ function ResultsTab({ run, results }: { run: EvalRun; results: EvalResult[] }) {
       {pickedSession != null && (
         <>
           <div className="eo-card-sub" style={{ marginTop: 14 }}>
-            {b("Traces in session", "세션 내 트레이스")}{" "}
+            {t("pages.runs.detail.tracesInSession")}{" "}
             <span className="mono">{truncate(pickedSession, 42)}</span>
           </div>
           <div
@@ -529,14 +523,14 @@ function ResultsTab({ run, results }: { run: EvalRun; results: EvalResult[] }) {
             <table className="eo-table">
               <thead>
                 <tr>
-                  <th>{b("Trace", "Trace")}</th>
-                  <th>{b("Verdict", "판정")}</th>
-                  <th>{b("Score", "점수")}</th>
-                  <th>{b("Rule", "Rule")}</th>
-                  <th>{b("Judge", "Judge")}</th>
+                  <th>{t("pages.runs.detail.trace")}</th>
+                  <th>{t("pages.runs.detail.verdict")}</th>
+                  <th>{t("pages.runs.detail.score")}</th>
+                  <th>{t("pages.runs.detail.rule")}</th>
+                  <th>{t("pages.runs.detail.judge")}</th>
                   <th>σ</th>
-                  <th>{b("Cost", "비용")}</th>
-                  <th>{b("Findings", "발견")}</th>
+                  <th>{t("pages.runs.detail.cost")}</th>
+                  <th>{t("pages.runs.detail.findings")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -561,13 +555,13 @@ function TrustTab({
   trust: TrustValues;
   results: EvalResult[];
 }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div className="eo-card" style={{ background: "var(--eo-bg-2)" }}>
         <div className="eo-card-h">
           <h3 className="eo-card-title">
-            {b("Five trust gauges", "5종 신뢰 게이지")}
+            {t("pages.runs.detail.fiveTrustGauges")}
           </h3>
         </div>
         <TrustFiveGrid trust={trust} />
@@ -576,10 +570,7 @@ function TrustTab({
       <div className="eo-card" style={{ background: "var(--eo-bg-2)" }}>
         <div className="eo-card-h">
           <h3 className="eo-card-title">
-            {b(
-              "⊕ Multi-Judge agreement — σ distribution",
-              "⊕ Multi-Judge agreement — σ 분포",
-            )}
+            {t("pages.runs.detail.sigmaDistribution")}
           </h3>
           <span className="eo-card-sub">{trust.sigmas.length} samples</span>
         </div>
@@ -589,15 +580,12 @@ function TrustTab({
       <div className="eo-card" style={{ background: "var(--eo-bg-2)" }}>
         <div className="eo-card-h">
           <h3 className="eo-card-title">
-            {b(
-              "⇆ Rule ⇆ Judge confusion matrix",
-              "⇆ Rule ⇆ Judge 비교 매트릭스",
-            )}
+            {t("pages.runs.detail.confusionMatrix")}
           </h3>
           <span className="eo-card-sub">
-            {b(
-              `${trust.ruleJudgeMatrix.rrJj} comparable results`,
-              `${trust.ruleJudgeMatrix.rrJj} 비교 가능 결과`,
+            {tsub(
+              "pages.runs.detail.comparableResults",
+              { count: String(trust.ruleJudgeMatrix.rrJj) },
             )}
           </span>
         </div>
@@ -614,29 +602,26 @@ function TrustTab({
       >
         <div className="eo-card-h">
           <h3 className="eo-card-title">
-            {b("Judge call error breakdown", "Judge 호출 실패 분류")}
+            {t("pages.runs.detail.judgeErrorBreakdown")}
           </h3>
           <span className="eo-card-sub">
             {trust.errorByType.size === 0
-              ? b("OK", "정상")
-              : b(
-                  `${Array.from(trust.errorByType.values()).reduce((s, v) => s + v, 0)} errors — excluded from stats`,
-                  `${Array.from(trust.errorByType.values()).reduce((s, v) => s + v, 0)} 건 — 통계 집계 제외`,
+              ? t("pages.runs.detail.ok")
+              : tsub(
+                  "pages.runs.detail.errorsExcluded",
+                  { count: String(Array.from(trust.errorByType.values()).reduce((s, v) => s + v, 0)) },
                 )}
           </span>
         </div>
         {trust.errorByType.size === 0 ? (
           <div className="eo-mute" style={{ fontSize: 12 }}>
-            {b(
-              "All Judge calls completed normally.",
-              "모든 Judge 호출이 정상 종료되었습니다.",
-            )}
+            {t("pages.runs.detail.allJudgeCallsNormal")}
           </div>
         ) : (
           <ul style={{ marginTop: 4, paddingLeft: 16, fontSize: 12 }}>
-            {[...trust.errorByType.entries()].map(([t, n]) => (
-              <li key={t}>
-                <span className="mono">{t}</span> · {n}
+            {[...trust.errorByType.entries()].map(([t2, n]) => (
+              <li key={t2}>
+                <span className="mono">{t2}</span> · {n}
               </li>
             ))}
           </ul>
@@ -644,7 +629,7 @@ function TrustTab({
       </div>
 
       <div className="eo-mute" style={{ fontSize: 12 }}>
-        run #{run.id.slice(0, 8)} · {results.length} {b("results", "결과")} · {b("avg trust", "평균 신뢰도")} ★{" "}
+        run #{run.id.slice(0, 8)} · {results.length} {t("pages.runs.detail.results")} · {t("pages.runs.detail.avgTrust")} ★{" "}
         {Math.round(trust.meanStars * 100)}%
       </div>
     </div>
@@ -695,15 +680,12 @@ function RuleJudgeMatrix({
 }: {
   matrix: TrustValues["ruleJudgeMatrix"];
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const tot = matrix.rrJj;
   if (tot === 0) {
     return (
       <div className="eo-mute" style={{ fontSize: 12 }}>
-        {b(
-          "No comparable results — both Rule and Judge scores are required.",
-          "Rule + Judge 점수가 모두 있는 결과가 없어 비교할 수 없습니다.",
-        )}
+        {t("pages.runs.detail.noComparableResults")}
       </div>
     );
   }
@@ -747,30 +729,24 @@ function RuleJudgeMatrix({
         {cell(matrix.rnJn, "ink")}
       </div>
       <div className="eo-mute" style={{ marginTop: 4 }}>
-        {b(
-          "Diagonal = agreement. Many Rule⁺Judge⁻ → Rule false-positive; many Rule⁻Judge⁺ → Rule false-negative.",
-          "대각선이 일치 — Rule⁺Judge⁻ 가 많으면 Rule false-positive, Rule⁻Judge⁺ 가 많으면 Rule false-negative.",
-        )}
+        {t("pages.runs.detail.matrixExplanation")}
       </div>
     </div>
   );
 }
 
 function ReplayTab({ run }: { run: EvalRun }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   return (
     <div className="eo-card" style={{ background: "var(--eo-bg-2)" }}>
       <div className="eo-card-h">
-        <h3 className="eo-card-title">{b("Replay", "Replay")}</h3>
+        <h3 className="eo-card-title">{t("pages.runs.detail.tabReplay")}</h3>
         <span className="eo-card-sub">
-          {b("parent/child slope compare", "parent/child 슬로프 비교")}
+          {t("pages.runs.detail.replaySubtitle")}
         </span>
       </div>
       <p className="eo-mute" style={{ fontSize: 12 }}>
-        {b(
-          "When this Run has a parent_run_id, four metrics (verdict drift δ, pass-rate, avg score, σ) for the same subjects are compared in slope charts. This Run has no recorded parent yet.",
-          "이 Run 의 parent_run_id 가 있으면 같은 subject 의 verdict 변동(δ), pass-rate, avg score, σ 4개 metric 을 슬로프 차트로 비교합니다. 현재 Run 은 단독 Run 이거나 parent 가 등록되지 않았습니다.",
-        )}
+        {t("pages.runs.detail.replayDescription")}
       </p>
       <div className="eo-mute" style={{ fontSize: 11, marginTop: 6 }}>
         run #{run.id.slice(0, 8)} · status={run.status}
@@ -780,7 +756,7 @@ function ReplayTab({ run }: { run: EvalRun }) {
 }
 
 function FindingsTab({ results }: { results: EvalResult[] }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const flat: { result: EvalResult; finding: EvalFinding }[] = [];
   for (const r of results) {
     for (const f of r.findings) flat.push({ result: r, finding: f });
@@ -796,10 +772,7 @@ function FindingsTab({ results }: { results: EvalResult[] }) {
   if (sorted.length === 0) {
     return (
       <div className="eo-empty">
-        {b(
-          "No findings recorded for this Run.",
-          "이 Run 에 기록된 finding 이 없습니다.",
-        )}
+        {t("pages.runs.detail.noFindings")}
       </div>
     );
   }
@@ -816,9 +789,9 @@ function FindingsTab({ results }: { results: EvalResult[] }) {
             <div className="eo-card-h">
               <h3 className="eo-card-title">{evaluatorId}</h3>
               <span className="eo-card-sub">
-                {b(
-                  `${rows.length} finding · ${fail} non-pass`,
-                  `${rows.length} finding · ${fail} non-pass`,
+                {tsub(
+                  "pages.runs.detail.findingSummary",
+                  { total: String(rows.length), fail: String(fail) },
                 )}
               </span>
             </div>
@@ -833,9 +806,9 @@ function FindingsTab({ results }: { results: EvalResult[] }) {
               ))}
               {rows.length > 12 && (
                 <li className="eo-mute">
-                  {b(
-                    `… and ${rows.length - 12} more`,
-                    `… 외 ${rows.length - 12} 건`,
+                  {tsub(
+                    "pages.runs.detail.andMore",
+                    { count: String(rows.length - 12) },
                   )}
                 </li>
               )}
@@ -848,27 +821,21 @@ function FindingsTab({ results }: { results: EvalResult[] }) {
 }
 
 function ImprovementsTab({ run }: { run: EvalRun }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   return (
     <div className="eo-card" style={{ background: "var(--eo-bg-2)" }}>
       <div className="eo-card-h">
-        <h3 className="eo-card-title">{b("Improvement Pack", "개선 팩")}</h3>
+        <h3 className="eo-card-title">{t("pages.runs.detail.improvementPack")}</h3>
         <span className="eo-card-sub">
-          {b("trust-recovery actions", "신뢰 게이지 회복 액션")}
+          {t("pages.runs.detail.trustRecoveryActions")}
         </span>
       </div>
       <p style={{ fontSize: 12, lineHeight: 1.5 }}>
-        {b(
-          "After a Run, when any of the five trust gauges is below 3 stars, recovery actions are auto-suggested. See the full list on the ",
-          "Run 종료 후 5종 신뢰 게이지가 3별 미만이면 자동으로 회복 액션이 제안됩니다 — 자세한 목록은 ",
-        )}
+        {t("pages.runs.detail.improvementDescBefore")}
         <Link href={`/workspace/quality/improvements/`} className="eo-link">
-          {b("Improvements", "개선 팩")}
+          {t("pages.runs.detail.improvements")}
         </Link>
-        {b(
-          " screen. Gauge ↔ Improvement category mapping is described in the design doc.",
-          " 화면에서 확인하세요.",
-        )}
+        {t("pages.runs.detail.improvementDescAfter")}
       </p>
       <div className="eo-mute" style={{ fontSize: 11, marginTop: 6 }}>
         run #{run.id.slice(0, 8)}
@@ -878,13 +845,13 @@ function ImprovementsTab({ run }: { run: EvalRun }) {
 }
 
 function ReportTab({ run, results }: { run: EvalRun; results: EvalResult[] }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   return (
     <div className="eo-card" style={{ background: "var(--eo-bg-2)" }}>
       <div className="eo-card-h">
-        <h3 className="eo-card-title">{b("Report", "리포트")}</h3>
+        <h3 className="eo-card-title">{t("pages.runs.detail.tabReport")}</h3>
         <span className="eo-card-sub">
-          {b("CSV / JSON download", "CSV / JSON 다운로드")}
+          {t("pages.runs.detail.csvJsonDownload")}
         </span>
       </div>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
@@ -894,7 +861,7 @@ function ReportTab({ run, results }: { run: EvalRun; results: EvalResult[] }) {
           onClick={() => downloadResults(run, results)}
           disabled={!results.length}
         >
-          {b("Download CSV", "CSV 다운로드")}
+          {t("pages.runs.detail.downloadCsvFull")}
         </button>
         <button
           type="button"
@@ -902,7 +869,7 @@ function ReportTab({ run, results }: { run: EvalRun; results: EvalResult[] }) {
           onClick={() => downloadResultsJson(run, results)}
           disabled={!results.length}
         >
-          {b("Download JSON", "JSON 다운로드")}
+          {t("pages.runs.detail.downloadJsonFull")}
         </button>
       </div>
       <div className="eo-mute" style={{ fontSize: 11, marginTop: 6 }}>

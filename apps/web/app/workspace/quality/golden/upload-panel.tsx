@@ -9,44 +9,26 @@ import {
   type UploadValidationResult,
   validateGoldenUpload,
 } from "@/lib/api";
-import { useBilingual } from "@/lib/i18n/bilingual";
+import { useI18n } from "@/lib/i18n/context";
 
 type Props = { set: GoldenSet; writable: boolean };
 
-function humanHints(b: (en: string, ko: string) => string): Record<string, string> {
+function humanHints(t: (key: string) => string): Record<string, string> {
   return {
-    "L1.query_text": b("L1 — user query (required)", "L1 — 사용자 query (필수)"),
-    "L1.intent": b("L1 — intent slug", "L1 — intent slug"),
-    "L1.difficulty": b("L1 — easy/medium/hard", "L1 — easy/medium/hard"),
-    "L1.language": b("L1 — language code", "L1 — 언어 코드"),
-    "L1.expected_tool": b("L1 — expected tool", "L1 — 기대 도구"),
-    "L1.tags": b("L1 — tags (comma)", "L1 — 태그 (comma)"),
-    "L2.relevant_doc_ids": b(
-      "L2 — relevant doc ids (comma)",
-      "L2 — 정답 문서 id (comma)",
-    ),
-    "L2.must_have_chunks": b(
-      "L2 — must-have chunks (comma)",
-      "L2 — 필수 chunk (comma)",
-    ),
-    "L2.k_target": b("L2 — retrieval k target", "L2 — 검색 k 목표"),
-    "L3.expected_answer_text": b(
-      "L3 — expected answer text",
-      "L3 — 정답 텍스트",
-    ),
-    "L3.must_include": b(
-      "L3 — must include (comma)",
-      "L3 — 필수 포함 어구 (comma)",
-    ),
-    "L3.must_not_include": b(
-      "L3 — must not include (comma)",
-      "L3 — 금지 어구 (comma)",
-    ),
-    "L3.citations_expected": b(
-      "L3 — expected citation doc ids (comma)",
-      "L3 — 인용 doc id (comma)",
-    ),
-    "L3.schema": b("L3 — JSON schema", "L3 — JSON schema"),
+    "L1.query_text": t("pages.golden.upload.hintL1Query"),
+    "L1.intent": t("pages.golden.upload.hintL1Intent"),
+    "L1.difficulty": t("pages.golden.upload.hintL1Difficulty"),
+    "L1.language": t("pages.golden.upload.hintL1Language"),
+    "L1.expected_tool": t("pages.golden.upload.hintL1ExpectedTool"),
+    "L1.tags": t("pages.golden.upload.hintL1Tags"),
+    "L2.relevant_doc_ids": t("pages.golden.upload.hintL2RelevantDocs"),
+    "L2.must_have_chunks": t("pages.golden.upload.hintL2MustHaveChunks"),
+    "L2.k_target": t("pages.golden.upload.hintL2KTarget"),
+    "L3.expected_answer_text": t("pages.golden.upload.hintL3ExpectedAnswer"),
+    "L3.must_include": t("pages.golden.upload.hintL3MustInclude"),
+    "L3.must_not_include": t("pages.golden.upload.hintL3MustNotInclude"),
+    "L3.citations_expected": t("pages.golden.upload.hintL3Citations"),
+    "L3.schema": t("pages.golden.upload.hintL3Schema"),
   };
 }
 
@@ -60,8 +42,8 @@ function humanHints(b: (en: string, ko: string) => string): Record<string, strin
  * - PII redaction and formula-injection prefixing happen on the server.
  */
 export function GoldenUploadPanel({ set, writable }: Props) {
-  const b = useBilingual();
-  const HUMAN_HINTS = humanHints(b);
+  const { t, tsub } = useI18n();
+  const HUMAN_HINTS = humanHints(t);
   const qc = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [hasHeader, setHasHeader] = useState(true);
@@ -83,13 +65,10 @@ export function GoldenUploadPanel({ set, writable }: Props) {
 
   const validate = useMutation({
     mutationFn: () => {
-      if (!file) throw new Error(b("Pick a file first.", "파일을 선택하세요"));
+      if (!file) throw new Error(t("pages.golden.upload.pickFile"));
       if (Object.values(mapping).filter((v) => v).length === 0) {
         throw new Error(
-          b(
-            "Map at least one column.",
-            "최소 1개 이상의 컬럼 매핑이 필요합니다",
-          ),
+          t("pages.golden.upload.mapAtLeastOne"),
         );
       }
       const cleanMapping: Record<string, string> = {};
@@ -121,7 +100,7 @@ export function GoldenUploadPanel({ set, writable }: Props) {
 
   const consume = useMutation({
     mutationFn: () => {
-      if (!file) throw new Error(b("Pick a file first.", "파일을 선택하세요"));
+      if (!file) throw new Error(t("pages.golden.upload.pickFile"));
       const cleanMapping: Record<string, string> = {};
       for (const [k, v] of Object.entries(mapping)) {
         if (v) cleanMapping[k] = v;
@@ -141,10 +120,7 @@ export function GoldenUploadPanel({ set, writable }: Props) {
       qc.invalidateQueries({ queryKey: ["eval", "golden-items", set.id] });
       qc.invalidateQueries({ queryKey: ["eval", "golden-sets"] });
       alert(
-        b(
-          `${r.inserted} item(s) registered as candidates.`,
-          `${r.inserted} 개 항목이 candidate 로 등록되었습니다.`,
-        ),
+        tsub("pages.golden.upload.insertedItems", { count: String(r.inserted) }),
       );
     },
     onError: (e: Error) => setError(e.message),
@@ -162,8 +138,8 @@ export function GoldenUploadPanel({ set, writable }: Props) {
     if (!file) return;
     if (Object.values(mapping).filter((v) => v).length === 0) return;
     if (validate.isPending) return;
-    const t = window.setTimeout(() => validate.mutate(), 200);
-    return () => window.clearTimeout(t);
+    const tid = window.setTimeout(() => validate.mutate(), 200);
+    return () => window.clearTimeout(tid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file, JSON.stringify(mapping), hasHeader, redactPii]);
 
@@ -172,25 +148,22 @@ export function GoldenUploadPanel({ set, writable }: Props) {
       <div className="eo-card-h">
         <h3 className="eo-card-title">Upload (CSV / JSONL / xlsx)</h3>
         <span className="eo-card-sub">
-          {b("bulk-register as candidates", "candidate 로 일괄 등록")}
+          {t("pages.golden.upload.subtitle")}
         </span>
       </div>
       <p className="eo-mute" style={{ fontSize: 12, marginBottom: 8 }}>
-        {b(
-          "When you upload, the server parses + sanitises the file (formula-injection prefix, external refs ignored) and returns a preview. Confirm the mapping and press [Register].",
-          "파일을 업로드하면 서버에서 파싱·sanitise (수식 인젝션 prefix, 외부참조 무시) 후 미리보기로 보여드립니다. 매핑이 만족스러우면 [등록] 버튼으로 확정합니다.",
-        )}
+        {t("pages.golden.upload.description")}
       </p>
       <div className="eo-grid-3" style={{ gap: 8 }}>
         <label className="eo-field">
-          <span>{b("File", "파일")}</span>
+          <span>{t("pages.golden.upload.file")}</span>
           <span className="eo-file">
             <span className="eo-file-button">
               <span aria-hidden="true">⇪</span>
-              {b("Choose file…", "파일 선택…")}
+              {t("pages.golden.upload.chooseFile")}
             </span>
             <span className="eo-file-name">
-              {file ? file.name : b("no file selected", "선택된 파일 없음")}
+              {file ? file.name : t("pages.golden.upload.noFileSelected")}
             </span>
             <input
               type="file"
@@ -207,7 +180,7 @@ export function GoldenUploadPanel({ set, writable }: Props) {
             onChange={(e) => setHasHeader(e.target.checked)}
             disabled={!writable}
           />
-          <span>{b("First row is header", "첫 행이 헤더")}</span>
+          <span>{t("pages.golden.upload.firstRowHeader")}</span>
         </label>
         <label className="eo-field" style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <input
@@ -216,20 +189,20 @@ export function GoldenUploadPanel({ set, writable }: Props) {
             onChange={(e) => setRedactPii(e.target.checked)}
             disabled={!writable}
           />
-          <span>{b("Mask PII (email/phone/SSN)", "PII 마스킹 (이메일·전화·주민번호)")}</span>
+          <span>{t("pages.golden.upload.maskPii")}</span>
         </label>
       </div>
 
       {preview && (
         <>
           <div className="eo-divider" style={{ margin: "10px 0" }} />
-          <strong style={{ fontSize: 12 }}>{b("Column mapping", "컬럼 매핑")}</strong>
+          <strong style={{ fontSize: 12 }}>{t("pages.golden.upload.columnMapping")}</strong>
           <div className="eo-table-wrap" style={{ marginTop: 4 }}>
             <table className="eo-table">
               <thead>
                 <tr>
-                  <th>{b("File column", "파일 컬럼")}</th>
-                  <th>{b("Golden Item field", "Golden Item 필드")}</th>
+                  <th>{t("pages.golden.upload.fileColumn")}</th>
+                  <th>{t("pages.golden.upload.goldenItemField")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -244,7 +217,7 @@ export function GoldenUploadPanel({ set, writable }: Props) {
                         }
                         disabled={!writable}
                       >
-                        <option value="">{b("— don't map —", "— 매핑 안 함 —")}</option>
+                        <option value="">{t("pages.golden.upload.dontMap")}</option>
                         {supportedPaths.map((p) => (
                           <option key={p} value={p}>
                             {HUMAN_HINTS[p] ?? p}
@@ -279,10 +252,7 @@ export function GoldenUploadPanel({ set, writable }: Props) {
           {preview.sampleRows.length > 0 && (
             <details style={{ marginTop: 6 }}>
               <summary>
-                {b(
-                  `Preview (${preview.sampleRows.length} rows)`,
-                  `미리보기 (${preview.sampleRows.length}행)`,
-                )}
+                {tsub("pages.golden.upload.previewRows", { count: String(preview.sampleRows.length) })}
               </summary>
               <pre
                 style={{
@@ -313,8 +283,8 @@ export function GoldenUploadPanel({ set, writable }: Props) {
           onClick={() => validate.mutate()}
         >
           {validate.isPending
-            ? b("Validating…", "검증 중…")
-            : b("Preview", "미리보기")}
+            ? t("pages.golden.upload.validating")
+            : t("pages.golden.upload.preview")}
         </button>
         <button
           type="button"
@@ -329,11 +299,8 @@ export function GoldenUploadPanel({ set, writable }: Props) {
           onClick={() => consume.mutate()}
         >
           {consume.isPending
-            ? b("Inserting…", "등록 중…")
-            : b(
-                `Register ${preview?.validCount ?? 0} item(s)`,
-                `${preview?.validCount ?? 0} 개 등록`,
-              )}
+            ? t("pages.golden.upload.inserting")
+            : tsub("pages.golden.upload.registerItems", { count: String(preview?.validCount ?? 0) })}
         </button>
       </div>
     </div>

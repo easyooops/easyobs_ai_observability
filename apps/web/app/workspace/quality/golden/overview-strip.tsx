@@ -24,14 +24,14 @@ import {
   type GoldenSet,
 } from "@/lib/api";
 import { fmtPct, fmtRel } from "@/lib/format";
-import { useBilingual } from "@/lib/i18n/bilingual";
+import { useI18n } from "@/lib/i18n/context";
 
 // ---------------------------------------------------------------------------
 // 1) Workbench-level KPI strip (top of Golden list)
 // ---------------------------------------------------------------------------
 
 export function GoldenWorkbenchKpiStrip({ sets }: { sets: GoldenSet[] }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const total = sets.length;
   const byMode = useMemo(() => {
     const m = new Map<string, number>();
@@ -50,7 +50,7 @@ export function GoldenWorkbenchKpiStrip({ sets }: { sets: GoldenSet[] }) {
   return (
     <div className="eo-kpi-grid" style={{ marginBottom: 12 }}>
       <article className="eo-kpi" data-tone="ink">
-        <span className="eo-kpi-label">{b("Golden Sets", "골든 세트")}</span>
+        <span className="eo-kpi-label">{t("pages.golden.overview.goldenSets")}</span>
         <strong className="eo-kpi-value">{total}</strong>
         <span className="eo-kpi-meta">
           regression {mode("regression")} · cohort {mode("cohort")} · synth{" "}
@@ -58,38 +58,29 @@ export function GoldenWorkbenchKpiStrip({ sets }: { sets: GoldenSet[] }) {
         </span>
       </article>
       <article className="eo-kpi">
-        <span className="eo-kpi-label">{b("Avg items", "평균 항목")}</span>
+        <span className="eo-kpi-label">{t("pages.golden.overview.avgItems")}</span>
         <strong className="eo-kpi-value">{avgItems}</strong>
         <span className="eo-kpi-meta">
-          {b(
-            `total ${totalItems.toLocaleString()} items`,
-            `전체 ${totalItems.toLocaleString()} items`,
-          )}
+          {tsub("pages.golden.overview.totalItems", { count: totalItems.toLocaleString() })}
         </span>
       </article>
       <article
         className="eo-kpi"
         data-tone={withAgent === 0 ? "warn" : "ok"}
       >
-        <span className="eo-kpi-label">{b("Agent linked", "Agent 연결")}</span>
+        <span className="eo-kpi-label">{t("pages.golden.overview.agentLinked")}</span>
         <strong className="eo-kpi-value">{withAgent}</strong>
         <span className="eo-kpi-meta">
-          {b(
-            "sets ready for Regression Run",
-            "Regression Run 가능 set 수",
-          )}
+          {t("pages.golden.overview.setsReadyForRegression")}
         </span>
       </article>
       <article className="eo-kpi" data-tone="warn">
-        <span className="eo-kpi-label">{b("Creation methods", "생성 방법")}</span>
+        <span className="eo-kpi-label">{t("pages.golden.overview.creationMethods")}</span>
         <strong className="eo-kpi-value" style={{ fontSize: 16 }}>
           A · B · C
         </strong>
         <span className="eo-kpi-meta">
-          {b(
-            "Upload · LLM Auto · Trace+labelling",
-            "업로드 · LLM 자동 · Trace+라벨링",
-          )}
+          {t("pages.golden.overview.creationMethodsList")}
         </span>
       </article>
     </div>
@@ -102,17 +93,17 @@ export function GoldenWorkbenchKpiStrip({ sets }: { sets: GoldenSet[] }) {
 
 const LAYER_ORDER: GoldenLayer[] = ["L1", "L2", "L3"];
 
-function sourceLabel(b: (en: string, ko: string) => string) {
+function sourceLabel(t: (key: string) => string) {
   return {
-    human_manual: b("Manual", "수동"),
-    auto_synth: b("Auto-gen", "자동 생성"),
-    trace_label: b("Trace label", "trace 라벨"),
-    import: b("Upload", "업로드"),
+    human_manual: t("pages.golden.overview.sourceManual"),
+    auto_synth: t("pages.golden.overview.sourceAutoGen"),
+    trace_label: t("pages.golden.overview.sourceTraceLabel"),
+    import: t("pages.golden.overview.sourceUpload"),
   } as Record<string, string>;
 }
 
 export function GoldenTriPanel({ set }: { set: GoldenSet }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const items = useQuery({
     queryKey: ["eval", "golden-items", set.id],
     queryFn: () => fetchGoldenItems(set.id),
@@ -176,10 +167,7 @@ export function GoldenTriPanel({ set }: { set: GoldenSet }) {
         <span className="eo-tag eo-tag-accent">{set.layer}</span>
         <span className="eo-mute mono">{set.itemCount} items</span>
         <span className="eo-mute mono">
-          {b(
-            `rev ${revisions.data?.length ?? 0} · latest rev ${latestRev ?? "—"}`,
-            `rev ${revisions.data?.length ?? 0} · 최신 rev ${latestRev ?? "—"}`,
-          )}
+          {tsub("pages.golden.overview.revInfo", { count: String(revisions.data?.length ?? 0), latest: String(latestRev ?? "—") })}
         </span>
         <span
           className="eo-status"
@@ -187,8 +175,8 @@ export function GoldenTriPanel({ set }: { set: GoldenSet }) {
           style={{ fontSize: 12 }}
         >
           {hasAgent
-            ? b("Agent linked", "Agent 연결됨")
-            : b("Agent not linked", "Agent 미연결")}
+            ? t("pages.golden.overview.agentLinkedStatus")
+            : t("pages.golden.overview.agentNotLinked")}
         </span>
         <span className="eo-mute mono" style={{ marginLeft: "auto" }}>
           created {fmtRel(set.createdAt)}
@@ -209,25 +197,25 @@ export function GoldenTriPanel({ set }: { set: GoldenSet }) {
             className="eo-card-sub"
             style={{ marginBottom: 6, fontWeight: 600 }}
           >
-            {b("Data", "데이터")}
+            {t("pages.golden.overview.dataTitle")}
           </div>
           <Row
             label="L1 / L2 / L3"
             value={`${layerDist.L1} · ${layerDist.L2} · ${layerDist.L3}`}
           />
           <div className="eo-mute" style={{ fontSize: 11, marginTop: 4 }}>
-            {b("source distribution", "source 분포")}
+            {t("pages.golden.overview.sourceDistribution")}
           </div>
-          <DistList dist={sourceDist} labelMap={sourceLabel(b)} />
+          <DistList dist={sourceDist} labelMap={sourceLabel(t)} />
           <div className="eo-mute" style={{ fontSize: 11, marginTop: 4 }}>
-            {b("review state", "검수 상태")}
+            {t("pages.golden.overview.reviewState")}
           </div>
           <DistList
             dist={reviewDist}
             labelMap={{
-              unreviewed: b("Unreviewed", "미검수"),
-              reviewed: b("Reviewed", "검수됨"),
-              disputed: b("Disputed", "이의제기"),
+              unreviewed: t("pages.golden.overview.unreviewed"),
+              reviewed: t("pages.golden.overview.reviewed"),
+              disputed: t("pages.golden.overview.disputed"),
             }}
             tone={(k) =>
               k === "reviewed" ? "ok" : k === "disputed" ? "err" : "warn"
@@ -248,14 +236,11 @@ export function GoldenTriPanel({ set }: { set: GoldenSet }) {
             className="eo-card-sub"
             style={{ marginBottom: 6, fontWeight: 600 }}
           >
-            {b("Trust", "신뢰도")}
+            {t("pages.golden.overview.trustTitle")}
           </div>
           {!trust.data && (
             <div className="eo-mute" style={{ fontSize: 12 }}>
-              {b(
-                "Auto-aggregated after evaluation Runs.",
-                "평가 Run 후 자동 집계됩니다.",
-              )}
+              {t("pages.golden.overview.trustAutoAggregated")}
             </div>
           )}
           {trust.data && (
@@ -307,23 +292,20 @@ export function GoldenTriPanel({ set }: { set: GoldenSet }) {
             className="eo-card-sub"
             style={{ marginBottom: 6, fontWeight: 600 }}
           >
-            {b("Usage", "사용 이력")}
+            {t("pages.golden.overview.usageTitle")}
           </div>
           <Row
-            label={b("Eval runs", "평가 Run")}
+            label={t("pages.golden.overview.evalRuns")}
             value={
-              b(
-                `${matchedRuns.length} runs`,
-                `${matchedRuns.length} 회`,
-              )
+              tsub("pages.golden.overview.runsCount", { count: String(matchedRuns.length) })
             }
           />
           <Row
-            label={b("Last pass", "최근 pass")}
+            label={t("pages.golden.overview.lastPass")}
             value={lastPass == null ? "—" : fmtPct(lastPass * 100)}
           />
           <Row
-            label={b("Best pass", "best pass")}
+            label={t("pages.golden.overview.bestPass")}
             value={
               matchedRuns.length === 0
                 ? "—"
@@ -335,20 +317,14 @@ export function GoldenTriPanel({ set }: { set: GoldenSet }) {
           {passSeries.length > 0 && (
             <>
               <div className="eo-mute" style={{ fontSize: 11, marginTop: 6 }}>
-                {b(
-                  "pass-rate trend (oldest → latest)",
-                  "pass 추세 (오래된 → 최근)",
-                )}
+                {t("pages.golden.overview.passRateTrend")}
               </div>
               <Sparkline values={passSeries} />
             </>
           )}
           {matchedRuns.length === 0 && (
             <div className="eo-mute" style={{ fontSize: 11, marginTop: 6 }}>
-              {b(
-                "No Runs have used this Set yet.",
-                "아직 이 Set 으로 실행된 Run 이 없습니다.",
-              )}
+              {t("pages.golden.overview.noRunsYet")}
             </div>
           )}
         </div>
@@ -363,18 +339,18 @@ export function GoldenTriPanel({ set }: { set: GoldenSet }) {
           fontSize: 12,
         }}
       >
-        <span className="eo-mute">{b("Add items →", "항목 추가 →")}</span>
+        <span className="eo-mute">{t("pages.golden.overview.addItems")}</span>
         <span className="eo-tag" data-tone="ok">
-          {b("+ Manual", "+ 수동 작성")}
+          {t("pages.golden.overview.addManual")}
         </span>
         <span className="eo-tag" data-tone="ok">
-          {b("+ From Trace", "+ Trace 에서")}
+          {t("pages.golden.overview.addFromTrace")}
         </span>
         <span className="eo-tag" data-tone="ok">
-          {b("+ LLM Auto", "+ LLM 자동")}
+          {t("pages.golden.overview.addLlmAuto")}
         </span>
         <span className="eo-tag" data-tone="ok">
-          {b("+ Upload", "+ Upload")}
+          {t("pages.golden.overview.addUpload")}
         </span>
         <span style={{ marginLeft: "auto", display: "inline-flex", gap: 6 }}>
           <span
@@ -383,14 +359,8 @@ export function GoldenTriPanel({ set }: { set: GoldenSet }) {
             style={{ fontSize: 12 }}
           >
             {hasAgent
-              ? b(
-                  "Ready to launch Regression Run",
-                  "Regression Run 시작 가능",
-                )
-              : b(
-                  "Link an agent before Regression Run",
-                  "Agent 연결 후 Regression Run 가능",
-                )}
+              ? t("pages.golden.overview.readyForRegression")
+              : t("pages.golden.overview.linkAgentFirst")}
           </span>
         </span>
       </div>

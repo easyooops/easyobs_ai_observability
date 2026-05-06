@@ -14,7 +14,6 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n/context";
-import { useBilingual } from "@/lib/i18n/bilingual";
 import { canMutateQuality } from "../guard";
 
 /** Human review registry embedded under Golden Sets.
@@ -35,8 +34,7 @@ import { canMutateQuality } from "../guard";
  *      missing-citation, …).
  */
 export function GoldenHumanLabelsTab() {
-  const { t } = useI18n();
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const auth = useAuth();
   const writable = canMutateQuality(auth);
   const search = useSearchParams();
@@ -107,23 +105,20 @@ export function GoldenHumanLabelsTab() {
       const traceIds = Array.from(picked);
       if (traceIds.length === 0)
         throw new Error(
-          b(
-            "Pick at least one labelled trace.",
-            "최소 1건 이상 라벨된 trace 를 선택하세요.",
-          ),
+          t("pages.humanLabels.errPickTrace"),
         );
       if (!profileId)
         throw new Error(
-          b("Pick an evaluation profile.", "평가 프로필을 선택하세요."),
+          t("pages.humanLabels.errPickProfile"),
         );
       return createEvalRun({
         profileId,
         projectId: null,
         traceIds,
         runMode: "human_label",
-        notes: b(
-          `Group evaluation of ${traceIds.length} human-labelled traces`,
-          `휴먼 라벨 ${traceIds.length}건 그룹 평가`,
+        notes: tsub(
+          "pages.humanLabels.groupRunNotes",
+          { count: String(traceIds.length) },
         ),
         runContext: { uiSource: "human_label_group" },
       });
@@ -170,27 +165,21 @@ export function GoldenHumanLabelsTab() {
         <section className="eo-card">
           <div className="eo-card-h">
             <h3 className="eo-card-title">
-              {b("Add a human label", "휴먼 라벨 등록")}
+              {t("pages.humanLabels.addLabelTitle")}
             </h3>
             <span className="eo-card-sub">
-              {b(
-                "Trace id → verdict → optional ground truth",
-                "Trace id → 판정 → (선택) 정답",
-              )}
+              {t("pages.humanLabels.addLabelSub")}
             </span>
           </div>
 
           <label className="eo-field">
-            <span>{b("Trace id", "Trace id")}</span>
+            <span>{t("pages.humanLabels.traceIdLabel")}</span>
             <input
               className="eo-input"
               value={traceId}
               onChange={(e) => setTraceId(e.target.value)}
               disabled={!writable}
-              placeholder={b(
-                "Paste trace id, or click + Label from a trace",
-                "trace id 를 붙여넣거나 trace 화면의 + Label 버튼 사용",
-              )}
+              placeholder={t("pages.humanLabels.traceIdPlaceholder")}
             />
           </label>
 
@@ -212,10 +201,10 @@ export function GoldenHumanLabelsTab() {
             style={{ background: "var(--eo-bg-2)", padding: 8, marginTop: 8 }}
           >
             <div className="eo-card-sub" style={{ marginBottom: 6 }}>
-              {b("Quick templates", "빠른 템플릿")}
+              {t("pages.humanLabels.quickTemplates")}
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {LABEL_TEMPLATES(b).map((tpl) => (
+              {LABEL_TEMPLATES(t).map((tpl) => (
                 <button
                   key={tpl.id}
                   type="button"
@@ -233,7 +222,7 @@ export function GoldenHumanLabelsTab() {
 
           <div className="eo-grid-2" style={{ gap: 8 }}>
             <label className="eo-field">
-              <span>{b("Verdict", "판정")}</span>
+              <span>{t("pages.humanLabels.verdictLabel")}</span>
               <select
                 className="eo-input"
                 value={verdict}
@@ -243,18 +232,18 @@ export function GoldenHumanLabelsTab() {
                 disabled={!writable}
               >
                 <option value="pass">
-                  {b("pass — correct", "pass — 정상")}
+                  {t("pages.humanLabels.verdictPass")}
                 </option>
                 <option value="warn">
-                  {b("warn — partial / minor issue", "warn — 부분 정답")}
+                  {t("pages.humanLabels.verdictWarn")}
                 </option>
                 <option value="fail">
-                  {b("fail — incorrect / blocked", "fail — 오답 / 차단")}
+                  {t("pages.humanLabels.verdictFail")}
                 </option>
               </select>
             </label>
             <label className="eo-field">
-              <span>{b("Failure category", "오류 카테고리")}</span>
+              <span>{t("pages.humanLabels.failureCategory")}</span>
               <select
                 className="eo-input"
                 value={category}
@@ -262,13 +251,13 @@ export function GoldenHumanLabelsTab() {
                 disabled={!writable}
               >
                 <option value="">
-                  {b("— none / pass —", "— 해당 없음 —")}
+                  {t("pages.humanLabels.categoryNone")}
                 </option>
                 {CATEGORY_GROUPS.map((g) => (
                   <optgroup key={g.title} label={g.title}>
                     {g.items.map((it) => (
                       <option key={it.code} value={it.code}>
-                        {it.code} — {b(it.titleEn, it.titleKo)}
+                        {it.code} — {t(`pages.humanLabels.category.${it.code}`)}
                       </option>
                     ))}
                   </optgroup>
@@ -279,10 +268,7 @@ export function GoldenHumanLabelsTab() {
 
           <label className="eo-field">
             <span>
-              {b(
-                "Expected response (ground truth, optional)",
-                "정답 응답 (선택, ground truth)",
-              )}
+              {t("pages.humanLabels.expectedLabel")}
             </span>
             <textarea
               className="eo-input"
@@ -290,25 +276,19 @@ export function GoldenHumanLabelsTab() {
               value={expected}
               onChange={(e) => setExpected(e.target.value)}
               disabled={!writable}
-              placeholder={b(
-                "What should the agent have said? Used as L3 ground-truth when promoted.",
-                "에이전트가 어떤 답을 했어야 하나? 승급 시 L3 ground-truth 로 사용.",
-              )}
+              placeholder={t("pages.humanLabels.expectedPlaceholder")}
             />
           </label>
 
           <label className="eo-field">
-            <span>{b("Reviewer notes", "리뷰어 메모")}</span>
+            <span>{t("pages.humanLabels.notesLabel")}</span>
             <textarea
               className="eo-input"
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               disabled={!writable}
-              placeholder={b(
-                "Why this verdict? Cite the span / chunk if relevant.",
-                "왜 그렇게 판정했는지. 관련 span/chunk 도 적어주세요.",
-              )}
+              placeholder={t("pages.humanLabels.notesPlaceholder")}
             />
           </label>
 
@@ -338,9 +318,9 @@ export function GoldenHumanLabelsTab() {
               {t("pages.humanLabels.registryTitle")}
             </h3>
             <span className="eo-card-sub">
-              {b(
-                `${(list.data ?? []).length} labelled · ${picked.size} selected`,
-                `${(list.data ?? []).length} 건 · ${picked.size} 선택`,
+              {tsub(
+                "pages.humanLabels.registrySub",
+                { labelled: String((list.data ?? []).length), selected: String(picked.size) },
               )}
             </span>
           </div>
@@ -362,16 +342,13 @@ export function GoldenHumanLabelsTab() {
               }}
             >
               <strong style={{ fontSize: 12 }}>
-                {b("Run evaluation on selected", "선택한 라벨로 평가 실행")}
+                {t("pages.humanLabels.runOnSelected")}
               </strong>
               <span
                 className="eo-mute"
                 style={{ fontSize: 11, marginLeft: "auto" }}
               >
-                {b(
-                  "Compares human verdict ↔ rule + judge",
-                  "휴먼 판정과 rule + judge 비교",
-                )}
+                {t("pages.humanLabels.runCompareHint")}
               </span>
             </div>
             <div
@@ -391,7 +368,7 @@ export function GoldenHumanLabelsTab() {
                 style={{ flex: "1 1 220px", minWidth: 180 }}
               >
                 <option value="">
-                  {b("— pick profile —", "— 프로필 선택 —")}
+                  {t("pages.humanLabels.pickProfile")}
                 </option>
                 {(profiles.data ?? [])
                   .filter((p) => p.enabled)
@@ -411,9 +388,9 @@ export function GoldenHumanLabelsTab() {
                   )
                 }
                 style={{ minWidth: 120 }}
-                title={b("Filter by verdict", "판정으로 필터")}
+                title={t("pages.humanLabels.filterByVerdict")}
               >
-                <option value="all">{b("All verdicts", "모든 판정")}</option>
+                <option value="all">{t("pages.humanLabels.allVerdicts")}</option>
                 <option value="pass">pass</option>
                 <option value="warn">warn</option>
                 <option value="fail">fail</option>
@@ -424,9 +401,9 @@ export function GoldenHumanLabelsTab() {
                 onClick={pickAllVisible}
                 disabled={filteredList.length === 0}
               >
-                {b(
-                  `Select visible (${filteredList.length})`,
-                  `보이는 ${filteredList.length}건 선택`,
+                {tsub(
+                  "pages.humanLabels.selectVisible",
+                  { count: String(filteredList.length) },
                 )}
               </button>
               <button
@@ -435,7 +412,7 @@ export function GoldenHumanLabelsTab() {
                 onClick={clearPicks}
                 disabled={picked.size === 0}
               >
-                {b("Clear", "해제")}
+                {t("pages.humanLabels.clear")}
               </button>
               <button
                 type="button"
@@ -452,10 +429,10 @@ export function GoldenHumanLabelsTab() {
                 }}
               >
                 {groupRun.isPending
-                  ? b("Launching…", "실행 중…")
-                  : b(
-                      `Run ${picked.size} label(s) ▶`,
-                      `${picked.size}건 평가 ▶`,
+                  ? t("pages.humanLabels.launching")
+                  : tsub(
+                      "pages.humanLabels.runCount",
+                      { count: String(picked.size) },
                     )}
               </button>
             </div>
@@ -546,10 +523,7 @@ export function GoldenHumanLabelsTab() {
                           onClick={() => {
                             if (
                               confirm(
-                                b(
-                                  "Delete this label?",
-                                  "이 라벨을 삭제할까요?",
-                                ),
+                                t("pages.humanLabels.deleteConfirm"),
                               )
                             )
                               del.mutate(row.id);
@@ -571,7 +545,7 @@ export function GoldenHumanLabelsTab() {
 }
 
 function UsageBanner() {
-  const b = useBilingual();
+  const { t } = useI18n();
   const [open, setOpen] = useState(true);
   return (
     <div
@@ -597,10 +571,7 @@ function UsageBanner() {
           {open ? "▾" : "▸"}
         </span>
         <strong style={{ color: "var(--eo-ink)" }}>
-          {b(
-            "Where do these labels go?",
-            "이 라벨은 어디에 쓰이나요?",
-          )}
+          {t("pages.humanLabels.usageTitle")}
         </strong>
       </button>
       {open && (
@@ -614,34 +585,19 @@ function UsageBanner() {
             }}
           >
             <li>
-              {b(
-                "Group + Run: tick rows on the right and click Run ▶ to evaluate that batch — human verdicts become ground-truth, the engine compares Rule + Judge against them.",
-                "그룹 평가 — 우측 목록에서 행을 체크하고 [Run ▶] 을 누르면 휴먼 판정을 정답으로 두고 Rule + Judge 를 비교 평가합니다.",
-              )}
+              {t("pages.humanLabels.usageGroupRun")}
             </li>
             <li>
-              {b(
-                "Adjudicate Judge disagreements: when LLM judges split, your label becomes the ground-truth.",
-                "Judge 가 의견이 갈릴 때 — 휴먼 라벨이 정답이 됩니다.",
-              )}
+              {t("pages.humanLabels.usageAdjudicate")}
             </li>
             <li>
-              {b(
-                "Promote into a Golden Set: pass labels become regression items, fails become L3 ground-truth.",
-                "Golden Set 승급 — pass 는 회귀 항목, fail 은 L3 정답으로.",
-              )}
+              {t("pages.humanLabels.usagePromote")}
             </li>
             <li>
-              {b(
-                "Drive Improvement Packs: failure category routes to the right remediation (prompt vs retrieval vs tool).",
-                "Improvement Pack 라우팅 — 카테고리에 따라 prompt/retrieval/tool 개선안이 추천됩니다.",
-              )}
+              {t("pages.humanLabels.usageImprovement")}
             </li>
             <li>
-              {b(
-                "Trust calibration: human ↔ judge agreement (Cohen κ) is shown on every Run.",
-                "신뢰도 보정 — Run 결과의 Human ↔ Judge κ 메트릭이 자동 계산됩니다.",
-              )}
+              {t("pages.humanLabels.usageCalibration")}
             </li>
           </ul>
           <div
@@ -652,10 +608,7 @@ function UsageBanner() {
               className="eo-btn eo-btn-ghost"
               style={{ fontSize: 11 }}
             >
-              {b(
-                "Or open Runs → Human-labeled source →",
-                "또는 Runs → 휴먼 라벨 source 로 이동 →",
-              )}
+              {t("pages.humanLabels.usageOpenRuns")}
             </a>
           </div>
         </>
@@ -671,17 +624,17 @@ function TracePreview({
   status: "loading" | "error" | "ok";
   detail?: Awaited<ReturnType<typeof fetchTraceDetail>>;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   if (status === "loading")
     return (
       <div className="eo-empty" style={{ marginTop: 6 }}>
-        {b("Loading trace…", "trace 불러오는 중…")}
+        {t("pages.humanLabels.previewLoading")}
       </div>
     );
   if (status === "error" || !detail)
     return (
       <div className="eo-empty" style={{ marginTop: 6 }}>
-        {b("No trace found for this id.", "해당 trace 를 찾을 수 없습니다.")}
+        {t("pages.humanLabels.previewNotFound")}
       </div>
     );
   return (
@@ -699,7 +652,7 @@ function TracePreview({
         }}
       >
         <strong style={{ fontSize: 13 }}>
-          {detail.rootName || b("(unnamed)", "(이름 없음)")}
+          {detail.rootName || t("pages.humanLabels.previewUnnamed")}
         </strong>
         <span className="eo-tag">{detail.serviceName ?? "—"}</span>
         <span
@@ -715,7 +668,7 @@ function TracePreview({
           className="eo-link"
           style={{ marginLeft: "auto", fontSize: 11 }}
         >
-          {b("Open full view →", "전체 보기 →")}
+          {t("pages.humanLabels.previewOpenFull")}
         </Link>
       </div>
     </div>
@@ -732,212 +685,110 @@ type LabelTemplate = {
   notes: string;
 };
 
-function LABEL_TEMPLATES(b: (en: string, ko: string) => string): LabelTemplate[] {
+function LABEL_TEMPLATES(t: (key: string) => string): LabelTemplate[] {
   return [
     {
       id: "correct",
-      label: b("✓ Correct", "✓ 정상"),
-      hint: b(
-        "Use when the agent answered correctly.",
-        "에이전트가 정확히 답했을 때.",
-      ),
+      label: t("pages.humanLabels.tpl.correct.label"),
+      hint: t("pages.humanLabels.tpl.correct.hint"),
       verdict: "pass",
       category: "",
       expected: "",
-      notes: b("Looks good.", "정상 응답."),
+      notes: t("pages.humanLabels.tpl.correct.notes"),
     },
     {
       id: "hallucination",
-      label: b("✗ Hallucination", "✗ 환각"),
-      hint: b(
-        "Agent invented facts not in context.",
-        "컨텍스트에 없는 사실을 만들어냈을 때.",
-      ),
+      label: t("pages.humanLabels.tpl.hallucination.label"),
+      hint: t("pages.humanLabels.tpl.hallucination.hint"),
       verdict: "fail",
       category: "gen.hallucination",
       expected: "",
-      notes: b(
-        "Claim not supported by retrieved context.",
-        "검색된 컨텍스트에 없는 주장.",
-      ),
+      notes: t("pages.humanLabels.tpl.hallucination.notes"),
     },
     {
       id: "missing-citation",
-      label: b("✗ Missing citation", "✗ 인용 누락"),
-      hint: b(
-        "Answer is correct but lacks required citations.",
-        "답은 맞지만 인용이 없음.",
-      ),
+      label: t("pages.humanLabels.tpl.missingCitation.label"),
+      hint: t("pages.humanLabels.tpl.missingCitation.hint"),
       verdict: "warn",
       category: "gen.citation_wrong",
       expected: "",
-      notes: b(
-        "Required [doc:id] citations are missing.",
-        "필수 인용이 빠져있습니다.",
-      ),
+      notes: t("pages.humanLabels.tpl.missingCitation.notes"),
     },
     {
       id: "retrieval-miss",
-      label: b("✗ Retrieval miss", "✗ 검색 실패"),
-      hint: b(
-        "The right document wasn't retrieved.",
-        "정답 문서가 검색되지 않았을 때.",
-      ),
+      label: t("pages.humanLabels.tpl.retrievalMiss.label"),
+      hint: t("pages.humanLabels.tpl.retrievalMiss.hint"),
       verdict: "fail",
       category: "retrieval.miss",
       expected: "",
-      notes: b(
-        "Top-K does not include the relevant doc.",
-        "Top-K 에 정답 문서가 없습니다.",
-      ),
+      notes: t("pages.humanLabels.tpl.retrievalMiss.notes"),
     },
     {
       id: "wrong-tool",
-      label: b("✗ Wrong tool", "✗ 잘못된 도구"),
-      hint: b(
-        "Agent picked the wrong tool / function call.",
-        "에이전트가 잘못된 도구를 선택했을 때.",
-      ),
+      label: t("pages.humanLabels.tpl.wrongTool.label"),
+      hint: t("pages.humanLabels.tpl.wrongTool.hint"),
       verdict: "fail",
       category: "tool.wrong",
       expected: "",
-      notes: b("Selected tool does not match the user's intent.", "사용자 의도와 다른 도구."),
+      notes: t("pages.humanLabels.tpl.wrongTool.notes"),
     },
     {
       id: "policy-violation",
-      label: b("✗ Policy violation", "✗ 정책 위반"),
-      hint: b(
-        "Output contains banned content.",
-        "정책 위반 내용 포함.",
-      ),
+      label: t("pages.humanLabels.tpl.policyViolation.label"),
+      hint: t("pages.humanLabels.tpl.policyViolation.hint"),
       verdict: "fail",
       category: "gen.policy_violation",
       expected: "",
-      notes: b(
-        "Response violates content policy.",
-        "응답이 정책을 위반했습니다.",
-      ),
+      notes: t("pages.humanLabels.tpl.policyViolation.notes"),
     },
   ];
 }
 
 const CATEGORY_GROUPS: {
   title: string;
-  items: { code: string; titleEn: string; titleKo: string }[];
+  items: { code: string }[];
 }[] = [
   {
     title: "Generation (D)",
     items: [
-      {
-        code: "gen.hallucination",
-        titleEn: "hallucination",
-        titleKo: "환각",
-      },
-      {
-        code: "gen.unfaithful",
-        titleEn: "unfaithful / not grounded",
-        titleKo: "근거 없음",
-      },
-      {
-        code: "gen.incorrect",
-        titleEn: "incorrect answer",
-        titleKo: "오답",
-      },
-      {
-        code: "gen.incomplete",
-        titleEn: "incomplete answer",
-        titleKo: "불완전한 답",
-      },
-      {
-        code: "gen.citation_wrong",
-        titleEn: "wrong / missing citation",
-        titleKo: "인용 오류",
-      },
-      {
-        code: "gen.policy_violation",
-        titleEn: "policy violation",
-        titleKo: "정책 위반",
-      },
-      {
-        code: "gen.format_invalid",
-        titleEn: "format invalid",
-        titleKo: "형식 오류",
-      },
+      { code: "gen.hallucination" },
+      { code: "gen.unfaithful" },
+      { code: "gen.incorrect" },
+      { code: "gen.incomplete" },
+      { code: "gen.citation_wrong" },
+      { code: "gen.policy_violation" },
+      { code: "gen.format_invalid" },
     ],
   },
   {
     title: "Retrieval (B)",
     items: [
-      {
-        code: "retrieval.miss",
-        titleEn: "relevant doc not in top-K",
-        titleKo: "정답 문서 누락",
-      },
-      {
-        code: "retrieval.noise_high",
-        titleEn: "too much irrelevant chunks",
-        titleKo: "노이즈 chunk 많음",
-      },
-      {
-        code: "retrieval.first_hit_late",
-        titleEn: "first hit too low rank",
-        titleKo: "첫 적중 순위 늦음",
-      },
+      { code: "retrieval.miss" },
+      { code: "retrieval.noise_high" },
+      { code: "retrieval.first_hit_late" },
     ],
   },
   {
     title: "Tool / agent (E)",
     items: [
-      {
-        code: "tool.wrong",
-        titleEn: "wrong tool selected",
-        titleKo: "잘못된 도구 선택",
-      },
-      {
-        code: "tool.arg_invalid",
-        titleEn: "invalid tool arguments",
-        titleKo: "도구 인자 오류",
-      },
-      {
-        code: "agent.plan_wrong",
-        titleEn: "wrong multi-step plan",
-        titleKo: "잘못된 추론 계획",
-      },
+      { code: "tool.wrong" },
+      { code: "tool.arg_invalid" },
+      { code: "agent.plan_wrong" },
     ],
   },
   {
     title: "Query (A)",
     items: [
-      {
-        code: "query.intent_mismatch",
-        titleEn: "intent classification wrong",
-        titleKo: "의도 분류 오류",
-      },
-      {
-        code: "query.ambiguous",
-        titleEn: "ambiguous user input",
-        titleKo: "모호한 입력",
-      },
+      { code: "query.intent_mismatch" },
+      { code: "query.ambiguous" },
     ],
   },
   {
     title: "Operational (F)",
     items: [
-      {
-        code: "ops.latency_over",
-        titleEn: "latency over budget",
-        titleKo: "지연 초과",
-      },
-      {
-        code: "ops.cost_over",
-        titleEn: "cost over budget",
-        titleKo: "비용 초과",
-      },
-      {
-        code: "ops.failure",
-        titleEn: "error / timeout",
-        titleKo: "오류 / 타임아웃",
-      },
+      { code: "ops.latency_over" },
+      { code: "ops.cost_over" },
+      { code: "ops.failure" },
     ],
   },
 ];

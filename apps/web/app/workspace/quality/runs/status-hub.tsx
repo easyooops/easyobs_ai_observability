@@ -6,7 +6,7 @@ import {
   type EvalRun,
 } from "@/lib/api";
 import { fmtPct, fmtPrice, fmtRel } from "@/lib/format";
-import { useBilingual } from "@/lib/i18n/bilingual";
+import { useI18n } from "@/lib/i18n/context";
 
 type Props = {
   selectedRunId: string | null;
@@ -31,7 +31,7 @@ const ACTIVE_STATUSES = new Set([
  * this hub aggregates *all* background work and polling is sufficient.
  */
 export function RunStatusHub({ selectedRunId, onSelect }: Props) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const runs = useQuery({
     queryKey: ["eval", "runs"],
     queryFn: () => fetchEvalRuns(200),
@@ -47,12 +47,12 @@ export function RunStatusHub({ selectedRunId, onSelect }: Props) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div className="eo-card">
         <div className="eo-card-h">
-          <h3 className="eo-card-title">{b("Active", "진행 중")}</h3>
+          <h3 className="eo-card-title">{t("pages.runs.statusHub.active")}</h3>
           <span className="eo-card-sub">{active.length} active</span>
         </div>
         {active.length === 0 ? (
           <div className="eo-empty">
-            {b("No Runs are currently active.", "현재 진행 중인 Run 이 없습니다.")}
+            {t("pages.runs.statusHub.noActiveRuns")}
           </div>
         ) : (
           <ActiveTable
@@ -65,14 +65,13 @@ export function RunStatusHub({ selectedRunId, onSelect }: Props) {
 
       <div className="eo-card">
         <div className="eo-card-h">
-          <h3 className="eo-card-title">{b("Recently completed", "최근 완료")}</h3>
+          <h3 className="eo-card-title">{t("pages.runs.statusHub.recentlyCompleted")}</h3>
           <span className="eo-card-sub">{completed.length} runs</span>
         </div>
         {completed.length === 0 ? (
           <div className="eo-empty">
-            {b(
-              "No completed Runs in the last 24 hours.",
-              "최근 24시간 내 완료된 Run 이 없습니다.",
+            {t(
+              "pages.runs.statusHub.noCompletedRuns",
             )}
           </div>
         ) : (
@@ -96,19 +95,19 @@ function ActiveTable({
   onSelect: (id: string) => void;
   selectedRunId: string | null;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   return (
     <div className="eo-table-wrap">
       <table className="eo-table">
         <thead>
           <tr>
-            <th>{b("Run", "Run")}</th>
-            <th>{b("Profile", "프로필")}</th>
-            <th>{b("Phase", "단계")}</th>
-            <th>{b("Subjects", "대상")}</th>
-            <th>{b("Pass", "통과")}</th>
-            <th>{b("Cost", "비용")}</th>
-            <th>{b("Started", "시작")}</th>
+            <th>{t("pages.runs.statusHub.colRun")}</th>
+            <th>{t("pages.runs.statusHub.colProfile")}</th>
+            <th>{t("pages.runs.statusHub.colPhase")}</th>
+            <th>{t("pages.runs.statusHub.colSubjects")}</th>
+            <th>{t("pages.runs.statusHub.colPass")}</th>
+            <th>{t("pages.runs.statusHub.colCost")}</th>
+            <th>{t("pages.runs.statusHub.colStarted")}</th>
           </tr>
         </thead>
         <tbody>
@@ -155,19 +154,19 @@ function CompletedTable({
   onSelect: (id: string) => void;
   selectedRunId: string | null;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   return (
     <div className="eo-table-wrap" style={{ maxHeight: 480, overflow: "auto" }}>
       <table className="eo-table">
         <thead>
           <tr>
-            <th>{b("Run", "Run")}</th>
-            <th>{b("Profile", "프로필")}</th>
-            <th>{b("Status", "상태")}</th>
-            <th>{b("Subjects", "대상")}</th>
-            <th>{b("Pass", "통과")}</th>
-            <th>{b("Cost", "비용")}</th>
-            <th>{b("Finished", "완료")}</th>
+            <th>{t("pages.runs.statusHub.colRun")}</th>
+            <th>{t("pages.runs.statusHub.colProfile")}</th>
+            <th>{t("pages.runs.statusHub.colStatus")}</th>
+            <th>{t("pages.runs.statusHub.colSubjects")}</th>
+            <th>{t("pages.runs.statusHub.colPass")}</th>
+            <th>{t("pages.runs.statusHub.colCost")}</th>
+            <th>{t("pages.runs.statusHub.colFinished")}</th>
           </tr>
         </thead>
         <tbody>

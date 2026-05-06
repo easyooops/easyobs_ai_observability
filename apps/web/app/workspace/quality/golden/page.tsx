@@ -26,7 +26,6 @@ import { fmtRel } from "@/lib/format";
 import { GoldenLayerLegend } from "../guides";
 import { canMutateQuality, QualityGuard, ScopeBanner, WriteHint } from "../guard";
 import { useI18n } from "@/lib/i18n/context";
-import { useBilingual } from "@/lib/i18n/bilingual";
 import { GoldenHumanLabelsTab } from "./human-labels-tab";
 import {
   GoldenAgentSettingsCard,
@@ -59,28 +58,19 @@ function recommendLayer(name: string, description: string, mode: GoldenSetMode):
 }
 
 function useModeOptions() {
-  const b = useBilingual();
+  const { t } = useI18n();
   return [
     {
       value: "regression" as GoldenSetMode,
-      label: b(
-        "regression — ground-truth regression suite",
-        "regression — GT 기반 회귀 테스트",
-      ),
+      label: t("pages.golden.sets.modeRegression"),
     },
     {
       value: "cohort" as GoldenSetMode,
-      label: b(
-        "cohort — trace bundle (no GT)",
-        "cohort — GT 없는 trace 묶음",
-      ),
+      label: t("pages.golden.sets.modeCohort"),
     },
     {
       value: "synthesized" as GoldenSetMode,
-      label: b(
-        "synthesized — LLM-generated",
-        "synthesized — LLM 자동 생성",
-      ),
+      label: t("pages.golden.sets.modeSynthesized"),
     },
   ];
 }
@@ -102,8 +92,7 @@ export default function GoldenPage() {
 }
 
 function Inner() {
-  const { t } = useI18n();
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const MODE_OPTIONS = useModeOptions();
   const router = useRouter();
   const search = useSearchParams();
@@ -241,25 +230,22 @@ function Inner() {
 
       <div className="eo-card">
         <div className="eo-card-h">
-          <h3 className="eo-card-title">{b("Golden Sets", "골든 세트")}</h3>
+          <h3 className="eo-card-title">{t("pages.golden.sets.tableTitle")}</h3>
           <span className="eo-card-sub">
-            {b(
-              `${sets.data?.length ?? 0} total · click a row to inspect`,
-              `${sets.data?.length ?? 0} 개 · 행 클릭 시 상세 열림`,
-            )}
+            {tsub("pages.golden.sets.tableSub", { count: String(sets.data?.length ?? 0) })}
           </span>
         </div>
         <div className="eo-table-wrap">
           <table className="eo-table">
             <thead>
               <tr>
-                <th>{b("Name", "이름")}</th>
-                <th>{b("Mode", "Mode")}</th>
-                <th>{b("Layer", "Layer")}</th>
-                <th>{b("Agent", "Agent")}</th>
-                <th>{b("Service", "Service")}</th>
-                <th>{b("Items", "항목")}</th>
-                <th>{b("Created", "생성")}</th>
+                <th>{t("pages.golden.sets.colName")}</th>
+                <th>{t("pages.golden.sets.colMode")}</th>
+                <th>{t("pages.golden.sets.colLayer")}</th>
+                <th>{t("pages.golden.sets.colAgent")}</th>
+                <th>{t("pages.golden.sets.colService")}</th>
+                <th>{t("pages.golden.sets.colItems")}</th>
+                <th>{t("pages.golden.sets.colCreated")}</th>
                 <th />
               </tr>
             </thead>
@@ -268,7 +254,7 @@ function Inner() {
                 <tr>
                   <td colSpan={8}>
                     <div className="eo-empty">
-                      {b("No golden sets yet.", "아직 골든 세트가 없습니다.")}
+                      {t("pages.golden.sets.empty")}
                     </div>
                   </td>
                 </tr>
@@ -315,8 +301,8 @@ function Inner() {
                         style={{ fontSize: 11 }}
                       >
                         {hasAgent
-                          ? b("Agent ✓", "Agent ✓")
-                          : b("Agent —", "Agent —")}
+                          ? t("pages.golden.sets.agentYes")
+                          : t("pages.golden.sets.agentNo")}
                       </span>
                     </td>
                     <td className="mono">
@@ -336,10 +322,7 @@ function Inner() {
                             e.stopPropagation();
                             if (
                               confirm(
-                                b(
-                                  `Delete golden set "${g.name}"?`,
-                                  `골든 세트 "${g.name}" 을 삭제할까요?`,
-                                ),
+                                tsub("pages.golden.sets.deleteConfirm", { name: g.name }),
                               )
                             ) {
                               remove.mutate(g.id);
@@ -347,7 +330,7 @@ function Inner() {
                           }}
                           disabled={remove.isPending}
                         >
-                          {b("Delete", "삭제")}
+                          {t("pages.golden.sets.delete")}
                         </button>
                       )}
                     </td>
@@ -372,28 +355,22 @@ function Inner() {
       {creating && (
         <div className="eo-card" style={{ marginTop: 12 }}>
           <div className="eo-card-h">
-            <h3 className="eo-card-title">{b("New golden set", "새 골든 세트")}</h3>
+            <h3 className="eo-card-title">{t("pages.golden.sets.newTitle")}</h3>
             <span className="eo-card-sub">
-              {b(
-                "Layer is auto-recommended from the name + description; you can override anytime.",
-                "Layer 는 이름·설명으로 자동 추천됩니다. 언제든 변경 가능.",
-              )}
+              {t("pages.golden.sets.newSub")}
             </span>
           </div>
           <div className="eo-grid-2" style={{ gap: 12 }}>
             <label className="eo-field">
-              <span>{b("Name", "이름")}</span>
+              <span>{t("pages.golden.sets.colName")}</span>
               <input
                 value={newSet.name}
                 onChange={(e) => setNewSet({ ...newSet, name: e.target.value })}
-                placeholder={b(
-                  "e.g. customer-faq-regression",
-                  "예: customer-faq-regression",
-                )}
+                placeholder={t("pages.golden.sets.namePlaceholder")}
               />
             </label>
             <label className="eo-field">
-              <span>{b("Mode", "모드")}</span>
+              <span>{t("pages.golden.sets.colMode")}</span>
               <select
                 value={newSet.mode}
                 onChange={(e) =>
@@ -409,21 +386,18 @@ function Inner() {
             </label>
           </div>
           <label className="eo-field">
-            <span>{b("Description", "설명 (optional)")}</span>
+            <span>{t("pages.golden.sets.description")}</span>
             <input
               value={newSet.description}
               onChange={(e) =>
                 setNewSet({ ...newSet, description: e.target.value })
               }
-              placeholder={b(
-                "What this set evaluates (optional, used for layer auto-pick)",
-                "이 Set 이 평가하는 항목 (선택, layer 자동 추천에 사용)",
-              )}
+              placeholder={t("pages.golden.sets.descriptionPlaceholder")}
             />
           </label>
           <div className="eo-grid-2" style={{ gap: 12 }}>
             <label className="eo-field">
-              <span>{b("Layer", "Layer")}</span>
+              <span>{t("pages.golden.sets.colLayer")}</span>
               <select
                 value={newSet.layer}
                 onChange={(e) =>
@@ -434,10 +408,7 @@ function Inner() {
                 }
               >
                 <option value="auto">
-                  {b(
-                    `Auto-recommend (→ ${resolvedLayer})`,
-                    `자동 추천 (→ ${resolvedLayer})`,
-                  )}
+                  {tsub("pages.golden.sets.layerAuto", { layer: resolvedLayer })}
                 </option>
                 {LAYER_OPTIONS.map((l) => (
                   <option key={l} value={l}>
@@ -447,14 +418,14 @@ function Inner() {
               </select>
             </label>
             <label className="eo-field">
-              <span>{b("Service", "서비스")}</span>
+              <span>{t("pages.golden.sets.colService")}</span>
               <select
                 value={newSet.projectId ?? ""}
                 onChange={(e) =>
                   setNewSet({ ...newSet, projectId: e.target.value || null })
                 }
               >
-                <option value="">{b("All services", "전체 서비스")}</option>
+                <option value="">{t("pages.golden.sets.allServices")}</option>
                 {visibleServices.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -464,10 +435,7 @@ function Inner() {
             </label>
           </div>
           <p className="eo-mute" style={{ fontSize: 12, marginTop: 4 }}>
-            {b(
-              `Layer guide: L1 = query/intent, L2 = retrieval, L3 = response. (Auto pick → ${resolvedLayer})`,
-              `Layer 가이드: L1 = query/intent, L2 = retrieval, L3 = response. (자동 → ${resolvedLayer})`,
-            )}
+            {tsub("pages.golden.sets.layerGuide", { layer: resolvedLayer })}
           </p>
           {error && (
             <div className="eo-empty" style={{ color: "var(--eo-err)" }}>
@@ -480,7 +448,7 @@ function Inner() {
               className="eo-btn eo-btn-ghost"
               onClick={() => setCreating(false)}
             >
-              {b("Cancel", "취소")}
+              {t("pages.golden.sets.cancel")}
             </button>
             <button
               type="button"
@@ -489,8 +457,8 @@ function Inner() {
               disabled={create.isPending || !writable}
             >
               {create.isPending
-                ? b("Creating…", "생성 중…")
-                : b("Create", "만들기")}
+                ? t("pages.golden.sets.creating")
+                : t("pages.golden.sets.create")}
             </button>
           </div>
         </div>
@@ -514,7 +482,7 @@ function GoldenSetDetailDrawer({
   onTab: (t: DetailTab) => void;
   onClose: () => void;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -535,7 +503,7 @@ function GoldenSetDetailDrawer({
       <div className="eo-side-drawer">
         <div className="eo-side-drawer-h">
           <span className="eo-side-drawer-title">
-            {b("Golden Set detail", "골든 세트 상세")}
+            {t("pages.golden.sets.drawerTitle")}
             {set && (
               <span
                 className="eo-mute"
@@ -557,7 +525,7 @@ function GoldenSetDetailDrawer({
         <div className="eo-side-drawer-body">
           {!set ? (
             <div className="eo-empty">
-              {b("Loading set…", "세트 불러오는 중…")}
+              {t("pages.golden.sets.loadingSet")}
             </div>
           ) : (
             <SetDetail
@@ -584,14 +552,14 @@ function SetDetail({
   tab: DetailTab;
   onTab: (t: DetailTab) => void;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const TABS: { id: DetailTab; label: string }[] = [
-    { id: "items", label: b("Items", "항목") },
-    { id: "regression", label: b("Regression Run ▶", "Regression Run ▶") },
-    { id: "synth", label: b("+ Auto-generate", "+ 자동 생성") },
-    { id: "upload", label: b("+ Upload", "+ 업로드") },
-    { id: "agent", label: b("Agent connection", "Agent 연결") },
-    { id: "revisions", label: b("Revisions / Trust", "Revisions / Trust") },
+    { id: "items", label: t("pages.golden.sets.tabItems") },
+    { id: "regression", label: t("pages.golden.sets.tabRegression") },
+    { id: "synth", label: t("pages.golden.sets.tabSynth") },
+    { id: "upload", label: t("pages.golden.sets.tabUpload") },
+    { id: "agent", label: t("pages.golden.sets.tabAgent") },
+    { id: "revisions", label: t("pages.golden.sets.tabRevisions") },
   ];
   return (
     <>
@@ -630,7 +598,7 @@ function SetDetail({
 type AddMode = "manual" | "trace" | "auto";
 
 function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const qc = useQueryClient();
   const items = useQuery({
     queryKey: ["eval", "golden-items", g.id],
@@ -649,7 +617,7 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
       try {
         payload = JSON.parse(manualJson);
       } catch {
-        throw new Error(b("Payload must be valid JSON", "Payload 는 JSON 이어야 합니다"));
+        throw new Error(t("pages.golden.sets.invalidJson"));
       }
       return addGoldenItem(g.id, payload);
     },
@@ -664,7 +632,7 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
 
   const addFromTrace = useMutation({
     mutationFn: () => {
-      if (!traceId) throw new Error(b("Trace id required", "Trace id 가 필요합니다"));
+      if (!traceId) throw new Error(t("pages.golden.sets.traceIdRequired"));
       return addGoldenItemFromTrace(g.id, { traceId });
     },
     onSuccess: () => {
@@ -680,10 +648,7 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
     mutationFn: () => {
       if (!g.projectId)
         throw new Error(
-          b(
-            "Auto-discover requires a project-scoped set",
-            "Auto-discover 는 service 가 지정된 Set 에서만 가능합니다",
-          ),
+          t("pages.golden.sets.autoRequiresProject"),
         );
       return autoDiscoverGoldenItems(g.id, {
         projectId: g.projectId,
@@ -728,14 +693,14 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
             }}
           >
             <strong style={{ fontSize: 13 }}>
-              {b("Add items", "항목 추가")}
+              {t("pages.golden.sets.addItems")}
             </strong>
             <div className="eo-seg">
               {(
                 [
-                  ["manual", b("Manual", "수동")],
-                  ["trace", b("From trace", "Trace 기반")],
-                  ["auto", b("Auto-discover", "자동 추출")],
+                  ["manual", t("pages.golden.sets.addManual")],
+                  ["trace", t("pages.golden.sets.addFromTrace")],
+                  ["auto", t("pages.golden.sets.addAutoDiscover")],
                 ] as const
               ).map(([id, label]) => (
                 <button
@@ -753,10 +718,7 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
           {addMode === "manual" && (
             <div>
               <p className="eo-mute" style={{ fontSize: 11, margin: "0 0 6px" }}>
-                {b(
-                  'JSON payload — e.g. {"query":"...","expected":"..."}',
-                  'JSON payload — 예: {"query":"...","expected":"..."}',
-                )}
+                {t("pages.golden.sets.manualHint")}
               </p>
               <textarea
                 rows={4}
@@ -777,8 +739,8 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
                 style={{ marginTop: 6 }}
               >
                 {addManual.isPending
-                  ? b("Adding…", "추가 중…")
-                  : b("Add item", "추가")}
+                  ? t("pages.golden.sets.adding")
+                  : t("pages.golden.sets.addItem")}
               </button>
             </div>
           )}
@@ -786,10 +748,7 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
           {addMode === "trace" && (
             <div>
               <p className="eo-mute" style={{ fontSize: 11, margin: "0 0 6px" }}>
-                {b(
-                  "Paste a trace id and we'll snapshot its query / response into a candidate item.",
-                  "Trace id 를 붙여넣으면 해당 trace 의 query · response 를 candidate 항목으로 만들어줍니다.",
-                )}
+                {t("pages.golden.sets.traceHint")}
               </p>
               <input
                 value={traceId}
@@ -805,8 +764,8 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
                 style={{ marginTop: 6 }}
               >
                 {addFromTrace.isPending
-                  ? b("Importing…", "가져오는 중…")
-                  : b("Import trace", "Trace 가져오기")}
+                  ? t("pages.golden.sets.importing")
+                  : t("pages.golden.sets.importTrace")}
               </button>
             </div>
           )}
@@ -815,14 +774,8 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
             <div>
               <p className="eo-mute" style={{ fontSize: 11, margin: "0 0 6px" }}>
                 {g.projectId
-                  ? b(
-                      "Sample N recent traces from this service into candidate items (you'll review before promoting).",
-                      "이 서비스의 최근 trace N개를 candidate 항목으로 샘플링합니다. 검토 후 승급하세요.",
-                    )
-                  : b(
-                      "Auto-discover requires a service-scoped Set. Pick a service when creating the Set.",
-                      "Auto-discover 는 service 가 지정된 Set 에서만 가능합니다.",
-                    )}
+                  ? t("pages.golden.sets.autoHintReady")
+                  : t("pages.golden.sets.autoHintNoService")}
               </p>
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <input
@@ -845,8 +798,8 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
                   disabled={auto.isPending || !g.projectId || autoSize <= 0}
                 >
                   {auto.isPending
-                    ? b("Sampling…", "샘플링 중…")
-                    : b(`Sample ${autoSize}`, `${autoSize}개 샘플링`)}
+                    ? t("pages.golden.sets.sampling")
+                    : tsub("pages.golden.sets.sampleN", { n: String(autoSize) })}
                 </button>
               </div>
             </div>
@@ -864,13 +817,13 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
         <table className="eo-table">
           <thead>
             <tr>
-              <th>{b("Layer", "Layer")}</th>
-              <th>{b("Source", "Source")}</th>
-              <th>{b("Status", "Status")}</th>
-              <th>{b("Review", "Review")}</th>
-              <th>{b("Trace", "Trace")}</th>
-              <th>{b("Created", "Created")}</th>
-              <th>{b("Payload", "Payload")}</th>
+              <th>{t("pages.golden.sets.colLayer")}</th>
+              <th>{t("pages.golden.sets.colSource")}</th>
+              <th>{t("pages.golden.sets.colStatus")}</th>
+              <th>{t("pages.golden.sets.colReview")}</th>
+              <th>{t("pages.golden.sets.colTrace")}</th>
+              <th>{t("pages.golden.sets.colCreated")}</th>
+              <th>{t("pages.golden.sets.colPayload")}</th>
               <th />
             </tr>
           </thead>
@@ -879,7 +832,7 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
               <tr>
                 <td colSpan={8}>
                   <div className="eo-empty">
-                    {b("No items yet.", "아직 항목이 없습니다.")}
+                    {t("pages.golden.sets.noItems")}
                   </div>
                 </td>
               </tr>
@@ -892,7 +845,7 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
                 onStatus={(s) => setStatus.mutate({ id: it.id, status: s })}
                 onRemove={() => {
                   if (
-                    confirm(b("Remove this item?", "이 항목을 삭제할까요?"))
+                    confirm(t("pages.golden.sets.removeItemConfirm"))
                   )
                     removeItem.mutate(it.id);
                 }}
@@ -916,7 +869,7 @@ function ItemRow({
   onStatus: (status: string) => void;
   onRemove: () => void;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const review = useMutation({
     mutationFn: (state: "unreviewed" | "reviewed" | "disputed") =>
@@ -961,7 +914,7 @@ function ItemRow({
               style={{ padding: "0 4px", fontSize: 10 }}
               onClick={() => review.mutate("reviewed")}
               disabled={review.isPending}
-              title={b("mark as reviewed", "reviewed 표시")}
+              title={t("pages.golden.sets.markReviewed")}
             >
               ✓
             </button>
@@ -971,7 +924,7 @@ function ItemRow({
               style={{ padding: "0 4px", fontSize: 10 }}
               onClick={() => review.mutate("disputed")}
               disabled={review.isPending}
-              title={b("mark as disputed", "disputed 표시")}
+              title={t("pages.golden.sets.markDisputed")}
             >
               !
             </button>

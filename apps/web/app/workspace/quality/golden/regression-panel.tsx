@@ -14,7 +14,7 @@ import {
   startRegressionRun,
 } from "@/lib/api";
 import { fmtPct, fmtPrice, fmtRel, fmtScore } from "@/lib/format";
-import { useBilingual } from "@/lib/i18n/bilingual";
+import { useI18n } from "@/lib/i18n/context";
 import { useSseEvents } from "@/lib/useSseEvents";
 
 type Props = {
@@ -51,7 +51,7 @@ const STATUS_TONE: Record<string, string> = {
  * - While active, "Cancel" sends a stop signal to the worker.
  */
 export function GoldenRegressionPanel({ set, writable }: Props) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const sessionKey = `easyobs.regrun.${set.id}`;
 
@@ -76,14 +76,11 @@ export function GoldenRegressionPanel({ set, writable }: Props) {
   const start = useMutation({
     mutationFn: () => {
       if (!profileId) {
-        throw new Error(b("Pick a Profile first.", "Profile 을 먼저 선택하세요"));
+        throw new Error(t("pages.golden.regression.pickProfileFirst"));
       }
       if (!set.agentInvoke?.endpointUrl) {
         throw new Error(
-          b(
-            "Agent connection is required for Regression Run.",
-            "Agent 연결 설정이 필요합니다",
-          ),
+          t("pages.golden.regression.agentConnectionRequired"),
         );
       }
       return startRegressionRun(set.id, {
@@ -126,21 +123,18 @@ export function GoldenRegressionPanel({ set, writable }: Props) {
       <div className="eo-card-h">
         <h3 className="eo-card-title">Regression Run</h3>
         <span className="eo-card-sub">
-          {b(
-            "agent API call → trace collection → evaluation",
-            "에이전트 API 호출 → trace 수집 → 평가",
-          )}
+          {t("pages.golden.regression.pipelineDescription")}
         </span>
       </div>
       <div className="eo-grid-3" style={{ gap: 8 }}>
         <label className="eo-field">
-          <span>{b("Profile", "프로필")}</span>
+          <span>{t("pages.golden.regression.profile")}</span>
           <select
             value={profileId}
             onChange={(e) => setProfileId(e.target.value)}
             disabled={!writable}
           >
-            <option value="">{b("— select —", "— 선택 —")}</option>
+            <option value="">{t("pages.golden.regression.selectPlaceholder")}</option>
             {filteredProfiles.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -149,7 +143,7 @@ export function GoldenRegressionPanel({ set, writable }: Props) {
           </select>
         </label>
         <label className="eo-field">
-          <span>{b("Revision (optional)", "Revision (선택)")}</span>
+          <span>{t("pages.golden.regression.revisionOptional")}</span>
           <input
             value={revisionNo}
             onChange={(e) => setRevisionNo(e.target.value)}
@@ -158,7 +152,7 @@ export function GoldenRegressionPanel({ set, writable }: Props) {
           />
         </label>
         <label className="eo-field">
-          <span>{b("Notes", "메모")}</span>
+          <span>{t("pages.golden.regression.notes")}</span>
           <input
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -168,10 +162,7 @@ export function GoldenRegressionPanel({ set, writable }: Props) {
       </div>
       {!set.agentInvoke?.endpointUrl && (
         <div className="eo-empty" style={{ marginTop: 8 }}>
-          {b(
-            "⚠ Link an agent first — register an endpoint in the [Agent connection] panel on the left.",
-            "⚠ 에이전트 연결을 먼저 설정하세요 — 좌측 [Agent 연결] 패널에서 endpoint 를 등록하면 활성됩니다.",
-          )}
+          {t("pages.golden.regression.linkAgentFirst")}
         </div>
       )}
       {error && (
@@ -192,8 +183,8 @@ export function GoldenRegressionPanel({ set, writable }: Props) {
           onClick={() => start.mutate()}
         >
           {start.isPending
-            ? b("Starting…", "시작 중…")
-            : b("Start Regression Run", "Regression Run 시작")}
+            ? t("pages.golden.regression.starting")
+            : t("pages.golden.regression.startRun")}
         </button>
         {activeRunId && (
           <button
@@ -201,7 +192,7 @@ export function GoldenRegressionPanel({ set, writable }: Props) {
             className="eo-btn eo-btn-ghost"
             onClick={clearActiveRun}
           >
-            {b("Detach", "추적 해제")}
+            {t("pages.golden.regression.detach")}
           </button>
         )}
       </div>
@@ -232,7 +223,7 @@ function RegressionRunStatus({
   onCancel: () => void;
   cancelling: boolean;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const url = regressionRunStreamUrl(setId, runId);
   const sse = useSseEvents<RunProgress>({ url });
 
@@ -336,7 +327,7 @@ function RegressionRunStatus({
             <span className="eo-kpi-label">Judge errors</span>
             <strong className="eo-kpi-value">{errorResults.length}</strong>
             <span className="eo-kpi-meta">
-              {b("excluded from stats", "통계 집계에서 제외됨")}
+              {t("pages.golden.regression.excludedFromStats")}
             </span>
           </article>
         </div>
@@ -344,7 +335,7 @@ function RegressionRunStatus({
       {errorResults.length > 0 && (
         <details style={{ marginTop: 8 }}>
           <summary>
-            {b("Judge error detail", "Judge error 상세")} ({errorResults.length})
+            {t("pages.golden.regression.judgeErrorDetail")} ({errorResults.length})
           </summary>
           <ul style={{ marginTop: 6, paddingLeft: 16, fontSize: 12 }}>
             {errorResults.slice(0, 20).map((r) => {
@@ -363,17 +354,17 @@ function RegressionRunStatus({
       )}
       <div style={{ marginTop: 10 }}>
         <strong style={{ fontSize: 12 }}>
-          {b("Per-item invocations", "항목별 호출")}
+          {t("pages.golden.regression.perItemInvocations")}
         </strong>
         <div className="eo-table-wrap" style={{ maxHeight: 240, overflow: "auto", marginTop: 4 }}>
           <table className="eo-table">
             <thead>
               <tr>
-                <th>{b("Item", "항목")}</th>
-                <th>{b("Status", "상태")}</th>
-                <th>{b("Trace", "Trace")}</th>
-                <th>{b("Started", "시작")}</th>
-                <th>{b("Finished", "완료")}</th>
+                <th>{t("pages.golden.regression.item")}</th>
+                <th>{t("pages.golden.regression.status")}</th>
+                <th>{t("pages.golden.regression.trace")}</th>
+                <th>{t("pages.golden.regression.started")}</th>
+                <th>{t("pages.golden.regression.finished")}</th>
               </tr>
             </thead>
             <tbody>
@@ -384,7 +375,7 @@ function RegressionRunStatus({
                 <tr>
                   <td colSpan={5}>
                     <div className="eo-empty">
-                      {b("No invocations yet.", "아직 호출 기록이 없습니다.")}
+                      {t("pages.golden.regression.noInvocationsYet")}
                     </div>
                   </td>
                 </tr>
@@ -401,13 +392,13 @@ function RegressionRunStatus({
             onClick={onCancel}
             disabled={cancelling}
           >
-            {cancelling ? b("Cancelling…", "취소 중…") : b("Cancel", "취소")}
+            {cancelling ? t("pages.golden.regression.cancelling") : t("pages.golden.regression.cancel")}
           </button>
         </div>
       )}
       {sse.error && (
         <div className="eo-mute" style={{ fontSize: 11, marginTop: 6 }}>
-          ({sse.error}) {b("— polling fallback in use", "— polling fallback 사용 중")}
+          ({sse.error}) {t("pages.golden.regression.pollingFallback")}
         </div>
       )}
     </div>

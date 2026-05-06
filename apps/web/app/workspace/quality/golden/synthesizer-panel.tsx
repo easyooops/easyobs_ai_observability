@@ -14,35 +14,32 @@ import {
   synthJobStreamUrl,
 } from "@/lib/api";
 import { fmtPrice, fmtRel } from "@/lib/format";
-import { useBilingual } from "@/lib/i18n/bilingual";
+import { useI18n } from "@/lib/i18n/context";
 import { useSseEvents } from "@/lib/useSseEvents";
 
 type Props = { set: GoldenSet; writable: boolean };
 
-function policyOptions(b: (en: string, ko: string) => string) {
+function policyOptions(t: (key: string) => string) {
   const opts: { value: SynthJobSourcePolicy; label: string }[] = [
     {
       value: "random",
-      label: b("random — uniform sample", "random — 단순 무작위 샘플"),
+      label: t("pages.golden.synthesizer.policyRandom"),
     },
     {
       value: "trace_freq",
-      label: b(
-        "trace_freq — frequently cited docs first",
-        "trace_freq — 자주 인용된 doc 우선",
-      ),
+      label: t("pages.golden.synthesizer.policyTraceFreq"),
     },
     {
       value: "collection",
-      label: b("collection — entire collection", "collection — 컬렉션 전체"),
+      label: t("pages.golden.synthesizer.policyCollection"),
     },
     {
       value: "tag",
-      label: b("tag — within a specific tag", "tag — 특정 태그 안에서"),
+      label: t("pages.golden.synthesizer.policyTag"),
     },
     {
       value: "explicit",
-      label: b("explicit — explicit doc ids", "explicit — doc id 직접 지정"),
+      label: t("pages.golden.synthesizer.policyExplicit"),
     },
   ];
   return opts;
@@ -56,7 +53,7 @@ function policyOptions(b: (en: string, ko: string) => string) {
  * - Completed jobs land in the history below (last 7 days).
  */
 export function GoldenSynthesizerPanel({ set, writable }: Props) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [mode, setMode] = useState<SynthJobMode>("rag_aware");
   const [policy, setPolicy] = useState<SynthJobSourcePolicy>("random");
@@ -117,22 +114,16 @@ export function GoldenSynthesizerPanel({ set, writable }: Props) {
     <div className="eo-card">
       <div className="eo-card-h">
         <h3 className="eo-card-title">
-          {b("LLM Auto-generate (Synthesizer)", "LLM 자동 생성 (Synthesizer)")}
+          {t("pages.golden.synthesizer.title")}
         </h3>
         <span className="eo-card-sub">
-          {jobs.data?.length ?? 0} jobs · {b("active", "진행 중")} {activeJob ? 1 : 0}
+          {jobs.data?.length ?? 0} jobs · {t("pages.golden.synthesizer.active")} {activeJob ? 1 : 0}
         </span>
       </div>
       <p className="eo-mute" style={{ fontSize: 12, marginBottom: 8 }}>
         {mode === "rag_aware"
-          ? b(
-              "Samples RAG document sources and lets the LLM author Q+A pairs.",
-              "RAG 문서 source 를 샘플링해 LLM 이 Q+A 를 작성합니다.",
-            )
-          : b(
-              "Clusters production traces to extract patterns.",
-              "운영 trace 군집을 분석해 패턴을 추출합니다.",
-            )}
+          ? t("pages.golden.synthesizer.modeDescRagAware")
+          : t("pages.golden.synthesizer.modeDescTraceDriven")}
       </p>
       <div className="eo-grid-3" style={{ gap: 8 }}>
         <label className="eo-field">
@@ -147,13 +138,13 @@ export function GoldenSynthesizerPanel({ set, writable }: Props) {
           </select>
         </label>
         <label className="eo-field">
-          <span>{b("Source policy", "Source 정책")}</span>
+          <span>{t("pages.golden.synthesizer.sourcePolicy")}</span>
           <select
             value={policy}
             onChange={(e) => setPolicy(e.target.value as SynthJobSourcePolicy)}
             disabled={!writable}
           >
-            {policyOptions(b).map((p) => (
+            {policyOptions(t).map((p) => (
               <option key={p.value} value={p.value}>
                 {p.label}
               </option>
@@ -161,7 +152,7 @@ export function GoldenSynthesizerPanel({ set, writable }: Props) {
           </select>
         </label>
         <label className="eo-field">
-          <span>{b("Target count", "목표 수")}</span>
+          <span>{t("pages.golden.synthesizer.targetCount")}</span>
           <input
             type="number"
             min={1}
@@ -176,17 +167,14 @@ export function GoldenSynthesizerPanel({ set, writable }: Props) {
       </div>
       <label className="eo-field">
         <span>
-          {b(
-            "Judge model (auto-pick if blank)",
-            "Judge 모델 (선택 안 하면 자동)",
-          )}
+          {t("pages.golden.synthesizer.judgeModel")}
         </span>
         <select
           value={judgeModelId}
           onChange={(e) => setJudgeModelId(e.target.value)}
           disabled={!writable}
         >
-          <option value="">{b("— auto —", "— 자동 —")}</option>
+          <option value="">{t("pages.golden.synthesizer.judgeModelAuto")}</option>
           {enabledJudges.map((j) => (
             <option key={j.id} value={j.id}>
               {j.name} ({j.provider}/{j.model})
@@ -196,20 +184,14 @@ export function GoldenSynthesizerPanel({ set, writable }: Props) {
       </label>
       <label className="eo-field">
         <span>
-          {b(
-            "Domain prompt (optional — guides LLM for your domain)",
-            "도메인 프롬프트 (선택 — 도메인에 맞게 LLM 을 안내)",
-          )}
+          {t("pages.golden.synthesizer.domainPrompt")}
         </span>
         <textarea
           rows={3}
           value={customPrompt}
           onChange={(e) => setCustomPrompt(e.target.value)}
           disabled={!writable}
-          placeholder={b(
-            "e.g. Focus on insurance claim scenarios. Generate questions a customer service agent would ask. Use formal Korean.",
-            "예: 보험 청구 시나리오에 집중하세요. 고객 상담원이 물어볼 만한 질문을 생성하세요. 존댓말을 사용하세요.",
-          )}
+          placeholder={t("pages.golden.synthesizer.domainPromptPlaceholder")}
           style={{ resize: "vertical", minHeight: 60 }}
         />
       </label>
@@ -226,8 +208,8 @@ export function GoldenSynthesizerPanel({ set, writable }: Props) {
           onClick={() => start.mutate()}
         >
           {start.isPending
-            ? b("Starting…", "시작 중…")
-            : b("Start auto-generation", "자동 생성 시작")}
+            ? t("pages.golden.synthesizer.starting")
+            : t("pages.golden.synthesizer.startBtn")}
         </button>
       </div>
 
@@ -241,17 +223,17 @@ export function GoldenSynthesizerPanel({ set, writable }: Props) {
       )}
 
       <div style={{ marginTop: 10 }}>
-        <strong style={{ fontSize: 12 }}>{b("Recent jobs", "최근 잡")}</strong>
+        <strong style={{ fontSize: 12 }}>{t("pages.golden.synthesizer.recentJobs")}</strong>
         <div className="eo-table-wrap" style={{ maxHeight: 220, overflow: "auto", marginTop: 4 }}>
           <table className="eo-table">
             <thead>
               <tr>
-                <th>{b("Job", "Job")}</th>
-                <th>{b("Mode", "모드")}</th>
-                <th>{b("Status", "상태")}</th>
-                <th>{b("Generated", "생성")}</th>
-                <th>{b("Cost", "비용")}</th>
-                <th>{b("Started", "시작")}</th>
+                <th>{t("pages.golden.synthesizer.colJob")}</th>
+                <th>{t("pages.golden.synthesizer.colMode")}</th>
+                <th>{t("pages.golden.synthesizer.colStatus")}</th>
+                <th>{t("pages.golden.synthesizer.colGenerated")}</th>
+                <th>{t("pages.golden.synthesizer.colCost")}</th>
+                <th>{t("pages.golden.synthesizer.colStarted")}</th>
                 <th />
               </tr>
             </thead>
@@ -297,7 +279,7 @@ export function GoldenSynthesizerPanel({ set, writable }: Props) {
                 <tr>
                   <td colSpan={7}>
                     <div className="eo-empty">
-                      {b("No auto-generation jobs yet.", "자동 생성 잡이 없습니다.")}
+                      {t("pages.golden.synthesizer.noJobs")}
                     </div>
                   </td>
                 </tr>
@@ -330,7 +312,7 @@ function SynthJobStatus({
   cancelling: boolean;
   writable: boolean;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   const url = synthJobStreamUrl(job.id);
   const sse = useSseEvents<SseSnapshot>({ url });
   const generated = sse.latest?.generated ?? job.generatedCount;
@@ -384,13 +366,13 @@ function SynthJobStatus({
             onClick={onCancel}
             disabled={cancelling}
           >
-            {cancelling ? b("Cancelling…", "취소 중…") : b("Cancel", "취소")}
+            {cancelling ? t("pages.golden.synthesizer.cancelling") : t("pages.golden.synthesizer.cancelBtn")}
           </button>
         </div>
       )}
       {sse.error && (
         <div className="eo-mute" style={{ fontSize: 11, marginTop: 6 }}>
-          ({sse.error}) {b("— polling fallback in use", "— polling fallback 사용 중")}
+          ({sse.error}) {t("pages.golden.synthesizer.pollingFallback")}
         </div>
       )}
     </div>

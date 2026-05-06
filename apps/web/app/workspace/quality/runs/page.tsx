@@ -28,7 +28,6 @@ import { useAuth } from "@/lib/auth";
 import { fmtPct, fmtPrice, fmtRel, truncate } from "@/lib/format";
 import { canMutateQuality, QualityGuard, ScopeBanner, WriteHint } from "../guard";
 import { useI18n } from "@/lib/i18n/context";
-import { useBilingual } from "@/lib/i18n/bilingual";
 import { RunStatusHub } from "./status-hub";
 import { WorkbenchRunDetail } from "./run-detail";
 import {
@@ -50,8 +49,7 @@ export default function RunsPage() {
 }
 
 function Inner() {
-  const { t, locale } = useI18n();
-  const b = useBilingual();
+  const { t, tsub, locale } = useI18n();
   const auth = useAuth();
   const orgId = auth.currentOrg?.id ?? "";
   const writable = canMutateQuality(auth);
@@ -317,10 +315,7 @@ function Inner() {
         <div>
           <h1 className="eo-page-title">{t("pages.runs.title")}</h1>
           <p className="eo-page-lede">
-            {b(
-              "Evaluation Workbench — 4 sources · 5 trust gauges · background hub",
-              "Evaluation Workbench — 4종 source · 5종 신뢰 게이지 · 백그라운드 상황판",
-            )}
+            {t("pages.runs.lede")}
           </p>
         </div>
       </div>
@@ -343,9 +338,9 @@ function Inner() {
           aria-selected={view === "launch"}
           onClick={() => switchView("launch")}
         >
-          {b("Runs", "실행")}
+          {t("pages.runs.tabRuns")}
           <span className="eo-tab-meta">
-            {b("launch a new run", "새 실행 시작")}
+            {t("pages.runs.tabRunsMeta")}
           </span>
         </button>
         <button
@@ -356,12 +351,9 @@ function Inner() {
           aria-selected={view === "results"}
           onClick={() => switchView("results")}
         >
-          {b("Results", "결과")}
+          {t("pages.runs.tabResults")}
           <span className="eo-tab-meta">
-            {b(
-              `${runs.data?.length ?? 0} runs · click to inspect`,
-              `${runs.data?.length ?? 0} 회 · 행 클릭 시 상세`,
-            )}
+            {tsub("pages.runs.tabResultsMeta", { count: String(runs.data?.length ?? 0) })}
           </span>
         </button>
         <button
@@ -372,9 +364,9 @@ function Inner() {
           aria-selected={view === "background"}
           onClick={() => switchView("background")}
         >
-          {b("Background Hub", "백그라운드 상황판")}
+          {t("pages.runs.tabBackground")}
           <span className="eo-tab-meta">
-            {b("monitor in-progress", "진행 상황 모니터링")}
+            {t("pages.runs.tabBackgroundMeta")}
           </span>
         </button>
       </div>
@@ -482,7 +474,7 @@ function RunDetailDrawer({
   runId: string;
   onClose: () => void;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   // Close on Escape (matches the Tracing inspector behaviour).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -504,7 +496,7 @@ function RunDetailDrawer({
       <div className="eo-side-drawer">
         <div className="eo-side-drawer-h">
           <span className="eo-side-drawer-title">
-            {b("Run detail", "Run 상세")}
+            {t("pages.runs.drawerTitle")}
             <span
               className="eo-mute mono"
               style={{ marginLeft: 8, fontSize: 11 }}
@@ -576,35 +568,35 @@ type LaunchCardProps = {
 
 function runModeLabel(
   mode: EvalRunMode,
-  b: (en: string, ko: string) => string,
+  t: (key: string) => string,
 ): string {
   switch (mode) {
     case "golden_gt":
-      return b("Golden GT", "Golden GT");
+      return t("pages.runs.modeGoldenGt");
     case "golden_judge":
-      return b("Golden judge", "Golden Judge");
+      return t("pages.runs.modeGoldenJudge");
     case "human_label":
-      return b("Human label", "Human label");
+      return t("pages.runs.modeHumanLabel");
     default:
-      return b("Trace (rules + judge)", "Trace (rules + judge)");
+      return t("pages.runs.modeTrace");
   }
 }
 
 function LaunchCard(props: LaunchCardProps) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const labelOf = useSourceLabel();
   const def = labelOf(props.source);
   return (
     <div className="eo-card">
       <div className="eo-card-h">
         <h3 className="eo-card-title">
-          {def.icon} {def.title} — {b("Launch", "Launch")}
+          {def.icon} {def.title} — {t("pages.runs.launch")}
         </h3>
         <span className="eo-card-sub">{def.hint}</span>
       </div>
 
       <label className="eo-field">
-        <span>{b("Profile", "프로필")}</span>
+        <span>{t("pages.runs.profile")}</span>
         <select
           value={props.profileId}
           onChange={(e) => {
@@ -613,7 +605,7 @@ function LaunchCard(props: LaunchCardProps) {
           }}
           disabled={!props.writable}
         >
-          <option value="">{b("— pick a profile —", "— 프로필 선택 —")}</option>
+          <option value="">{t("pages.runs.pickProfile")}</option>
           {props.profiles
             .filter((p) => p.enabled)
             .map((p) => (
@@ -631,10 +623,7 @@ function LaunchCard(props: LaunchCardProps) {
           <input
             value={props.singleTraceId}
             onChange={(e) => props.setSingleTraceId(e.target.value)}
-            placeholder={b(
-              "trace_id (a single suspicious production trace)",
-              "trace_id (운영 중 의심스러운 1건)",
-            )}
+            placeholder={t("pages.runs.singleTracePlaceholder")}
             disabled={!props.writable}
           />
         </label>
@@ -642,14 +631,11 @@ function LaunchCard(props: LaunchCardProps) {
 
       {props.source === "session" && (
         <label className="eo-field">
-          <span>{b("Session filter", "Session 필터")}</span>
+          <span>{t("pages.runs.sessionFilter")}</span>
           <input
             value={props.sessionFilter}
             onChange={(e) => props.setSessionFilter(e.target.value)}
-            placeholder={b(
-              "session_id (full or partial)",
-              "session_id 일부 또는 전체",
-            )}
+            placeholder={t("pages.runs.sessionFilterPlaceholder")}
             disabled={!props.writable}
           />
         </label>
@@ -679,13 +665,13 @@ function LaunchCard(props: LaunchCardProps) {
             }}
           >
             <span>
-              {b("Traces in workspace window", "워크스페이스 구간 트레이스")} (
+              {t("pages.runs.tracesInWindow")} (
               {windowLabel(props.ws)}
               {props.selectedProfile?.projectId
                 ? ` · service ${props.selectedProfile.projectId.slice(0, 8)}`
                 : ""}
               ){props.ws.search.trim() ? ` · search "${props.ws.search.trim()}"` : ""} ·{" "}
-              {props.displayTraces.length} {b("shown (of", "표시 (총")}{" "}
+              {props.displayTraces.length} {t("pages.runs.shownOf")}{" "}
               {props.filteredCount})
             </span>
             <span style={{ marginLeft: "auto", display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -695,7 +681,7 @@ function LaunchCard(props: LaunchCardProps) {
                 onClick={props.selectAllInRange}
                 disabled={!props.writable || props.displayTraces.length === 0}
               >
-                {b("Select all (visible)", "전체 선택 (보이는)")}
+                {t("pages.runs.selectAllVisible")}
               </button>
               <button
                 type="button"
@@ -703,7 +689,7 @@ function LaunchCard(props: LaunchCardProps) {
                 onClick={props.clearTraceSelection}
                 disabled={!props.writable || props.selectedTraceIds.length === 0}
               >
-                {b("Clear", "해제")}
+                {t("pages.runs.clear")}
               </button>
             </span>
           </div>
@@ -805,11 +791,11 @@ function LaunchCard(props: LaunchCardProps) {
       )}
 
       <label className="eo-field">
-        <span>{b("Notes", "메모")}</span>
+        <span>{t("pages.runs.notes")}</span>
         <input
           value={props.notes}
           onChange={(e) => props.setNotes(e.target.value)}
-          placeholder={b("optional run notes", "메모 (선택)")}
+          placeholder={t("pages.runs.notesPlaceholder")}
           disabled={!props.writable}
         />
       </label>
@@ -818,10 +804,7 @@ function LaunchCard(props: LaunchCardProps) {
         className="eo-mute"
         style={{ fontSize: 11, marginTop: 4, marginBottom: 8 }}
       >
-        {b(
-          `Run mode is auto-selected from this source: ${runModeLabel(props.runMode, b)}.`,
-          `Run 모드는 source 에 따라 자동 선택됩니다: ${runModeLabel(props.runMode, b)}.`,
-        )}
+        {tsub("pages.runs.runModeAutoSelected", { mode: runModeLabel(props.runMode, t) })}
       </div>
 
       <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
@@ -836,7 +819,7 @@ function LaunchCard(props: LaunchCardProps) {
             props.estimateRunPending
           }
         >
-          {b("Estimate cost", "비용 추정")}
+          {t("pages.runs.estimateCost")}
         </button>
         <button
           type="button"
@@ -850,11 +833,8 @@ function LaunchCard(props: LaunchCardProps) {
           }
         >
           {props.launchRunPending
-            ? b("Launching…", "실행 중…")
-            : b(
-                `Run on ${props.selectedTraceIds.length} subject(s)`,
-                `${props.selectedTraceIds.length}건 실행`,
-              )}
+            ? t("pages.runs.launching")
+            : tsub("pages.runs.runOnSubjects", { count: String(props.selectedTraceIds.length) })}
         </button>
       </div>
 
@@ -864,26 +844,23 @@ function LaunchCard(props: LaunchCardProps) {
           style={{ background: "var(--eo-bg-2)", marginTop: 8 }}
         >
           <div className="eo-card-h">
-            <h3 className="eo-card-title">{b("Estimate", "추정")}</h3>
+            <h3 className="eo-card-title">{t("pages.runs.estimate")}</h3>
           </div>
           <div className="eo-mute" style={{ fontSize: 12 }}>
-            {b("Subjects", "대상")} {props.estimate.subjectCount} · {b("judge calls", "Judge 호출")}{" "}
-            {props.estimate.judgeCalls} · {b("projected", "예상")}{" "}
+            {t("pages.runs.subjects")} {props.estimate.subjectCount} · {t("pages.runs.judgeCalls")}{" "}
+            {props.estimate.judgeCalls} · {t("pages.runs.projected")}{" "}
             {fmtPrice(props.estimate.costEstimateUsd)}
-            {props.estimate.ruleOnly ? b(" · rules only", " · 규칙만") : ""}
+            {props.estimate.ruleOnly ? t("pages.runs.rulesOnly") : ""}
           </div>
           <div className="eo-mute" style={{ fontSize: 12 }}>
-            {b(
-              `Monthly spent so far: ${fmtPrice(props.estimate.monthlySpentUsd)}`,
-              `이번 달 누적: ${fmtPrice(props.estimate.monthlySpentUsd)}`,
-            )}
+            {tsub("pages.runs.monthlySpent", { amount: fmtPrice(props.estimate.monthlySpentUsd) })}
           </div>
           {!props.estimate.costGuard.allowed && (
             <div
               className="eo-empty"
               style={{ color: "var(--eo-err)", marginTop: 6 }}
             >
-              {b("Cost guard would block", "비용 가드 차단")}: {props.estimate.costGuard.note}
+              {t("pages.runs.costGuardBlock")}: {props.estimate.costGuard.note}
             </div>
           )}
           {props.estimate.costGuard.allowed && props.estimate.costGuard.downgrade && (
@@ -891,7 +868,7 @@ function LaunchCard(props: LaunchCardProps) {
               className="eo-empty"
               style={{ color: "var(--eo-warn, #c89400)", marginTop: 6 }}
             >
-              {b("Will downgrade to rules-only", "규칙만 모드로 다운그레이드")}: {props.estimate.costGuard.note}
+              {t("pages.runs.costGuardDowngrade")}: {props.estimate.costGuard.note}
             </div>
           )}
         </div>
@@ -925,7 +902,7 @@ function HumanLabelCohortPicker({
   setFilter: (v: "all" | "pass" | "warn" | "fail") => void;
   writable: boolean;
 }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const visible = useMemo(() => {
     if (filter === "all") return rows;
     return rows.filter((r) => r.humanVerdict === filter);
@@ -959,10 +936,7 @@ function HumanLabelCohortPicker({
         }}
       >
         <span>
-          {b(
-            `Human-labelled traces · ${rows.length} registered · ${picked.size} selected`,
-            `휴먼 라벨된 trace · 등록 ${rows.length} · 선택 ${picked.size}`,
-          )}
+          {tsub("pages.runs.humanLabelSummary", { registered: String(rows.length), selected: String(picked.size) })}
         </span>
         <span style={{ marginLeft: "auto", display: "flex", gap: 6, flexWrap: "wrap" }}>
           <select
@@ -973,7 +947,7 @@ function HumanLabelCohortPicker({
             }
             style={{ minWidth: 110 }}
           >
-            <option value="all">{b("All verdicts", "모든 판정")}</option>
+            <option value="all">{t("pages.runs.allVerdicts")}</option>
             <option value="pass">pass</option>
             <option value="warn">warn</option>
             <option value="fail">fail</option>
@@ -984,10 +958,7 @@ function HumanLabelCohortPicker({
             onClick={pickAll}
             disabled={!writable || visible.length === 0}
           >
-            {b(
-              `Select visible (${visible.length})`,
-              `보이는 ${visible.length}건 선택`,
-            )}
+            {tsub("pages.runs.selectVisible", { count: String(visible.length) })}
           </button>
           <button
             type="button"
@@ -995,16 +966,13 @@ function HumanLabelCohortPicker({
             onClick={clear}
             disabled={!writable || picked.size === 0}
           >
-            {b("Clear", "해제")}
+            {t("pages.runs.clear")}
           </button>
         </span>
       </div>
       {rows.length === 0 ? (
         <div className="eo-empty">
-          {b(
-            "No human labels yet — open Golden Sets → Human Labels to register one.",
-            "휴먼 라벨이 없습니다 — Golden Sets → Human Labels 에서 등록하세요.",
-          )}
+          {t("pages.runs.noHumanLabels")}
         </div>
       ) : (
         <div className="eo-table-wrap" style={{ maxHeight: 280, overflow: "auto" }}>
@@ -1012,10 +980,10 @@ function HumanLabelCohortPicker({
             <thead>
               <tr>
                 <th />
-                <th>{b("Trace", "Trace")}</th>
-                <th>{b("Verdict", "판정")}</th>
-                <th>{b("Expected (excerpt)", "기대 응답 (요약)")}</th>
-                <th>{b("Updated", "갱신")}</th>
+                <th>{t("pages.runs.colTrace")}</th>
+                <th>{t("pages.runs.colVerdict")}</th>
+                <th>{t("pages.runs.colExpected")}</th>
+                <th>{t("pages.runs.colUpdated")}</th>
               </tr>
             </thead>
             <tbody>
@@ -1078,35 +1046,35 @@ function RunList({
   selectedRunId: string | null;
   onSelect: (id: string) => void;
 }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   return (
     <div className="eo-card">
       <div className="eo-card-h">
-        <h3 className="eo-card-title">{b("Run List", "Run 목록")}</h3>
+        <h3 className="eo-card-title">{t("pages.runs.runListTitle")}</h3>
         <span className="eo-card-sub">
-          {b(`${runs.length} runs · last 100`, `${runs.length} runs · 최근 100건`)}
+          {tsub("pages.runs.runListSub", { count: String(runs.length) })}
         </span>
       </div>
       <div className="eo-table-wrap" style={{ maxHeight: 480, overflow: "auto" }}>
         <table className="eo-table">
           <thead>
             <tr>
-              <th>{b("Run", "Run")}</th>
-              <th>{b("Source", "Source")}</th>
-              <th>{b("Status", "상태")}</th>
-              <th>{b("Trust", "신뢰도")}</th>
-              <th>{b("Pass / Fail", "통과 / 실패")}</th>
-              <th>{b("Subjects", "대상")}</th>
-              <th>{b("Trigger", "트리거")}</th>
-              <th>{b("Cost", "비용")}</th>
-              <th>{b("Started", "시작")}</th>
+              <th>{t("pages.runs.colRun")}</th>
+              <th>{t("pages.runs.colSource")}</th>
+              <th>{t("pages.runs.colStatus")}</th>
+              <th>{t("pages.runs.colTrust")}</th>
+              <th>{t("pages.runs.colPassFail")}</th>
+              <th>{t("pages.runs.colSubjects")}</th>
+              <th>{t("pages.runs.colTrigger")}</th>
+              <th>{t("pages.runs.colCost")}</th>
+              <th>{t("pages.runs.colStarted")}</th>
             </tr>
           </thead>
           <tbody>
             {runs.length === 0 && (
               <tr>
                 <td colSpan={9}>
-                  <div className="eo-empty">{b("No runs yet", "아직 실행이 없습니다")}</div>
+                  <div className="eo-empty">{t("pages.runs.noRunsYet")}</div>
                 </td>
               </tr>
             )}

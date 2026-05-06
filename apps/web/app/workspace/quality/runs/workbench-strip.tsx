@@ -12,7 +12,7 @@
 
 import { fmtPct, fmtPrice } from "@/lib/format";
 import type { EvalRun, EvalRunMode } from "@/lib/api";
-import { useBilingual } from "@/lib/i18n/bilingual";
+import { useI18n } from "@/lib/i18n/context";
 
 export type RunSource =
   | "single_trace"
@@ -85,15 +85,15 @@ export const SOURCES = SOURCE_DEFS;
 
 /** Localized label getter for callers that need a single source's strings. */
 export function useSourceLabel() {
-  const b = useBilingual();
+  const { t } = useI18n();
   return (id: RunSource) => {
     const s = SOURCE_DEFS.find((x) => x.id === id);
     if (!s) return { title: id, desc: "", hint: "", icon: "·" };
     return {
       icon: s.icon,
-      title: b(s.titleEn, s.titleKo),
-      desc: b(s.descEn, s.descKo),
-      hint: b(s.hintEn, s.hintKo),
+      title: t(`pages.runs.workbench.source.${s.id}.title` as never),
+      desc: t(`pages.runs.workbench.source.${s.id}.desc` as never),
+      hint: t(`pages.runs.workbench.source.${s.id}.hint` as never),
     };
   };
 }
@@ -102,11 +102,11 @@ export function useSourceLabel() {
  * Top-level KPI strip — answers "how are recent Runs going" in four cards.
  */
 export function WorkbenchKpiStrip({ runs }: { runs: EvalRun[] }) {
-  const b = useBilingual();
+  const { t, tsub } = useI18n();
   const total = runs.length;
   const last24 = runs.filter((r) => {
-    const t = Date.parse(r.startedAt);
-    return Number.isFinite(t) && Date.now() - t < 24 * 3600 * 1000;
+    const t0 = Date.parse(r.startedAt);
+    return Number.isFinite(t0) && Date.now() - t0 < 24 * 3600 * 1000;
   });
   const running = runs.filter(
     (r) => r.status === "running" || r.status === "queued",
@@ -127,39 +127,36 @@ export function WorkbenchKpiStrip({ runs }: { runs: EvalRun[] }) {
   return (
     <div className="eo-kpi-grid" style={{ marginBottom: 12 }}>
       <article className="eo-kpi" data-tone="ink">
-        <span className="eo-kpi-label">{b("Workbench Runs", "워크벤치 Run")}</span>
+        <span className="eo-kpi-label">{t("pages.runs.workbench.kpiRunsLabel")}</span>
         <strong className="eo-kpi-value">{total}</strong>
         <span className="eo-kpi-meta">
-          {b(
-            `${last24.length} in 24h · ${running.length} active`,
-            `${last24.length} 건 · 24h · ${running.length} 건 진행/대기`,
-          )}
+          {tsub("pages.runs.workbench.kpiRunsMeta", {
+            last24: String(last24.length),
+            running: String(running.length),
+          })}
         </span>
       </article>
       <article className="eo-kpi">
-        <span className="eo-kpi-label">{b("Avg Pass", "평균 Pass")}</span>
+        <span className="eo-kpi-label">{t("pages.runs.workbench.kpiAvgPassLabel")}</span>
         <strong className="eo-kpi-value">{fmtPct(avgPass * 100)}</strong>
         <span className="eo-kpi-meta">
-          {b("over last 100 Runs", "최근 100 Run 합산")}
+          {t("pages.runs.workbench.kpiOverLast100")}
         </span>
       </article>
       <article className="eo-kpi" data-tone={failed.length > 0 ? "err" : "ok"}>
-        <span className="eo-kpi-label">{b("Failed / Error", "실패 / 오류")}</span>
+        <span className="eo-kpi-label">{t("pages.runs.workbench.kpiFailedLabel")}</span>
         <strong className="eo-kpi-value">{failed.length}</strong>
         <span className="eo-kpi-meta">
           {failed.length === 0
-            ? b("OK", "정상")
-            : b(
-                "Failed runs · retry from BG Hub",
-                "실패 Run · BG Hub 에서 재시도 가능",
-              )}
+            ? t("pages.runs.workbench.kpiStatusOk")
+            : t("pages.runs.workbench.kpiStatusFailed")}
         </span>
       </article>
       <article className="eo-kpi" data-tone="warn">
-        <span className="eo-kpi-label">{b("Judge cost", "Judge 비용")}</span>
+        <span className="eo-kpi-label">{t("pages.runs.workbench.kpiJudgeCostLabel")}</span>
         <strong className="eo-kpi-value">{fmtPrice(totalCost)}</strong>
         <span className="eo-kpi-meta">
-          {b("over last 100 Runs", "최근 100 Run 합산")}
+          {t("pages.runs.workbench.kpiOverLast100")}
         </span>
       </article>
     </div>
@@ -176,7 +173,7 @@ export function SourceCards({
   active: RunSource;
   onPick: (s: RunSource) => void;
 }) {
-  const b = useBilingual();
+  const { t } = useI18n();
   return (
     <div
       style={{
@@ -188,9 +185,9 @@ export function SourceCards({
     >
       {SOURCE_DEFS.map((s) => {
         const isActive = s.id === active;
-        const title = b(s.titleEn, s.titleKo);
-        const desc = b(s.descEn, s.descKo);
-        const hint = b(s.hintEn, s.hintKo);
+        const title = t(`pages.runs.workbench.source.${s.id}.title` as never);
+        const desc = t(`pages.runs.workbench.source.${s.id}.desc` as never);
+        const hint = t(`pages.runs.workbench.source.${s.id}.hint` as never);
         return (
           <button
             key={s.id}
@@ -241,7 +238,7 @@ export function SourceCards({
                   className="eo-tag eo-tag-accent"
                   style={{ marginLeft: "auto" }}
                 >
-                  {b("selected", "선택됨")}
+                  {t("pages.runs.workbench.selected")}
                 </span>
               )}
             </div>
