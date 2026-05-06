@@ -74,6 +74,7 @@ terraform.rc
 *.terraform-staging/
 .terraform-staging/
 *.tfplan
+tfplan
 
 # Next.js / Node
 node_modules/
