@@ -11,21 +11,21 @@
       <p class="docs-lede">Deploy EasyObs to production environments with PostgreSQL, reverse proxy, and persistent storage.</p>
 
       <h2>Architecture (Production)</h2>
-      <pre><code>?Œâ??€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€??
-??               Load Balancer                 ??
-??           (Nginx / ALB / Traefik)          ??
-?”â??€?€?€?€?€?€?€?€?€?€?¬â??€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?¬â??€?€?€?€?€?€?€?€?€?€?€?€?€?€??
-            ??                ??
-    ?Œâ??€?€?€?€?€?€?¼â??€?€?€?€?€?? ?Œâ??€?€?€?€?€?¼â??€?€?€?€?€??
-    ?? API Server  ?? ??Web Console ??
-    ?? (Uvicorn)   ?? ?? (Next.js)  ??
-    ?? Port 8787   ?? ?? Port 3000  ??
-    ?”â??€?€?€?€?€?€?¬â??€?€?€?€?€?? ?”â??€?€?€?€?€?€?€?€?€?€?€?€??
-            ??
-    ?Œâ??€?€?€?€?€?€?¼â??€?€?€?€?€?? ?Œâ??€?€?€?€?€?€?€?€?€?€?€?€??
-    ?? PostgreSQL  ?? ??Blob Store  ??
-    ?? (Catalog)   ?? ??(S3/Local)  ??
-    ?”â??€?€?€?€?€?€?€?€?€?€?€?€?€?? ?”â??€?€?€?€?€?€?€?€?€?€?€?€??/code></pre>
+      <pre><code>+------------------------------------------+
+|         Load Balancer                     |
+|     (Nginx / ALB / Traefik)              |
++----------+---------------+---------------+
+           |               |
+  +--------+--------+  +---+----------+
+  | API Server      |  | Web Console  |
+  | (Uvicorn)       |  | (Next.js)    |
+  | Port 8787       |  | Port 3000    |
+  +--------+--------+  +--------------+
+           |
+  +--------+--------+  +--------------+
+  | PostgreSQL      |  | Blob Store   |
+  | (Catalog)       |  | (S3/Local)   |
+  +-----------------+  +--------------+</code></pre>
 
       <h2>Environment Variables (Production)</h2>
       <pre><code># Database
@@ -86,25 +86,25 @@ EASYOBS_SEED_MOCK_DATA=false</code></pre>
 
       <h2>Scaling</h2>
       <ul>
-        <li><strong>API Server</strong> ??Run multiple Uvicorn workers: <code>--workers 4</code> or use a process manager</li>
-        <li><strong>Web Console</strong> ??Stateless, horizontally scalable behind a load balancer</li>
-        <li><strong>Database</strong> ??Connection pooling recommended (PgBouncer or managed pool)</li>
+        <li><strong>API Server</strong> &mdash; Run multiple Uvicorn workers: <code>--workers 4</code> or use a process manager</li>
+        <li><strong>Web Console</strong> &mdash; Stateless, horizontally scalable behind a load balancer</li>
+        <li><strong>Database</strong> &mdash; Connection pooling recommended (PgBouncer or managed pool)</li>
       </ul>
 
       <h2>Health Checks</h2>
       <pre><code># API health
-GET /healthz ??{"status": "ok"}
+GET /healthz &rarr; {"status": "ok"}
 
 # Use for: load balancer health checks, Kubernetes readiness/liveness probes</code></pre>
 
       <h2>Security Checklist</h2>
       <ul>
-        <li>??Set strong <code>EASYOBS_JWT_SECRET</code> (<code>openssl rand -hex 32</code>)</li>
-        <li>??Use HTTPS (TLS termination at proxy)</li>
-        <li>??Restrict <code>EASYOBS_CORS_ORIGINS</code> to your domain</li>
-        <li>??Disable <code>EASYOBS_LOG_REQUEST_BODY</code> (PII risk)</li>
-        <li>??Rotate ingest tokens periodically</li>
-        <li>??Network-isolate the database</li>
+        <li>Set strong <code>EASYOBS_JWT_SECRET</code> (<code>openssl rand -hex 32</code>)</li>
+        <li>Use HTTPS (TLS termination at proxy)</li>
+        <li>Restrict <code>EASYOBS_CORS_ORIGINS</code> to your domain</li>
+        <li>Disable <code>EASYOBS_LOG_REQUEST_BODY</code> (PII risk)</li>
+        <li>Rotate ingest tokens periodically</li>
+        <li>Network-isolate the database</li>
       </ul>
 
       <div class="docs-next-grid">

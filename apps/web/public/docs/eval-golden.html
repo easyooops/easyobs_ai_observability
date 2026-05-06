@@ -5,20 +5,20 @@
 <div class="docs-layout">
   <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link active">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
   <main class="docs-main">
-    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Golden Sets ??Detailed Manual</span></header>
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Golden Sets &mdash; Detailed Manual</span></header>
     <article class="docs-content">
 
-      <h1>Golden Sets ??Full Feature Manual</h1>
+      <h1>Golden Sets &mdash; Full Feature Manual</h1>
       <p class="docs-lede">Golden Sets are curated ground-truth datasets used for regression testing and judge calibration. They contain human-verified input/output pairs with expected verdicts, enabling reproducible quality benchmarks.</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">?“¸ Image: Golden Sets page ??set list with entry count, source, and last run status</div></div>
+      <div class="docs-hero-placeholder"><div class="placeholder-box">Image: Golden Sets page &mdash; set list with entry count, source, and last run status</div></div>
 
       <h2>Concept</h2>
       <p>A Golden Set answers: <em>"Given this exact input, what is the correct expected behavior?"</em></p>
       <ul>
         <li>Used to detect quality regressions when prompts, models, or architecture change</li>
         <li>Serves as ground truth for calibrating LLM judge accuracy</li>
-        <li>Enables CI/CD quality gates (run golden set ??all pass ??deploy)</li>
+        <li>Enables CI/CD quality gates (run golden set &rarr; all pass &rarr; deploy)</li>
       </ul>
 
       <h2>3 Entry Points for Creating Golden Sets</h2>
@@ -37,7 +37,7 @@
       <pre><code>input,expected_output,verdict,notes
 "What is Python?","Python is a programming language...","pass","Basic knowledge"
 "Write harmful content","I cannot help with that.","pass","Safety check"
-"2+2=?","5","fail","Math accuracy ??wrong answer"</code></pre>
+"2+2=?","5","fail","Math accuracy &mdash; wrong answer"</code></pre>
 
       <h3>JSON Format</h3>
       <pre><code>[
@@ -55,7 +55,7 @@
 
       <h3>Upload Steps</h3>
       <ol>
-        <li>Navigate to <strong>Quality ??Golden Sets</strong></li>
+        <li>Navigate to <strong>Quality &rarr; Golden Sets</strong></li>
         <li>Click <strong>"Create Golden Set"</strong></li>
         <li>Enter a name and description</li>
         <li>Choose "Upload File"</li>
@@ -109,22 +109,22 @@
           <tr><td><code>input</code></td><td>Yes</td><td>The user input / query to test</td></tr>
           <tr><td><code>expected_output</code></td><td>No</td><td>Reference "correct" output (for comparison)</td></tr>
           <tr><td><code>verdict</code></td><td>Yes</td><td>Expected verdict: pass / warn / fail</td></tr>
-          <tr><td><code>dimensions</code></td><td>No</td><td>Per-dimension expected scores (0.0??.0)</td></tr>
+          <tr><td><code>dimensions</code></td><td>No</td><td>Per-dimension expected scores (0.0&ndash;1.0)</td></tr>
           <tr><td><code>notes</code></td><td>No</td><td>Context for why this verdict is expected</td></tr>
           <tr><td><code>trace_id</code></td><td>No</td><td>Source trace ID (if created via labeling)</td></tr>
         </tbody>
       </table>
 
-      <h2>Golden Set detail ??side drawer</h2>
-      <p>On <strong>Quality ??Golden Sets</strong>, click any row in the table to open a <strong>right-hand drawer</strong> (modal panel). Click the dimmed backdrop or press <strong>Escape</strong> to close. Selecting a set resets the inner tab to <strong>Items</strong>.</p>
+      <h2>Golden Set detail &mdash; side drawer</h2>
+      <p>On <strong>Quality &rarr; Golden Sets</strong>, click any row in the table to open a <strong>right-hand drawer</strong> (modal panel). Click the dimmed backdrop or press <strong>Escape</strong> to close. Selecting a set resets the inner tab to <strong>Items</strong>.</p>
 
-      <h3>Header strip ??Tri-panel summary</h3>
+      <h3>Header strip &mdash; Tri-panel summary</h3>
       <p>At the top of the drawer, a summary card shows the set name, <strong>mode</strong> (regression / cohort / synthesized), <strong>layer</strong> (L1 / L2 / L3), item count, revision counts, whether an <strong>Agent</strong> endpoint is configured, and created time. Below that, three columns summarize:</p>
       <table class="docs-table">
         <thead><tr><th>Panel</th><th>Content</th></tr></thead>
         <tbody>
           <tr><td><strong>Data</strong></td><td>Count of items by layer (L1 / L2 / L3); distribution of item <em>source</em> (manual, upload, trace label, auto-gen, etc.); <em>review</em> state (unreviewed / reviewed / disputed)</td></tr>
-          <tr><td><strong>Trust</strong></td><td>After evaluation runs, inter-rater metrics (e.g. Cohen Îº, Fleiss Îº, Krippendorff Î±, multi-judge agreement, human?„judge Îº) with pass/fail coloring vs thresholds; rater / judge / disputed counts</td></tr>
+          <tr><td><strong>Trust</strong></td><td>After evaluation runs, inter-rater metrics (e.g. Cohen &kappa;, Fleiss &kappa;, Krippendorff &alpha;, multi-judge agreement, human-judge &kappa;) with pass/fail coloring vs thresholds; rater / judge / disputed counts</td></tr>
           <tr><td><strong>Usage</strong></td><td>Evaluation runs tied to this set, last pass rate, and a simple pass-rate trend from recent runs</td></tr>
         </tbody>
       </table>
@@ -133,12 +133,12 @@
       <table class="docs-table">
         <thead><tr><th>Tab</th><th>Purpose</th></tr></thead>
         <tbody>
-          <tr><td><strong>Items</strong></td><td>Browse and manage golden items. Add via <strong>Manual</strong> (JSON payload), <strong>From trace</strong> (paste trace id to snapshot query/response), or <strong>Auto-discover</strong> (sample recent traces from the set?™s service ??requires the set to be scoped to a service). Edit review status, delete items, etc., subject to permissions.</td></tr>
-          <tr><td><strong>Regression Run ??/strong></td><td>Pick an evaluation profile and optional revision; start a <strong>Golden Regression Run</strong> against the saved Agent endpoint. Requires Agent connection. Shows live phase/progress via SSE; active run id is stored in session storage so the page can reattach. Cancel in-flight runs when allowed.</td></tr>
+          <tr><td><strong>Items</strong></td><td>Browse and manage golden items. Add via <strong>Manual</strong> (JSON payload), <strong>From trace</strong> (paste trace id to snapshot query/response), or <strong>Auto-discover</strong> (sample recent traces from the set's service &mdash; requires the set to be scoped to a service). Edit review status, delete items, etc., subject to permissions.</td></tr>
+          <tr><td><strong>Regression Run</strong></td><td>Pick an evaluation profile and optional revision; start a <strong>Golden Regression Run</strong> against the saved Agent endpoint. Requires Agent connection. Shows live phase/progress via SSE; active run id is stored in session storage so the page can reattach. Cancel in-flight runs when allowed.</td></tr>
           <tr><td><strong>+ Auto-generate</strong></td><td>LLM-based synthesizer to propose new items for this set (costs API calls; review outputs before promoting).</td></tr>
           <tr><td><strong>+ Upload</strong></td><td>Bulk import from CSV/JSON into this set with preview/validation.</td></tr>
           <tr><td><strong>Agent connection</strong></td><td>Configure POST endpoint URL, JSON request template, Vault auth ref, timeout, and max concurrency. Placeholders <code>{{query_text}}</code>, <code>{{run_id}}</code>, <code>{{item_id}}</code> are substituted at run time. Use <strong>Test connection</strong> for a non-persisting probe; <strong>Save</strong> persists settings. Regression runs cannot start until a valid endpoint is saved.</td></tr>
-          <tr><td><strong>Revisions / Trust</strong></td><td>Left: revision list (revision number, immutable vs mutable, item count, created). Right: detailed <strong>Trust</strong> metrics for the selected revision (Cohen/Fleiss/Krippendorff, multi-judge, human?„judge, rater/judge/disputed counts), populated after evaluation activity.</td></tr>
+          <tr><td><strong>Revisions / Trust</strong></td><td>Left: revision list (revision number, immutable vs mutable, item count, created). Right: detailed <strong>Trust</strong> metrics for the selected revision (Cohen/Fleiss/Krippendorff, multi-judge, human-judge, rater/judge/disputed counts), populated after evaluation activity.</td></tr>
         </tbody>
       </table>
 
@@ -153,7 +153,7 @@
       <h2>Running Regression Tests</h2>
       <p>Use a Golden Set to check if your agent still produces acceptable outputs:</p>
       <ol>
-        <li>Go to <strong>Quality ??Runs</strong></li>
+        <li>Go to <strong>Quality &rarr; Runs</strong></li>
         <li>Select a profile with "golden_judge" or "golden_gt" mode</li>
         <li>Choose the Golden Set as the data source</li>
         <li>Launch the run</li>
@@ -162,7 +162,7 @@
       </ol>
 
       <h2>Human Label Annotations</h2>
-      <p>The Human Labels section (accessible from Quality ??Golden Sets ??Labels tab) shows all trace annotations:</p>
+      <p>The Human Labels section (accessible from Quality &rarr; Golden Sets &rarr; Labels tab) shows all trace annotations:</p>
       <table class="docs-table">
         <thead><tr><th>Column</th><th>Description</th></tr></thead>
         <tbody>
@@ -176,9 +176,9 @@
 
       <h2>Best Practices</h2>
       <ul>
-        <li>Maintain at least 50??00 entries per golden set for statistical significance</li>
+        <li>Maintain at least 50&ndash;100 entries per golden set for statistical significance</li>
         <li>Include edge cases: empty inputs, very long inputs, adversarial prompts</li>
-        <li>Version your golden sets (v1, v2) ??don't modify in-place, create new versions</li>
+        <li>Version your golden sets (v1, v2) &mdash; don't modify in-place, create new versions</li>
         <li>Run regression tests before every production deployment</li>
         <li>Periodically review and update entries as your agent's expected behavior evolves</li>
         <li>Use the synthesizer to discover edge cases you hadn't considered</li>

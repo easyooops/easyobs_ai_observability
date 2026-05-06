@@ -9,14 +9,14 @@
     <article class="docs-content">
       <h1>Configuration</h1>
       <p class="docs-lede">All environment variables are optional. Defaults are defined in <code>src/easyobs/settings.py</code>.</p>
-      <div class="docs-info"><strong>?’¡ How to set:</strong> Add to a <code>.env</code> file, or inject as real environment variables in your container/serverless runtime.</div>
+      <div class="docs-info"><strong>How to set:</strong> Add to a <code>.env</code> file, or inject as real environment variables in your container/serverless runtime.</div>
 
       <h2>Storage</h2>
       <table class="docs-table">
         <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
         <tbody>
           <tr><td><code>EASYOBS_DATA_DIR</code></td><td><code>./data</code></td><td>Directory for SQLite catalog, JWT secret, and trace blobs. Wiped by <code>easyobs reset-data</code>.</td></tr>
-          <tr><td><code>EASYOBS_DATABASE_URL</code></td><td>(auto)</td><td>Leave blank ??<code>&lt;DATA_DIR&gt;/catalog.sqlite3</code>. Production: <code>postgresql+asyncpg://user:pw@host:5432/easyobs</code></td></tr>
+          <tr><td><code>EASYOBS_DATABASE_URL</code></td><td>(auto)</td><td>Leave blank &rarr; <code>&lt;DATA_DIR&gt;/catalog.sqlite3</code>. Production: <code>postgresql+asyncpg://user:pw@host:5432/easyobs</code></td></tr>
         </tbody>
       </table>
 
@@ -43,7 +43,7 @@
       <table class="docs-table">
         <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>EASYOBS_PRICING_SOURCE</code></td><td><code>auto</code></td><td>Source for <code>o.price</code> enrichment on ingest. <code>auto</code>: tokencost ??litellm ??builtin fallback.</td></tr>
+          <tr><td><code>EASYOBS_PRICING_SOURCE</code></td><td><code>auto</code></td><td>Source for <code>o.price</code> enrichment on ingest. <code>auto</code>: tokencost &rarr; litellm &rarr; builtin fallback.</td></tr>
         </tbody>
       </table>
 
@@ -54,7 +54,7 @@
           <tr><td><code>EASYOBS_LOG_LEVEL</code></td><td><code>INFO</code></td><td>Log level: DEBUG / INFO / WARNING / ERROR</td></tr>
           <tr><td><code>EASYOBS_LOG_FORMAT</code></td><td><code>console</code></td><td><code>console</code>: human-readable single-line. <code>json</code>: CloudWatch/Loki compatible.</td></tr>
           <tr><td><code>EASYOBS_LOG_FILE</code></td><td>(none)</td><td>If set, mirrors logs to this file in addition to stdout</td></tr>
-          <tr><td><code>EASYOBS_LOG_REQUEST_BODY</code></td><td><code>false</code></td><td>When true, logs request body (max 4KB). PII risk ??off by default.</td></tr>
+          <tr><td><code>EASYOBS_LOG_REQUEST_BODY</code></td><td><code>false</code></td><td>When true, logs request body (max 4KB). PII risk &mdash; off by default.</td></tr>
         </tbody>
       </table>
 

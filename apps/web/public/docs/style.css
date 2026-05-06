@@ -80,6 +80,15 @@ pre code { background: none; padding: 0; }
   background: var(--docs-accent);
   border-radius: 6px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  color: #0d1117;
+}
+.docs-brand-mark::after {
+  content: "E";
 }
 
 .docs-brand-name { font-weight: 700; font-size: 16px; }
@@ -212,8 +221,8 @@ pre code { background: none; padding: 0; }
 
 /* Callout */
 .docs-callout {
-  background: var(--docs-accent-dim);
-  border: 1px solid var(--docs-accent);
+  background: #0c2d6b;
+  border: 1px solid #1f4287;
   border-radius: var(--docs-radius);
   padding: 16px 20px;
   margin: 16px 0;
@@ -299,7 +308,7 @@ pre code { background: none; padding: 0; }
 }
 
 /* Warning/Info Boxes */
-.docs-warning {
+.docs-warning, .docs-warn {
   background: #3d2e00;
   border: 1px solid #6e5a1f;
   border-radius: var(--docs-radius);

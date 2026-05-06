@@ -5,26 +5,26 @@
 <div class="docs-layout">
   <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link active">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
   <main class="docs-main">
-    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Organizations ??Detailed Manual</span></header>
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Organizations &mdash; Detailed Manual</span></header>
     <article class="docs-content">
 
-      <h1>Organizations ??Full Feature Manual</h1>
+      <h1>Organizations &mdash; Full Feature Manual</h1>
       <p class="docs-lede">EasyObs uses a multi-tenant organization model to isolate data, manage access control, and scope resources. Each organization is a complete, self-contained environment.</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">?“¸ Image: Organization settings page ??members table, services list, invite form</div></div>
+      <div class="docs-hero-placeholder"><div class="placeholder-box">Image: Organization settings page &mdash; members table, services list, invite form</div></div>
 
       <h2>Hierarchy</h2>
       <pre><code>EasyObs Instance
-?”â??€ Organization (tenant boundary)
-    ?œâ??€ Members (users with roles)
-    ?œâ??€ Services (registered agent services)
-    ??  ?”â??€ Ingest Tokens (per-service auth)
-    ?œâ??€ Traces (all ingested data)
-    ?œâ??€ Evaluation Profiles &amp; Runs
-    ?œâ??€ Golden Sets
-    ?œâ??€ Judges
-    ?œâ??€ Alarms
-    ?”â??€ Improvement Packs</code></pre>
+&#x2514;&#x2500;&#x2500; Organization (tenant boundary)
+    &#x251C;&#x2500;&#x2500; Members (users with roles)
+    &#x251C;&#x2500;&#x2500; Services (registered agent services)
+    &#x2502;   &#x2514;&#x2500;&#x2500; Ingest Tokens (per-service auth)
+    &#x251C;&#x2500;&#x2500; Traces (all ingested data)
+    &#x251C;&#x2500;&#x2500; Evaluation Profiles &amp; Runs
+    &#x251C;&#x2500;&#x2500; Golden Sets
+    &#x251C;&#x2500;&#x2500; Judges
+    &#x251C;&#x2500;&#x2500; Alarms
+    &#x2514;&#x2500;&#x2500; Improvement Packs</code></pre>
 
       <h2>Roles &amp; Permissions (RBAC)</h2>
       <table class="docs-table">
@@ -40,21 +40,21 @@
       <table class="docs-table">
         <thead><tr><th>Action</th><th>SA</th><th>PO</th><th>DV</th></tr></thead>
         <tbody>
-          <tr><td>View traces &amp; sessions</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>View metrics dashboard</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>View evaluation results</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Add human labels</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Launch evaluation runs</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Create/edit profiles</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Register/edit judges</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Manage golden sets</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Create/edit alarms</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Manage improvements state</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Manage services &amp; tokens</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Invite/remove members</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Create organizations</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>Delete organizations</td><td>??/td><td>??/td><td>??/td></tr>
-          <tr><td>System settings</td><td>??/td><td>??/td><td>??/td></tr>
+          <tr><td>View traces &amp; sessions</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+          <tr><td>View metrics dashboard</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+          <tr><td>View evaluation results</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+          <tr><td>Add human labels</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+          <tr><td>Launch evaluation runs</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+          <tr><td>Create/edit profiles</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+          <tr><td>Register/edit judges</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+          <tr><td>Manage golden sets</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+          <tr><td>Create/edit alarms</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+          <tr><td>Manage improvements state</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+          <tr><td>Manage services &amp; tokens</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+          <tr><td>Invite/remove members</td><td>&#10003;</td><td>&#10003;</td><td>&#10007;</td></tr>
+          <tr><td>Create organizations</td><td>&#10003;</td><td>&#10007;</td><td>&#10007;</td></tr>
+          <tr><td>Delete organizations</td><td>&#10003;</td><td>&#10007;</td><td>&#10007;</td></tr>
+          <tr><td>System settings</td><td>&#10003;</td><td>&#10007;</td><td>&#10007;</td></tr>
         </tbody>
       </table>
 
@@ -82,9 +82,9 @@
 
       <h3>Token Lifecycle</h3>
       <ol>
-        <li><strong>Create:</strong> PO clicks "Generate Token" ??new token displayed once (copy immediately!)</li>
+        <li><strong>Create:</strong> PO clicks "Generate Token" &rarr; new token displayed once (copy immediately!)</li>
         <li><strong>Active:</strong> Token is valid for authentication</li>
-        <li><strong>Revoke:</strong> Token is deactivated ??SDK calls using it get 401 errors</li>
+        <li><strong>Revoke:</strong> Token is deactivated &rarr; SDK calls using it get 401 errors</li>
       </ol>
       <div class="docs-warn"><strong>Security:</strong> Tokens are only shown once at creation time. Store them securely (e.g., secrets manager, environment variable). They cannot be retrieved after the creation dialog is closed.</div>
 
@@ -102,7 +102,7 @@
       <h3>Creating an Organization</h3>
       <ol>
         <li>Log in as Super Admin</li>
-        <li>Navigate to <strong>Setup ??Organizations</strong></li>
+        <li>Navigate to <strong>Setup &rarr; Organizations</strong></li>
         <li>Click <strong>"Create Organization"</strong></li>
         <li>Enter name and optional description</li>
         <li>The creating user becomes the PO of the new org</li>
@@ -111,14 +111,14 @@
       <h3>Switching Organizations</h3>
       <ul>
         <li>The workspace header shows the current organization name</li>
-        <li>Click the org name ??dropdown shows all orgs the user belongs to</li>
+        <li>Click the org name &rarr; dropdown shows all orgs the user belongs to</li>
         <li>Select a different org to switch context</li>
         <li>All data (traces, runs, profiles) reloads for the selected org</li>
       </ul>
 
       <h3>Inviting Members</h3>
       <ol>
-        <li>Navigate to <strong>Setup ??Members</strong></li>
+        <li>Navigate to <strong>Setup &rarr; Members</strong></li>
         <li>Click <strong>"Invite Member"</strong></li>
         <li>Enter email address</li>
         <li>Select role: PO or DV</li>
@@ -135,9 +135,9 @@
 
       <h2>Data Isolation</h2>
       <ul>
-        <li>Traces are scoped to organizations ??members of Org A cannot see Org B's data</li>
+        <li>Traces are scoped to organizations &mdash; members of Org A cannot see Org B's data</li>
         <li>Evaluation profiles, judges, golden sets are all org-scoped</li>
-        <li>Ingest tokens are org-scoped ??a token can only write to its own org</li>
+        <li>Ingest tokens are org-scoped &mdash; a token can only write to its own org</li>
         <li>Super Admin can access all orgs for administrative purposes</li>
       </ul>
 

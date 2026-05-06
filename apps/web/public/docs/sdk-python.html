@@ -8,7 +8,7 @@
     <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Python SDK</span></header>
     <article class="docs-content">
 
-      <h1>Python SDK (<code>easyobs_agent</code>)</h1>
+      <h1>Python SDK &mdash; <code>easyobs_agent</code></h1>
       <p class="docs-lede">A lightweight Python client (~15 KB) that automatically traces all calls from your agent services via OpenTelemetry.</p>
 
       <h2>Installation</h2>
@@ -181,9 +181,9 @@ def answer(query: str) -> str:
 
       <hr>
 
-      <h2 id="air-gapped-otel">Air-gapped: Direct OTel Setup (&#54224;&#49604;&#47581; OTel &#51649;&#51217; &#49444;&#51221;)</h2>
+      <h2 id="air-gapped-otel">Air-gapped: Direct OTel Setup</h2>
       <div class="docs-info">
-        <strong>&#128161; Applies to:</strong> Air-gapped environments without PyPI where you want to collect traces using only vanilla OpenTelemetry packages (no <code>easyobs_agent</code>).
+        <strong>Applies to:</strong> Air-gapped environments without PyPI where you want to collect traces using only vanilla OpenTelemetry packages (no <code>easyobs_agent</code>).
       </div>
 
       <h3>Required Packages (3 wheels)</h3>
@@ -264,14 +264,14 @@ with tracer.start_as_current_span("agent.turn") as span:
         </tbody>
       </table>
       <div class="docs-info">
-        <strong>&#128161; Tip:</strong> As long as you set the <code>o.*</code> attributes correctly, the dashboard, metrics, and alarms work identically to using easyobs_agent.
+        <strong>Tip:</strong> As long as you set the <code>o.*</code> attributes correctly, the dashboard, metrics, and alarms work identically to using easyobs_agent.
       </div>
 
       <hr>
 
-      <h2 id="air-gapped-source">Air-gapped: easyobs_agent Source Direct (&#49548;&#49828;&#53076;&#46300; &#51649;&#51217; &#44060;&#48156;)</h2>
+      <h2 id="air-gapped-source">Air-gapped: easyobs_agent Source Direct</h2>
       <div class="docs-info">
-        <strong>&#128161; Applies to:</strong> Air-gapped environments where you want the full easyobs_agent API (<code>@traced</code>, <code>span_block</code>, <code>record_llm</code>) without pip install &mdash; copy the source code directly into your project.
+        <strong>Applies to:</strong> Air-gapped environments where you want the full easyobs_agent API (<code>@traced</code>, <code>span_block</code>, <code>record_llm</code>) without pip install &mdash; copy the source code directly into your project.
       </div>
 
       <h3>Package Download Methods</h3>
@@ -325,7 +325,7 @@ pip install --no-index --find-links ./wheels/ \
       </table>
 
       <div class="docs-info">
-        <strong>&#128161; Tip:</strong> If you don't need the LangChain callback, skip <code>callbacks/</code>. The 5 core files (<code>__init__.py</code>, <code>boot.py</code>, <code>traced.py</code>, <code>tags.py</code>, <code>span_scope.py</code>) are sufficient.
+        <strong>Tip:</strong> If you don't need the LangChain callback, skip <code>callbacks/</code>. The 5 core files (<code>__init__.py</code>, <code>boot.py</code>, <code>traced.py</code>, <code>tags.py</code>, <code>span_scope.py</code>) are sufficient.
       </div>
 
       <div class="docs-next-grid">

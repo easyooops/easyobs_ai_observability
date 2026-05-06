@@ -15,7 +15,7 @@
       <p>This installs: <code>opentelemetry-api</code>, <code>opentelemetry-sdk</code>, <code>opentelemetry-exporter-otlp-proto-http</code>, and <code>langchain-core</code>.</p>
 
       <h2>Option A: Auto Mode (Recommended)</h2>
-      <p>Simply set <code>auto=True</code> in <code>init()</code> ??all LangChain invocations are captured globally without explicit callback wiring:</p>
+      <p>Simply set <code>auto=True</code> in <code>init()</code> &mdash; all LangChain invocations are captured globally without explicit callback wiring:</p>
       <pre><code>from easyobs_agent import init
 
 init(
@@ -31,7 +31,7 @@ init(
 # is now automatically traced without any code changes.</code></pre>
 
       <div class="docs-info">
-        <strong>?’¡ How it works:</strong> <code>auto_langchain=True</code> registers a process-global callback via <code>langchain_core.tracers.context.register_configure_hook</code> ??the same mechanism LangSmith uses.
+        <strong>How it works:</strong> <code>auto_langchain=True</code> registers a process-global callback via <code>langchain_core.tracers.context.register_configure_hook</code> &mdash; the same mechanism LangSmith uses.
       </div>
 
       <h2>Option B: Explicit Callback</h2>
@@ -68,7 +68,7 @@ from langchain_core.output_parsers import StrOutputParser
 # One-time setup
 init("http://localhost:8787", token="eobs_...", service="rag-bot", auto=True)
 
-# Build your chain normally ??tracing is automatic
+# Build your chain normally -- tracing is automatic
 llm = ChatOpenAI(model="gpt-4o-mini")
 prompt = ChatPromptTemplate.from_template("Answer: {question}")
 chain = prompt | llm | StrOutputParser()
@@ -76,7 +76,7 @@ chain = prompt | llm | StrOutputParser()
 # Every invoke is automatically traced
 answer = chain.invoke({"question": "What is EasyObs?"})</code></pre>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">?“¸ Image: LangChain trace visualization showing chain ??LLM nested spans</div></div>
+      <div class="docs-hero-placeholder"><div class="placeholder-box">Image: LangChain trace visualization showing chain &rarr; LLM nested spans</div></div>
 
       <div class="docs-next-grid">
         <a href="sdk-python.html" class="docs-next-card"><strong>Python SDK</strong><span>Manual instrumentation with @traced</span></a>

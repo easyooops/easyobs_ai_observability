@@ -10,7 +10,7 @@
       <h1>Quality Evaluation System</h1>
       <p class="docs-lede">A comprehensive 3-Way evaluation framework combining Rule-based, LLM-as-a-Judge, and Human labeling approaches in a single unified platform.</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">?“¸ Image: Quality module overview page with KPI cards and recent runs</div></div>
+      <div class="docs-hero-placeholder"><div class="placeholder-box">Image: Quality module overview page with KPI cards and recent runs</div></div>
 
       <h2>3-Way Evaluation</h2>
       <table class="docs-table">
@@ -24,25 +24,25 @@
 
       <h2>Key Differentiators</h2>
       <ul>
-        <li><strong>Multi-Judge Consensus</strong> ??Assign multiple LLMs to the same evaluation item. Choose from 4 consensus policies: <code>single</code>, <code>majority</code>, <code>unanimous</code>, <code>weighted</code>.</li>
-        <li><strong>Cost Governance</strong> ??Per-run, per-subject, and monthly budget caps with <code>block</code>, <code>downgrade</code>, or <code>notify</code> policies.</li>
-        <li><strong>Auto-Rule on Ingest</strong> ??Rule evaluations fire automatically when traces arrive (fire-and-forget, never blocks ingest).</li>
-        <li><strong>Improvement Packs</strong> ??Actionable suggestions derived from low-scoring evaluations, mapped to 52 metrics Ã— 58 categories.</li>
-        <li><strong>Golden Set Regression</strong> ??Automated regression testing against curated ground-truth datasets.</li>
+        <li><strong>Multi-Judge Consensus</strong> &mdash; Assign multiple LLMs to the same evaluation item. Choose from 4 consensus policies: <code>single</code>, <code>majority</code>, <code>unanimous</code>, <code>weighted</code>.</li>
+        <li><strong>Cost Governance</strong> &mdash; Per-run, per-subject, and monthly budget caps with <code>block</code>, <code>downgrade</code>, or <code>notify</code> policies.</li>
+        <li><strong>Auto-Rule on Ingest</strong> &mdash; Rule evaluations fire automatically when traces arrive (fire-and-forget, never blocks ingest).</li>
+        <li><strong>Improvement Packs</strong> &mdash; Actionable suggestions derived from low-scoring evaluations, mapped to 52 metrics &times; 58 categories.</li>
+        <li><strong>Golden Set Regression</strong> &mdash; Automated regression testing against curated ground-truth datasets.</li>
       </ul>
 
       <h2>Architecture</h2>
       <pre><code>Trace Ingest
-  ?”â? Auto-Rule Evaluation (fire-and-forget)
-       ?”â? Rule DSL Engine (17 built-in rules)
+  +-- Auto-Rule Evaluation (fire-and-forget)
+       +-- Rule DSL Engine (17 built-in rules)
 
 Manual/Scheduled Trigger
-  ?”â? LLM Judge Runner
-       ?œâ? Multi-provider (OpenAI, Anthropic, Gemini, Bedrock)
-       ?œâ? Consensus Engine (4 policies)
-       ?”â? Cost Guard (budget enforcement)
+  +-- LLM Judge Runner
+       |-- Multi-provider (OpenAI, Anthropic, Gemini, Bedrock)
+       |-- Consensus Engine (4 policies)
+       +-- Cost Guard (budget enforcement)
 
-Results ??Runs ??Improvements ??Applied/Rejected</code></pre>
+Results &rarr; Runs &rarr; Improvements &rarr; Applied/Rejected</code></pre>
 
       <h2>Module Components</h2>
       <div class="docs-feature-grid">

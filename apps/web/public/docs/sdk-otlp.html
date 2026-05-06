@@ -8,7 +8,7 @@
     <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">OTLP/HTTP (Any Language)</span></header>
     <article class="docs-content">
       <h1>OTLP/HTTP Integration</h1>
-      <p class="docs-lede">EasyObs accepts standard OTLP/HTTP traces from any language that has an OpenTelemetry SDK ??Java, Go, .NET, Rust, Ruby, PHP, and more.</p>
+      <p class="docs-lede">EasyObs accepts standard OTLP/HTTP traces from any language that has an OpenTelemetry SDK &mdash; Java, Go, .NET, Rust, Ruby, PHP, and more.</p>
 
       <h2>Endpoints</h2>
       <table class="docs-table">
@@ -63,7 +63,7 @@
       <table class="docs-table">
         <thead><tr><th>Language</th><th>Package / Module</th></tr></thead>
         <tbody>
-          <tr><td>Java</td><td><code>io.opentelemetry:opentelemetry-exporter-otlp</code> ??<code>OtlpHttpSpanExporter.builder().setEndpoint(...)</code></td></tr>
+          <tr><td>Java</td><td><code>io.opentelemetry:opentelemetry-exporter-otlp</code> &mdash; <code>OtlpHttpSpanExporter.builder().setEndpoint(...)</code></td></tr>
           <tr><td>Go</td><td><code>go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp</code></td></tr>
           <tr><td>.NET</td><td><code>OpenTelemetry.Exporter.OpenTelemetryProtocol</code> (HTTP)</td></tr>
           <tr><td>Rust</td><td><code>opentelemetry-otlp</code> (with "http-proto" feature)</td></tr>
@@ -72,7 +72,7 @@
       </table>
 
       <div class="docs-info">
-        <strong>?’¡ Tip:</strong> Set <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://your-easyobs:8787</code> and <code>OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer eobs_...</code> as environment variables ??most OTel SDKs auto-configure from these.
+        <strong>Tip:</strong> Set <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://your-easyobs:8787</code> and <code>OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer eobs_...</code> as environment variables &mdash; most OTel SDKs auto-configure from these.
       </div>
 
       <div class="docs-next-grid">
