@@ -2,7 +2,6 @@
 
 Run the API first:
 
-    cd docs/comparison/03.develop/easyobs
     .\\scripts\\run-dev.ps1          # (Windows)   or
     ./scripts/run-dev.sh             # (Linux/mac)
 

@@ -3,15 +3,15 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Improvement Packs - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
 <body>
 <div class="docs-layout">
-  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="sessions.html" class="docs-nav-link">Sessions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link active">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link active">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
   <main class="docs-main">
-    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Improvement Packs — Detailed Manual</span></header>
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Improvement Packs ??Detailed Manual</span></header>
     <article class="docs-content">
 
-      <h1>Improvement Packs — Full Feature Manual</h1>
+      <h1>Improvement Packs ??Full Feature Manual</h1>
       <p class="docs-lede">Improvement Packs translate evaluation failures into actionable engineering tasks. Each pack identifies the root cause of a quality issue and provides categorized, effort-graded suggestions for fixing it.</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">📸 Image: Improvements page — grouped cards with effort badges and workflow states</div></div>
+      <div class="docs-hero-placeholder"><div class="placeholder-box">?�� Image: Improvements page ??grouped cards with effort badges and workflow states</div></div>
 
       <h2>How Improvement Packs Work</h2>
       <ol>
@@ -27,9 +27,9 @@
       <table class="docs-table">
         <thead><tr><th>Level</th><th>Badge</th><th>Typical Time</th><th>Examples</th></tr></thead>
         <tbody>
-          <tr><td><strong>Low</strong></td><td>🟢 Green</td><td>&lt; 1 hour</td><td>Adjust prompt wording, add guardrail rule, tweak temperature</td></tr>
-          <tr><td><strong>Medium</strong></td><td>🟡 Yellow</td><td>1 hour – 1 day</td><td>Restructure prompt template, add retrieval step, improve chunking</td></tr>
-          <tr><td><strong>High</strong></td><td>🔴 Red</td><td>&gt; 1 day</td><td>Redesign agent architecture, fine-tune model, add new data pipeline</td></tr>
+          <tr><td><strong>Low</strong></td><td>?�� Green</td><td>&lt; 1 hour</td><td>Adjust prompt wording, add guardrail rule, tweak temperature</td></tr>
+          <tr><td><strong>Medium</strong></td><td>?�� Yellow</td><td>1 hour ??1 day</td><td>Restructure prompt template, add retrieval step, improve chunking</td></tr>
+          <tr><td><strong>High</strong></td><td>?�� Red</td><td>&gt; 1 day</td><td>Redesign agent architecture, fine-tune model, add new data pipeline</td></tr>
         </tbody>
       </table>
 
@@ -45,7 +45,7 @@
         </tbody>
       </table>
 
-      <h2>Category Catalog — 11 Groups, 46 Categories</h2>
+      <h2>Category Catalog ??11 Groups, 46 Categories</h2>
 
       <h3>Group 1: Prompt Engineering</h3>
       <table class="docs-table">
@@ -173,11 +173,11 @@
       <h2>Cause Code Mapping</h2>
       <p>The system uses 52 internal cause codes (generated by LLM judge reasoning analysis) which map to the 46 categories above. Multiple cause codes can map to the same category. The mapping ensures that even nuanced failure reasons are funneled into actionable categories.</p>
 
-      <pre><code>Judge Reasoning → NLP Analysis → Cause Code (52 codes)
-  → Primary Category (46 categories)
-    → Secondary Detail (contextual explanation)
-      → Group (11 groups)
-        → Effort Level (L/M/H)</code></pre>
+      <pre><code>Judge Reasoning ??NLP Analysis ??Cause Code (52 codes)
+  ??Primary Category (46 categories)
+    ??Secondary Detail (contextual explanation)
+      ??Group (11 groups)
+        ??Effort Level (L/M/H)</code></pre>
 
       <h2>UI Layout</h2>
 
@@ -225,7 +225,7 @@
       <h2>Permissions</h2>
       <ul>
         <li><strong>SA / PO:</strong> View all, change workflow states</li>
-        <li><strong>DV:</strong> View all (read-only — cannot change states)</li>
+        <li><strong>DV:</strong> View all (read-only ??cannot change states)</li>
       </ul>
 
       <div class="docs-next-grid">

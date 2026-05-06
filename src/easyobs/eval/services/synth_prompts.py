@@ -1,10 +1,7 @@
 """Self-authored prompt templates for the LLM-driven Synthesizer.
 
 Lifted out of :mod:`easyobs.eval.services.synthesizer` so prompt changes
-can be reviewed without touching the worker logic. Wording is original
-to this project — see ``docs/comparison/02.design/12 §10.3`` for the
-licensing rationale (no overlap with Phoenix ``run_experiment``,
-Langfuse Judge built-ins, or OpenLIT evaluator library).
+can be reviewed without touching the worker logic.
 """
 
 from __future__ import annotations

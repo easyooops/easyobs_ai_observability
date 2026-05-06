@@ -7,12 +7,22 @@ import {
   deleteJudgeModel,
   fetchJudgeModels,
   patchJudgeModel,
+  fetchJudgeDimensionCatalog,
+  fetchJudgePrompts,
+  createJudgePrompt,
+  activateJudgePromptVersion,
   type JudgeModel,
+  type JudgeDimensionCatalogEntry,
+  type JudgePromptVersion,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { fmtRel } from "@/lib/format";
 import { canMutateQuality, QualityGuard, ScopeBanner, WriteHint } from "../guard";
 import { useI18n } from "@/lib/i18n/context";
+import {
+  DEFAULT_JUDGE_SYSTEM_PROMPT,
+  DEFAULT_JUDGE_USER_MESSAGE_TEMPLATE,
+} from "@/lib/judgeDefaults";
 
 type ProviderDef = {
   id: string;
@@ -160,12 +170,52 @@ function fromExisting(j: JudgeModel): Draft {
 export default function JudgesPage() {
   return (
     <QualityGuard>
-      <Inner />
+      <JudgesShell />
     </QualityGuard>
   );
 }
 
-function Inner() {
+function JudgesShell() {
+  const [tab, setTab] = useState<"models" | "prompts">("models");
+  const { t } = useI18n();
+
+  return (
+    <>
+      <div className="eo-page-head">
+        <div>
+          <h1 className="eo-page-title">{t("pages.judges.title")}</h1>
+          <p className="eo-page-lede">{t("pages.judges.lede")}</p>
+        </div>
+      </div>
+      <ScopeBanner />
+      <WriteHint />
+
+      <div className="eo-tabs" style={{ marginBottom: 16 }}>
+        <button
+          type="button"
+          className="eo-tab"
+          data-active={tab === "models"}
+          onClick={() => setTab("models")}
+        >
+          {t("pages.judges.tabModels")}
+        </button>
+        <button
+          type="button"
+          className="eo-tab"
+          data-active={tab === "prompts"}
+          onClick={() => setTab("prompts")}
+        >
+          {t("pages.judges.tabPrompts")}
+        </button>
+      </div>
+
+      {tab === "models" && <ModelsTab />}
+      {tab === "prompts" && <PromptsTab />}
+    </>
+  );
+}
+
+function ModelsTab() {
   const { t } = useI18n();
   const auth = useAuth();
   const writable = canMutateQuality(auth);
@@ -225,27 +275,19 @@ function Inner() {
 
   return (
     <>
-      <div className="eo-page-head">
-        <div>
-          <h1 className="eo-page-title">{t("pages.judges.title")}</h1>
-          <p className="eo-page-lede">{t("pages.judges.lede")}</p>
-        </div>
-        <div className="eo-page-meta">
-          <button
-            type="button"
-            className="eo-btn eo-btn-primary"
-            onClick={() => {
-              setEditing(emptyDraft());
-              setError(null);
-            }}
-            disabled={!writable}
-          >
-            Register judge
-          </button>
-        </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <button
+          type="button"
+          className="eo-btn eo-btn-primary"
+          onClick={() => {
+            setEditing(emptyDraft());
+            setError(null);
+          }}
+          disabled={!writable}
+        >
+          {t("pages.judges.registerJudge")}
+        </button>
       </div>
-      <ScopeBanner />
-      <WriteHint />
 
       <div className="eo-card">
         <div className="eo-table-wrap">
@@ -662,5 +704,328 @@ function ProviderConnectionFields({
       worker. Until then, pick OpenAI, Anthropic, Gemini, or on-prem
       OpenAI-compatible for live judge calls.
     </p>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Evaluation Prompts Tab
+// ---------------------------------------------------------------------------
+
+type PromptDraft = {
+  dimensionId: string;
+  systemPrompt: string;
+  userMessageTemplate: string;
+  description: string;
+};
+
+function PromptsTab() {
+  const { t, locale } = useI18n();
+  const auth = useAuth();
+  const writable = canMutateQuality(auth);
+  const qc = useQueryClient();
+
+  const dimensions = useQuery({
+    queryKey: ["eval", "judge-dimensions"],
+    queryFn: fetchJudgeDimensionCatalog,
+  });
+
+  const prompts = useQuery({
+    queryKey: ["eval", "judge-prompts"],
+    queryFn: () => fetchJudgePrompts(),
+  });
+
+  const [selectedDim, setSelectedDim] = useState<string | null>(null);
+  const [editing, setEditing] = useState<PromptDraft | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const save = useMutation({
+    mutationFn: async (d: PromptDraft) => {
+      if (!d.systemPrompt.trim() && !d.userMessageTemplate.trim()) {
+        throw new Error("At least one of system prompt or user message template is required");
+      }
+      return createJudgePrompt({
+        dimensionId: d.dimensionId,
+        systemPrompt: d.systemPrompt,
+        userMessageTemplate: d.userMessageTemplate,
+        description: d.description,
+      });
+    },
+    onSuccess: () => {
+      setEditing(null);
+      setError(null);
+      qc.invalidateQueries({ queryKey: ["eval", "judge-prompts"] });
+    },
+    onError: (e: Error) => setError(e.message),
+  });
+
+  const activate = useMutation({
+    mutationFn: activateJudgePromptVersion,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["eval", "judge-prompts"] });
+    },
+  });
+
+  const dimList = dimensions.data ?? [];
+  const promptList = prompts.data ?? [];
+
+  const promptsByDim = useMemo(() => {
+    const map: Record<string, JudgePromptVersion[]> = {};
+    for (const p of promptList) {
+      if (!map[p.dimensionId]) map[p.dimensionId] = [];
+      map[p.dimensionId].push(p);
+    }
+    return map;
+  }, [promptList]);
+
+  const filteredPrompts = selectedDim ? (promptsByDim[selectedDim] ?? []) : [];
+  const selectedDimMeta = dimList.find((d) => d.id === selectedDim);
+
+  return (
+    <>
+      <p className="eo-mute" style={{ fontSize: 12, marginBottom: 12 }}>
+        {t("pages.judges.promptsDesc")}
+      </p>
+
+      <div style={{ display: "flex", gap: 16 }}>
+        {/* Dimension list */}
+        <div className="eo-card" style={{ minWidth: 260, maxWidth: 300 }}>
+          <div className="eo-card-h">
+            <h3 className="eo-card-title">{t("pages.judges.dimensions")}</h3>
+          </div>
+          <div style={{ maxHeight: 480, overflow: "auto" }}>
+            {dimList.map((dim) => {
+              const activeVer = (promptsByDim[dim.id] ?? []).find((p) => p.isActive);
+              return (
+                <button
+                  key={dim.id}
+                  type="button"
+                  className="eo-list-item"
+                  data-active={selectedDim === dim.id}
+                  onClick={() => {
+                    setSelectedDim(dim.id);
+                    setEditing(null);
+                    setError(null);
+                  }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "8px 12px",
+                    border: "none",
+                    background: selectedDim === dim.id ? "var(--eo-accent-bg, #e0e7ff)" : "transparent",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                    marginBottom: 2,
+                  }}
+                >
+                  <div style={{ fontWeight: 500, fontSize: 13 }}>{dim.title[locale] || dim.title.en}</div>
+                  <div className="eo-mute" style={{ fontSize: 11 }}>
+                    <span style={{ display: "inline-block", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", verticalAlign: "bottom" }}>
+                      {dim.criterion[locale] || dim.criterion.en}
+                    </span>
+                    {activeVer && (
+                      <span style={{ marginLeft: 6, color: "var(--eo-ok, #22c55e)" }}>
+                        v{activeVer.version}
+                      </span>
+                    )}
+                    {!activeVer && (
+                      <span style={{ marginLeft: 6, opacity: 0.5 }}>default</span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Detail panel */}
+        <div style={{ flex: 1 }}>
+          {!selectedDim && (
+            <div className="eo-empty">{t("pages.judges.selectDimHint")}</div>
+          )}
+
+          {selectedDim && selectedDimMeta && (
+            <>
+              <div className="eo-card" style={{ marginBottom: 12 }}>
+                <div className="eo-card-h">
+                  <h3 className="eo-card-title">
+                    {selectedDimMeta.title[locale] || selectedDimMeta.title.en} — {t("pages.judges.promptHistory")}
+                  </h3>
+                  {writable && (
+                    <button
+                      type="button"
+                      className="eo-btn eo-btn-primary"
+                      style={{ marginLeft: "auto" }}
+                      onClick={() => {
+                        const active = filteredPrompts.find((p) => p.isActive);
+                        setEditing({
+                          dimensionId: selectedDim,
+                          systemPrompt: active?.systemPrompt ?? DEFAULT_JUDGE_SYSTEM_PROMPT,
+                          userMessageTemplate: active?.userMessageTemplate ?? DEFAULT_JUDGE_USER_MESSAGE_TEMPLATE,
+                          description: "",
+                        });
+                        setError(null);
+                      }}
+                    >
+                      {t("pages.judges.newVersion")}
+                    </button>
+                  )}
+                </div>
+
+                <p className="eo-mute" style={{ fontSize: 12, margin: "4px 0 12px" }}>
+                  {t("pages.judges.defaultCriterion")}: {selectedDimMeta.criterion[locale] || selectedDimMeta.criterion.en}
+                </p>
+
+                {filteredPrompts.length === 0 && (
+                  <div className="eo-empty" style={{ padding: 12 }}>
+                    {t("pages.judges.noCustomPrompts")}
+                  </div>
+                )}
+
+                {filteredPrompts.length > 0 && (
+                  <div className="eo-table-wrap">
+                    <table className="eo-table">
+                      <thead>
+                        <tr>
+                          <th>{t("pages.judges.version")}</th>
+                          <th>{t("pages.judges.description")}</th>
+                          <th>{t("pages.judges.active")}</th>
+                          <th>{t("pages.judges.created")}</th>
+                          <th />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredPrompts.map((p) => (
+                          <tr key={p.id}>
+                            <td className="mono">v{p.version}</td>
+                            <td>{p.description || "—"}</td>
+                            <td>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  width: 10,
+                                  height: 10,
+                                  borderRadius: 999,
+                                  background: p.isActive ? "#22c55e" : "#94a3b8",
+                                }}
+                              />
+                              <span className="eo-mute" style={{ marginLeft: 6, fontSize: 11 }}>
+                                {p.isActive ? "active" : "inactive"}
+                              </span>
+                            </td>
+                            <td>{fmtRel(p.createdAt)}</td>
+                            <td>
+                              {writable && !p.isActive && (
+                                <button
+                                  type="button"
+                                  className="eo-btn eo-btn-ghost"
+                                  onClick={() => activate.mutate(p.id)}
+                                >
+                                  {t("pages.judges.activate")}
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="eo-btn eo-btn-ghost"
+                                onClick={() => {
+                                  setEditing({
+                                    dimensionId: selectedDim,
+                                    systemPrompt: p.systemPrompt,
+                                    userMessageTemplate: p.userMessageTemplate,
+                                    description: "",
+                                  });
+                                  setError(null);
+                                }}
+                              >
+                                {writable ? t("pages.judges.cloneEdit") : t("pages.judges.view")}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Editor */}
+              {editing && (
+                <div className="eo-card">
+                  <div className="eo-card-h">
+                    <h3 className="eo-card-title">
+                      {t("pages.judges.createVersion").replace("{n}", String((filteredPrompts[0]?.version ?? 0) + 1))}
+                      {" — "}{selectedDimMeta.title[locale] || selectedDimMeta.title.en}
+                    </h3>
+                  </div>
+
+                  <label className="eo-field" style={{ marginTop: 8 }}>
+                    <span>{t("pages.judges.descLabel")}</span>
+                    <input
+                      value={editing.description}
+                      onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                      placeholder={t("pages.judges.descPlaceholder")}
+                      disabled={!writable}
+                    />
+                  </label>
+
+                  <label className="eo-field" style={{ marginTop: 12 }}>
+                    <span>{t("pages.judges.systemPromptLabel")}</span>
+                    <textarea
+                      value={editing.systemPrompt}
+                      onChange={(e) => setEditing({ ...editing, systemPrompt: e.target.value })}
+                      rows={5}
+                      style={{ fontFamily: "monospace", fontSize: 12 }}
+                      disabled={!writable}
+                    />
+                  </label>
+
+                  <label className="eo-field" style={{ marginTop: 12 }}>
+                    <span>
+                      {t("pages.judges.userMsgLabel")}{" "}
+                      <span className="eo-mute" style={{ fontSize: 11 }}>
+                        ({t("pages.judges.userMsgHint")})
+                      </span>
+                    </span>
+                    <textarea
+                      value={editing.userMessageTemplate}
+                      onChange={(e) => setEditing({ ...editing, userMessageTemplate: e.target.value })}
+                      rows={8}
+                      style={{ fontFamily: "monospace", fontSize: 12 }}
+                      disabled={!writable}
+                    />
+                  </label>
+
+                  {error && (
+                    <div className="eo-empty" style={{ color: "var(--eo-err)", marginTop: 8 }}>
+                      {error}
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
+                    <button
+                      type="button"
+                      className="eo-btn eo-btn-ghost"
+                      onClick={() => { setEditing(null); setError(null); }}
+                    >
+                      {t("pages.judges.cancelBtn")}
+                    </button>
+                    {writable && (
+                      <button
+                        type="button"
+                        className="eo-btn eo-btn-primary"
+                        onClick={() => save.mutate(editing)}
+                        disabled={save.isPending}
+                      >
+                        {save.isPending ? t("pages.judges.saving") : t("pages.judges.saveBtn")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

@@ -154,6 +154,10 @@ async def lifespan(app: FastAPI):
     if settings.eval_enabled:
         sf = session_scope()
 
+        from easyobs.db.session import seed_default_judge_prompts
+
+        await seed_default_judge_prompts()
+
         async def _trace_loader(trace_id: str):
             return await trace_query.trace_detail(
                 trace_id, allowed_service_ids=None

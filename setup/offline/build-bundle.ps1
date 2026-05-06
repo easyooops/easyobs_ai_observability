@@ -3,7 +3,7 @@
 # build-bundle.sh 의 PowerShell 버전. Windows 빌드 머신에서 실행.
 #
 # 사용:
-#   .\docs\comparison\03.develop\easyobs\setup\offline\build-bundle.ps1 `
+#   .\setup\offline\build-bundle.ps1 `
 #       -Output .\dist\easyobs-bundle `
 #       -ApiTag easyobs/api:0.2.0 `
 #       -WebTag easyobs/web:0.2.0
@@ -19,13 +19,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# 이 스크립트 위치: docs\comparison\03.develop\easyobs\setup\offline\build-bundle.ps1
-# → SourceDir  = docs\comparison\03.develop\easyobs (= setup 의 부모)
-# → ProductDir = docs\comparison\03.develop\easyobs\setup
 $ScriptDir  = Split-Path -Parent $PSCommandPath
 $ProductDir = (Resolve-Path (Join-Path $ScriptDir "..")).Path
 $SourceDir  = (Resolve-Path (Join-Path $ProductDir "..")).Path
-$RepoRoot   = (Resolve-Path (Join-Path $SourceDir "..\..\..\..")).Path
+$RepoRoot   = $SourceDir
 
 if ([string]::IsNullOrEmpty($Output)) {
     $Output = Join-Path $RepoRoot "dist\easyobs-bundle"

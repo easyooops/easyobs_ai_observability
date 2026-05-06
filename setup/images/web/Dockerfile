@@ -2,13 +2,13 @@
 # =============================================================================
 # EasyObs Web Console (Next.js 15 standalone) — production multi-stage image.
 #
-# Build context (반드시): docs/comparison/03.develop/easyobs/apps/web
+# Build context: apps/web 디렉터리
 #
 #   docker build \
-#     -f docs/comparison/03.develop/easyobs/setup/images/web/Dockerfile \
+#     -f setup/images/web/Dockerfile \
 #     -t easyobs/web:0.2.0 \
 #     --build-arg NEXT_PUBLIC_API_URL=http://api:8787 \
-#     docs/comparison/03.develop/easyobs/apps/web
+#     apps/web
 # =============================================================================
 
 # ---- Stage 1: deps ----------------------------------------------------------

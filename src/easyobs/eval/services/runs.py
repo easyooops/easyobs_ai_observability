@@ -460,6 +460,11 @@ class RunService:
                 refs=[(j.model_id, j.weight) for j in profile.judge_models],
             )
 
+        # Load active versioned prompts from DB for dimension-level overrides.
+        from easyobs.eval.judge.defaults import resolve_active_prompts
+
+        active_dim_prompts = await resolve_active_prompts(org_id) if wants_judges else {}
+
         for trace_id in trace_ids:
             try:
                 trace = await self._fetch_trace(trace_id, project_scope)
@@ -498,7 +503,9 @@ class RunService:
                 judge_error_detail: dict[str, Any] = {}
                 judge_total_failure = False
                 if wants_judges and judge_specs:
-                    request = self._build_judge_request(profile, ctx, run_mode=rm)
+                    request = self._build_judge_request(
+                        profile, ctx, run_mode=rm, active_dim_prompts=active_dim_prompts
+                    )
                     outcome = await run_judges(
                         models=judge_specs,
                         request=request,
@@ -786,7 +793,12 @@ class RunService:
         return findings, rule_score
 
     def _build_judge_request(
-        self, profile: ProfileDTO, ctx: RuleContext, *, run_mode: str
+        self,
+        profile: ProfileDTO,
+        ctx: RuleContext,
+        *,
+        run_mode: str,
+        active_dim_prompts: dict[str, dict[str, str]] | None = None,
     ) -> JudgeRequest:
         lines: list[str] = []
         mode_line = _run_mode_rubric_line(run_mode)
@@ -891,11 +903,26 @@ class RunService:
         sys_override = (profile.judge_system_prompt or "").strip() or None
         from easyobs.eval.judge.defaults import build_profile_user_message
 
+        # Merge DB versioned prompts: if active_dim_prompts are available for selected
+        # dimensions and the profile doesn't already override, use them.
+        merged_sys_parts: list[str] = []
+        merged_user_template: str | None = profile.judge_user_message_template or None
+        if active_dim_prompts and selected_dim_ids:
+            for dim_id in selected_dim_ids:
+                dp = active_dim_prompts.get(dim_id)
+                if dp:
+                    if dp.get("system_prompt") and not sys_override:
+                        merged_sys_parts.append(dp["system_prompt"])
+                    if dp.get("user_message_template") and not merged_user_template:
+                        merged_user_template = dp["user_message_template"]
+        if merged_sys_parts and not sys_override:
+            sys_override = "\n\n".join(merged_sys_parts)
+
         user_msg = build_profile_user_message(
             rubric_id=profile.id,
             rubric=prompt,
             context=context,
-            template_override=profile.judge_user_message_template or None,
+            template_override=merged_user_template,
         )
         return JudgeRequest(
             rubric_id=profile.id,

@@ -30,6 +30,15 @@ async def traces_list(
             ),
         ),
     ] = None,
+    user_id: Annotated[
+        str | None,
+        Query(
+            description=(
+                "Restrict to traces whose spans carry the given o.user "
+                "attribute. Drives the Users → Traces drill-down."
+            ),
+        ),
+    ] = None,
     with_llm: Annotated[
         bool,
         Query(
@@ -48,6 +57,7 @@ async def traces_list(
         from_ts=from_ts,
         to_ts=to_ts,
         session_id=session_id,
+        user_id=user_id,
         with_llm=with_llm,
     )
     return {"items": items}

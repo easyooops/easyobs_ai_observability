@@ -1,12 +1,12 @@
 # EasyObs — 운영 배포 패키지
 
-`docs/comparison/03.develop/easyobs/` 의 개발 코드를 운영 환경에 한 번에
-배포하기 위한 산출물 묶음. **온라인(AWS Terraform)**, **단일 호스트
-docker compose**, **폐쇄망(이미지 tar 번들)** 세 가지 경로 모두를 동일한
+개발 코드를 운영 환경에 한 번에 배포하기 위한 산출물 묶음.
+**온라인(AWS Terraform)**, **단일 호스트 docker compose**,
+**폐쇄망(이미지 tar 번들)** 세 가지 경로 모두를 동일한
 컨테이너 이미지(=같은 코드)로 커버한다.
 
 ```
-docs/comparison/03.develop/easyobs/setup/
+setup/
 ├── images/
 │   ├── api/Dockerfile               FastAPI + uvicorn (multi-stage)
 │   └── web/Dockerfile               Next.js 15 standalone
@@ -50,19 +50,19 @@ docs/comparison/03.develop/easyobs/setup/
 
 ## 2. 이미지 빌드 (모든 경로 공통)
 
-워크스페이스 루트에서:
+프로젝트 루트에서:
 
 ```bash
 docker build \
-  -f docs/comparison/03.develop/easyobs/setup/images/api/Dockerfile \
+  -f setup/images/api/Dockerfile \
   -t easyobs/api:0.2.0 \
-  docs/comparison/03.develop/easyobs
+  .
 
 docker build \
-  -f docs/comparison/03.develop/easyobs/setup/images/web/Dockerfile \
+  -f setup/images/web/Dockerfile \
   -t easyobs/web:0.2.0 \
   --build-arg NEXT_PUBLIC_API_URL=http://127.0.0.1:8787 \
-  docs/comparison/03.develop/easyobs/apps/web
+  apps/web
 ```
 
 `NEXT_PUBLIC_API_URL` 은 **Next.js 빌드 타임 변수** 이므로, 운영에 띄울

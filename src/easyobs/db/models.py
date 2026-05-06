@@ -267,6 +267,37 @@ class EvalProfileRow(Base):
     created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
 
+class EvalJudgePromptRow(Base):
+    """Versioned prompt templates for each LLM-as-a-Judge evaluation dimension.
+
+    Each dimension (e.g. faithfulness, answer_relevance, …) has its own prompt
+    chain: system message + user message template. Edits create a new version
+    (v1 → v2 → v3 …). Only the latest active version is used at evaluation
+    time unless a profile pins a specific version.
+    """
+
+    __tablename__ = "eval_judge_prompt"
+    __table_args__ = (
+        UniqueConstraint(
+            "org_id", "dimension_id", "version", name="uq_eval_judge_prompt_dim_ver"
+        ),
+        Index("ix_eval_judge_prompt_dim", "org_id", "dimension_id", "is_active"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    org_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("organization.id", ondelete="CASCADE"), index=True
+    )
+    dimension_id: Mapped[str] = mapped_column(String(60), index=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    system_prompt: Mapped[str] = mapped_column(Text, default="")
+    user_message_template: Mapped[str] = mapped_column(Text, default="")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    description: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime(), index=True)
+    created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+
 class EvalGoldenSetRow(Base):
     """Container for golden items, scoped to an org and (optionally) one
     project. Layer is one of L1 (query intent), L2 (retrieval), L3
@@ -715,8 +746,7 @@ class HumanLabelAnnotationRow(Base):
 # and the ``eval_*`` evaluation tables — alarms read from both worlds but write
 # to a dedicated namespace so the access matrix and the lifecycle stay clean.
 # Naming is EasyObs-native (``alarm_*``) and does not match the identifiers used
-# by the OSS we benchmarked. See
-# ``docs/comparison/02.design/09.threshold-alerting-feature-proposal.md``.
+# by the OSS we benchmarked.
 # ---------------------------------------------------------------------------
 
 

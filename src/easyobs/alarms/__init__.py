@@ -10,8 +10,6 @@ The module is opt-in via the ``EASYOBS_ALARM_ENABLED`` environment flag and
 isolated from the operational ingest path: the evaluator runs as a
 periodic asyncio task that reads from the catalog/eval tables and writes
 ``alarm_event`` rows. Delivery failures never block ingest.
-
-See ``docs/comparison/02.design/09.threshold-alerting-feature-proposal.md``.
 """
 
 from easyobs.alarms.catalog import (

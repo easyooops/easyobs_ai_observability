@@ -15,8 +15,8 @@
 |------|------|------|
 | `easyobs-images.tar`     | `docker save easyobs/api:* easyobs/web:*` | EasyObs 컨테이너 이미지 |
 | `third-party-images.tar` | `docker save postgres:16 nginx:1.27-alpine` | 의존 이미지 |
-| `easyobs-source.tar.gz`  | `docs/comparison/03.develop/easyobs/`     | 소스 (재빌드/디버그용) |
-| `easyobs-product.tar.gz` | `docs/comparison/03.develop/easyobs/setup/`          | compose, Dockerfile, terraform, offline 스크립트 |
+| `easyobs-source.tar.gz`  | 프로젝트 소스     | 소스 (재빌드/디버그용) |
+| `easyobs-product.tar.gz` | `setup/`          | compose, Dockerfile, terraform, offline 스크립트 |
 | `load-bundle.sh`         | 동봉                                        | 타깃에서 docker load + tar 풀기 |
 | `deploy-single.sh`       | 동봉                                        | 단일 노드 자동 기동 |
 | `deploy-cluster.sh`      | 동봉                                        | 클러스터 기동 (single-host / multi-host) |
@@ -29,14 +29,14 @@
 ### 사전 조건
 
 - Docker (24+ 권장)
-- 워크스페이스 루트(`oss_observability/`) 체크아웃
+- 프로젝트 루트 체크아웃
 - (선택) Linux/macOS 또는 WSL — Windows PowerShell 도 지원하지만 `tar` 가 필요
 
 ### 번들 만들기 (Linux/macOS/WSL)
 
 ```bash
 cd <repo-root>
-./docs/comparison/03.develop/easyobs/setup/offline/build-bundle.sh \
+./setup/offline/build-bundle.sh \
     --output ./dist/easyobs-bundle \
     --api-tag easyobs/api:0.2.0 \
     --web-tag easyobs/web:0.2.0
@@ -46,7 +46,7 @@ cd <repo-root>
 
 ```powershell
 cd <repo-root>
-.\docs\comparison\03.develop\easyobs\setup\offline\build-bundle.ps1 `
+.\setup\offline\build-bundle.ps1 `
     -Output .\dist\easyobs-bundle `
     -ApiTag easyobs/api:0.2.0 `
     -WebTag easyobs/web:0.2.0

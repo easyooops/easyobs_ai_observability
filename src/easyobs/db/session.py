@@ -225,6 +225,60 @@ async def _ensure_eval_result_judge_error_column(conn) -> None:
         pass
 
 
+async def seed_default_judge_prompts() -> None:
+    """Seed v1 (default) evaluation prompts for all dimensions on first run.
+
+    Idempotent: skips dimensions that already have at least one row in the DB.
+    This runs once during lifespan initialization so users see v1 defaults
+    pre-populated when they first open the Evaluation Prompts tab.
+    """
+    if _session_factory is None:
+        return
+    try:
+        from easyobs.db.models import EvalJudgePromptRow, OrganizationRow
+        from easyobs.eval.judge.defaults import (
+            DEFAULT_JUDGE_SYSTEM_PROMPT,
+            DEFAULT_JUDGE_USER_MESSAGE_TEMPLATE,
+        )
+        from easyobs.eval.judge.dimensions_meta import JUDGE_DIMENSION_IDS
+        from sqlalchemy import select, func
+        import uuid
+        from datetime import datetime, timezone
+
+        async with _session_factory() as db:
+            orgs = (await db.execute(select(OrganizationRow))).scalars().all()
+            if not orgs:
+                return
+            for org in orgs:
+                existing_count = (
+                    await db.execute(
+                        select(func.count(EvalJudgePromptRow.id)).where(
+                            EvalJudgePromptRow.org_id == org.id
+                        )
+                    )
+                ).scalar() or 0
+                if existing_count > 0:
+                    continue
+                now = datetime.now(timezone.utc)
+                for dim_id in JUDGE_DIMENSION_IDS:
+                    row = EvalJudgePromptRow(
+                        id=str(uuid.uuid4()),
+                        org_id=org.id,
+                        dimension_id=dim_id,
+                        version=1,
+                        system_prompt=DEFAULT_JUDGE_SYSTEM_PROMPT,
+                        user_message_template=DEFAULT_JUDGE_USER_MESSAGE_TEMPLATE,
+                        is_active=True,
+                        description="v1 (default) — built-in system prompt",
+                        created_at=now,
+                        created_by=None,
+                    )
+                    db.add(row)
+                await db.commit()
+    except Exception:
+        pass
+
+
 def session_scope() -> async_sessionmaker[AsyncSession]:
     assert _session_factory is not None
     return _session_factory

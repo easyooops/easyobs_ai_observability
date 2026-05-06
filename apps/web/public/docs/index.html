@@ -24,7 +24,7 @@
       <a href="configuration.html" class="docs-nav-link">Configuration</a>
       <div class="docs-nav-group">Observability</div>
       <a href="tracing.html" class="docs-nav-link">Tracing</a>
-      <a href="sessions.html" class="docs-nav-link">Sessions</a>
+      <a href="interactions.html" class="docs-nav-link">Interactions</a>
       <a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a>
       <div class="docs-nav-group">SDK Integration</div>
       <a href="sdk-python.html" class="docs-nav-link">Python SDK</a>
@@ -73,8 +73,8 @@
           <p>Track every LLM call, retrieval, and tool use as spans. Monitor latency, cost, and token usage in real time.</p>
         </div>
         <div class="docs-feature-card">
-          <h3>📊 Sessions</h3>
-          <p>Group multi-turn conversations into sessions. Visually analyze per-user interaction flows.</p>
+          <h3>📊 Interactions</h3>
+          <p>Group multi-turn conversations into sessions and track per-user engagement. Unified view with Sessions and Users tabs.</p>
         </div>
         <div class="docs-feature-card">
           <h3>⚡ Quality Evaluation</h3>
@@ -120,7 +120,8 @@
           <span class="docs-step-num">1</span>
           <div>
             <strong>Clone and configure</strong>
-            <pre><code>cd docs/comparison/03.develop/easyobs
+            <pre><code>git clone &lt;repository-url&gt;
+cd easyobs_ai_observability
 cp .env.sample .env</code></pre>
           </div>
         </div>

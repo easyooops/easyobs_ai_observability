@@ -4,9 +4,8 @@ Why this module exists
 ----------------------
 The legacy 8-key taxonomy in ``improvement_i18n.CATEGORY_TAXONOMY_I18N``
 (``prompt_clarity`` / ``retrieval_quality`` / …) was too coarse to
-represent the **52 evaluation metrics** defined in the design document
-(see ``docs/comparison/02.design/06.evaluation-metrics-and-pipelines.md``
-§9). Operators kept asking *"the metric tells me Recall@K dropped, but
+represent the **52 evaluation metrics** defined in the design document.
+Operators kept asking *"the metric tells me Recall@K dropped, but
 which knob exactly should I turn?"* and the legacy bucket only said
 ``retrieval_quality``.
 
@@ -37,7 +36,7 @@ Group / category identifiers (``prompt.rewrite``, ``retrieval.tune``,
 ``query.intent_taxonomy`` …) are this product's own naming scheme.
 They were intentionally chosen to **not** mirror Langfuse's
 ``Score Config``, OpenLIT's ``Evaluation Type`` or Phoenix's
-``Evaluator`` identifiers (see ``docs/comparison/02.design/05`` §0).
+``Evaluator`` identifiers.
 Public metric names (Recall@K, Faithfulness …) are industry
 terminology and are referenced here only as cross-links, not copied
 from any third-party source code.
@@ -87,8 +86,7 @@ def normalize_effort(raw: str | None) -> str:
 
 #: Fixed display order of the 12 groups (used for accordions, filters).
 #:
-#: ``supply`` was added for the **AI Security hardening track** (see
-#: ``docs/comparison/02.design/10.ai-security-hardening.md``). It captures
+#: ``supply`` was added for the **AI Security hardening track**. It captures
 #: third-party/vendor controls that surfaced as urgent after the April 2026
 #: Anthropic Claude Mythos preview supply-chain incident: a third-party
 #: vendor's identity was abused to gain unauthorized access to the Mythos

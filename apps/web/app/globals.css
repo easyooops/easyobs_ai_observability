@@ -49,8 +49,7 @@
   /* ---------- Improvement-Pack effort palette ----------
      Distinct from verdict colors (--eo-ok / --eo-warn / --eo-err) on
      purpose: a card can have a *fail* verdict and a *low* effort at the
-     same time, and we need both readouts to be perceivable at a glance.
-     See docs/comparison/02.design/08.evaluation-ui-reporting-and-improvement.md §3. */
+     same time, and we need both readouts to be perceivable at a glance. */
   --q-effort-low: #14b8a6;          /* teal */
   --q-effort-low-soft: #d6f7f0;
   --q-effort-low-ink: #075f57;
@@ -2122,20 +2121,189 @@ pre,
   color: #5a3e02;
 }
 
+/* Mobile hamburger button — hidden on desktop */
+.eo-mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--eo-line);
+  background: var(--eo-paper);
+  border-radius: var(--eo-radius);
+  cursor: pointer;
+  color: var(--eo-ink);
+  flex-shrink: 0;
+}
+.eo-mobile-menu-btn:hover {
+  border-color: var(--eo-accent);
+  color: var(--eo-accent-ink);
+}
+
+/* Mobile nav overlay */
+.eo-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(15, 22, 36, 0.5);
+  animation: eo-fade-in 120ms ease-out;
+}
+.eo-mobile-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(280px, 85vw);
+  background: var(--eo-rail);
+  color: var(--eo-rail-ink);
+  display: flex;
+  flex-direction: column;
+  animation: eo-mobile-slide-in 180ms ease-out;
+  overflow: hidden;
+}
+.eo-mobile-nav .eo-rail-head {
+  position: relative;
+}
+.eo-mobile-close {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 0;
+  color: var(--eo-rail-mute);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--eo-radius-sm);
+}
+.eo-mobile-close:hover {
+  color: var(--eo-rail-ink);
+  background: var(--eo-rail-soft);
+}
+.eo-mobile-nav .eo-rail-nav {
+  flex: 1;
+  overflow: auto;
+}
+@keyframes eo-mobile-slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* Language switcher mobile: hide label, show only select */
+@media (max-width: 860px) {
+  .eo-lang-label {
+    display: none;
+  }
+  .eo-lang-switcher {
+    padding: 2px 4px;
+  }
+}
+
 /* responsive topbar wrapping */
 @media (max-width: 860px) {
   .eo-search {
-    min-width: 140px;
+    min-width: 0;
+    flex: 1;
   }
   .eo-topbar {
     flex-wrap: wrap;
     padding: 8px 12px;
+    gap: 8px;
+  }
+  .eo-topbar-crumbs {
+    display: none;
+  }
+  .eo-topbar-spacer {
+    display: none;
+  }
+  .eo-topbar-tools {
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
   }
   .eo-rail {
     display: none;
   }
   .eo-shell {
     grid-template-columns: 1fr;
+  }
+  .eo-mobile-menu-btn {
+    display: flex;
+  }
+  .eo-page {
+    padding: 12px 12px 32px;
+  }
+  .eo-trace-layout,
+  .eo-trace-layout[data-drawer="true"] {
+    grid-template-columns: 1fr;
+  }
+  .eo-filters {
+    position: static;
+    max-height: none;
+  }
+  .eo-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .eo-grid-2,
+  .eo-grid-2-even,
+  .eo-grid-3,
+  .eo-grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .eo-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Additional small-screen refinements */
+@media (max-width: 480px) {
+  .eo-topbar-tools {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .eo-seg button {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .eo-chip {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+  .eo-range-chip {
+    max-width: 100px;
+  }
+  .eo-search {
+    min-width: 0;
+    flex: 0 1 auto;
+    max-width: 160px;
+  }
+  .eo-search input {
+    font-size: 12px;
+  }
+  .eo-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .eo-page-title {
+    font-size: 17px;
+  }
+  .eo-page-lede {
+    font-size: 11.5px;
+  }
+  .eo-table tbody td,
+  .eo-table thead th {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  .eo-trace-layout,
+  .eo-trace-layout[data-drawer="true"] {
+    grid-template-columns: 1fr;
+  }
+  .eo-filters {
+    position: static;
+    max-height: none;
   }
 }
 

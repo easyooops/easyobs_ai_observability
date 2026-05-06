@@ -402,6 +402,116 @@ class AnalyticsService:
         out.sort(key=lambda s: s["lastSeenAt"], reverse=True)
         return out[:limit]
 
+    async def users(
+        self,
+        *,
+        service_ids: list[str] | None,
+        limit: int = 200,
+        window_hours: int | None = None,
+        from_ts: datetime | None = None,
+        to_ts: datetime | None = None,
+    ) -> list[dict[str, Any]]:
+        """Aggregate per-user activity from ingested traces.
+
+        A user is identified by the ``o.user`` span attribute
+        (``span_tag(SpanTag.USER, uid)`` in Python). Traces without
+        ``o.user`` are excluded. The returned row summarises sessions,
+        traces, tokens and cost per user.
+        """
+        items = await self._catalog.list_traces(service_ids=service_ids, limit=1000)
+        lo, hi = resolve_range(window_hours, from_ts, to_ts)
+        if lo is not None or hi is not None:
+            def _ok(i: dict[str, Any]) -> bool:
+                ts = datetime.fromisoformat(i["startedAt"])
+                if lo is not None and ts < lo:
+                    return False
+                if hi is not None and ts > hi:
+                    return False
+                return True
+            items = [i for i in items if _ok(i)]
+
+        user_data: dict[str, dict[str, Any]] = {}
+
+        for i in items:
+            detail = await self._catalog.get_trace_row(i["traceId"])
+            if detail is None:
+                continue
+            try:
+                spans = self._blob.read_batch_lines(detail.batch_relpath)
+            except Exception:
+                continue
+
+            user_id: str | None = None
+            session_id: str | None = None
+            tokens_in = tokens_out = 0
+            price = 0.0
+            models: set[str] = set()
+            for sp in spans:
+                info = SpanLLM.from_span(sp)
+                if info.user and not user_id:
+                    user_id = info.user
+                if info.session and not session_id:
+                    session_id = info.session
+                tokens_in += info.tokens_in
+                tokens_out += info.tokens_out
+                price += info.price
+                if info.model:
+                    models.add(info.model)
+
+            if not user_id:
+                continue
+
+            if user_id not in user_data:
+                user_data[user_id] = {
+                    "userId": user_id,
+                    "serviceName": i.get("serviceName") or "unknown",
+                    "sessions": set(),
+                    "traceCount": 0,
+                    "errorCount": 0,
+                    "tokensIn": 0,
+                    "tokensOut": 0,
+                    "price": 0.0,
+                    "models": set(),
+                    "firstSeenAt": i["startedAt"],
+                    "lastSeenAt": i.get("endedAt") or i["startedAt"],
+                }
+
+            ud = user_data[user_id]
+            ud["traceCount"] += 1
+            if i.get("status") == "ERROR":
+                ud["errorCount"] += 1
+            ud["tokensIn"] += tokens_in
+            ud["tokensOut"] += tokens_out
+            ud["price"] += price
+            ud["models"] |= models
+            if session_id:
+                ud["sessions"].add(session_id)
+            ud["serviceName"] = i.get("serviceName") or ud["serviceName"]
+            if i["startedAt"] < ud["firstSeenAt"]:
+                ud["firstSeenAt"] = i["startedAt"]
+            ended = i.get("endedAt") or i["startedAt"]
+            if ended > ud["lastSeenAt"]:
+                ud["lastSeenAt"] = ended
+
+        out: list[dict[str, Any]] = []
+        for ud in user_data.values():
+            out.append({
+                "userId": ud["userId"],
+                "serviceName": ud["serviceName"],
+                "sessionCount": len(ud["sessions"]),
+                "traceCount": ud["traceCount"],
+                "errorCount": ud["errorCount"],
+                "tokensIn": ud["tokensIn"],
+                "tokensOut": ud["tokensOut"],
+                "tokensTotal": ud["tokensIn"] + ud["tokensOut"],
+                "price": round(ud["price"], 6),
+                "models": sorted(ud["models"]),
+                "firstSeenAt": ud["firstSeenAt"],
+                "lastSeenAt": ud["lastSeenAt"],
+            })
+        out.sort(key=lambda u: u["lastSeenAt"], reverse=True)
+        return out[:limit]
+
     async def spans(
         self,
         *,

@@ -48,8 +48,8 @@ const NAV_MAIN: NavItem[] = [
     icon: <Icon d="M4 5h12M4 10h8M4 15h10M14 15a2 2 0 104 0 2 2 0 00-4 0zM10 10a2 2 0 104 0 2 2 0 00-4 0zM14 5a2 2 0 104 0 2 2 0 00-4 0z" />,
   },
   {
-    href: "/workspace/sessions/",
-    i18nKey: "nav.sessions",
+    href: "/workspace/interactions/",
+    i18nKey: "nav.interactions",
     icon: <Icon d="M6 8a4 4 0 118 0 4 4 0 01-8 0zM2 18a8 8 0 0116 0" />,
   },
 ];
@@ -393,8 +393,8 @@ function useAuthGuard(auth: AuthState, pathname: string, role: AuthState["role"]
 function LanguageSwitcher() {
   const { locale, setLocale, t } = useI18n();
   return (
-    <label className="eo-chip" style={{ display: "flex", alignItems: "center", gap: 6, padding: "2px 8px" }}>
-      <span className="eo-mute" style={{ fontSize: 11 }}>
+    <label className="eo-chip eo-lang-switcher" style={{ display: "flex", alignItems: "center", gap: 6, padding: "2px 8px" }}>
+      <span className="eo-mute eo-lang-label" style={{ fontSize: 11 }}>
         {t("language.ui")}
       </span>
       <select
@@ -422,6 +422,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const { t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [orgPickerOpen, setOrgPickerOpen] = useState(false);
   const orgPickerRef = useRef<HTMLDivElement | null>(null);
   const {
@@ -434,6 +435,10 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   } = useWorkspace();
 
   useAuthGuard(auth, pathname, auth.role);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
 
   const navMain = useMemo(() => NAV_MAIN, []);
   const navQuality = useMemo(() => NAV_QUALITY, []);
@@ -559,8 +564,87 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
+      {mobileNavOpen && (
+        <div className="eo-mobile-overlay" onClick={() => setMobileNavOpen(false)}>
+          <aside className="eo-mobile-nav" onClick={(e) => e.stopPropagation()} aria-label="mobile navigation">
+            <div className="eo-rail-head">
+              <span className="eo-brand-mark" aria-hidden />
+              <div>
+                <div className="eo-brand">EasyObs</div>
+                <div className="eo-brand-sub">signals console</div>
+              </div>
+              <button
+                type="button"
+                className="eo-mobile-close"
+                onClick={() => setMobileNavOpen(false)}
+                aria-label="Close menu"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="eo-rail-scope">
+              <div className="eo-scope-row">
+                <span>Organization</span>
+                <strong title={orgName}>{orgName}</strong>
+              </div>
+              <div className="eo-scope-row">
+                <span>Role</span>
+                <span className="eo-pill-role" data-role={auth.role ?? "DV"}>
+                  {auth.role ?? "—"}
+                </span>
+              </div>
+            </div>
+
+            <nav className="eo-rail-nav">
+              <div className="eo-rail-group">{t("nav.groupObserve")}</div>
+              {navMain.map(renderLink)}
+              <div className="eo-rail-group">{t("nav.groupQuality")}</div>
+              {navQuality.map(renderLink)}
+              <div className="eo-rail-group">{t("nav.groupSetup")}</div>
+              {navSetup.map(renderLink)}
+              <div className="eo-rail-group">DOCS</div>
+              <a
+                href="/docs/index.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="eo-nav-link"
+                title="Documentation"
+              >
+                <span className="eo-nav-icon"><Icon d="M4 3h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2zM7 7h6M7 10h6M7 13h4" /></span>
+                <span>Docs</span>
+              </a>
+            </nav>
+
+            <div className="eo-rail-foot">
+              <div className="eo-avatar">{userInitials(userLabel)}</div>
+              <span title={auth.user?.email}>{userLabel}</span>
+              <button
+                type="button"
+                className="eo-btn"
+                style={{ marginLeft: "auto", padding: "2px 6px", fontSize: 10 }}
+                onClick={() => auth.signOut()}
+                title="Sign out"
+              >
+                ⎋
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
       <div className="eo-main">
         <div className="eo-topbar">
+          <button
+            type="button"
+            className="eo-mobile-menu-btn"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open menu"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M3 5h14M3 10h14M3 15h14" />
+            </svg>
+          </button>
           <div className="eo-topbar-crumbs">
             <span>organization</span>
             <span>/</span>

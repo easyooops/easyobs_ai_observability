@@ -54,6 +54,26 @@ async def sessions(
     return {"items": rows}
 
 
+@router.get("/users")
+async def users(
+    request: Request,
+    scope: CallerScope,
+    limit: Annotated[int, Query(ge=1, le=500)] = 200,
+    window_hours: Annotated[int | None, Query(ge=1, le=168)] = None,
+    from_ts: Annotated[datetime | None, Query()] = None,
+    to_ts: Annotated[datetime | None, Query()] = None,
+):
+    svc = _svc(request)
+    rows = await svc.users(
+        service_ids=scope,
+        limit=limit,
+        window_hours=window_hours,
+        from_ts=from_ts,
+        to_ts=to_ts,
+    )
+    return {"items": rows}
+
+
 @router.get("/spans")
 async def spans(
     request: Request,

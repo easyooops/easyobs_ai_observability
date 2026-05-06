@@ -18,7 +18,7 @@
       <a href="configuration.html" class="docs-nav-link">Configuration</a>
       <div class="docs-nav-group">Observability</div>
       <a href="tracing.html" class="docs-nav-link">Tracing</a>
-      <a href="sessions.html" class="docs-nav-link">Sessions</a>
+      <a href="interactions.html" class="docs-nav-link">Interactions</a>
       <a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a>
       <div class="docs-nav-group">SDK Integration</div>
       <a href="sdk-python.html" class="docs-nav-link">Python SDK</a>
@@ -63,8 +63,9 @@
       </table>
 
       <h2>Step 1: Navigate to the Project</h2>
-      <pre><code># From the repository root
-cd docs/comparison/03.develop/easyobs</code></pre>
+      <pre><code># Clone and enter the project
+git clone &lt;repository-url&gt;
+cd easyobs_ai_observability</code></pre>
 
       <h2>Step 2: Create Environment File</h2>
       <pre><code># Copy the sample .env
@@ -136,7 +137,7 @@ def answer(query: str) -> str:
       <ul>
         <li>1000 synthetic traces by default</li>
         <li>Distributed across a 10-day time window</li>
-        <li>Immediately explorable in Overview, Tracing, and Sessions pages</li>
+        <li>Immediately explorable in Overview, Tracing, and Interactions pages</li>
       </ul>
 
       <h2>Server Options</h2>

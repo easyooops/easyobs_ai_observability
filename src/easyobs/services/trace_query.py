@@ -53,6 +53,7 @@ class TraceQueryService:
         from_ts: datetime | None = None,
         to_ts: datetime | None = None,
         session_id: str | None = None,
+        user_id: str | None = None,
         with_llm: bool = False,
     ):
         """List recent traces filtered to ``service_ids`` (None = SA-wide).
@@ -64,21 +65,22 @@ class TraceQueryService:
         - Workspace > Window / Custom range
         - Session ID filter (drives the Sessions → Traces drill-down and
           the Tracing page's left-rail "Session" filter)
+        - User ID filter (drives the Users → Traces drill-down)
         - ``with_llm`` enrichment (adds tokens / price / models / session
           on each row so the trace table can show those columns without a
           second round-trip per row)
 
-        Filtering by ``session_id`` always implies reading span blobs (the
-        attribute lives there, not in the catalog index), so we transparently
-        flip ``with_llm`` on in that case to avoid scanning the same blobs
-        twice.
+        Filtering by ``session_id`` or ``user_id`` always implies reading
+        span blobs (the attribute lives there, not in the catalog index),
+        so we transparently flip ``with_llm`` on in that case to avoid
+        scanning the same blobs twice.
         """
         lo, hi = resolve_range(window_hours, from_ts, to_ts)
         has_time_filter = lo is not None or hi is not None
-        needs_blob = with_llm or session_id is not None
-        # When we'll filter by session_id we cannot trust ``limit`` until
-        # after the per-row scan, so over-fetch generously.
-        fetch_limit = max(limit, 1000) if (has_time_filter or session_id) else limit
+        needs_blob = with_llm or session_id is not None or user_id is not None
+        # When we'll filter by session_id/user_id we cannot trust ``limit``
+        # until after the per-row scan, so over-fetch generously.
+        fetch_limit = max(limit, 1000) if (has_time_filter or session_id or user_id) else limit
         rows = await self._catalog.list_traces(
             service_ids=service_ids, limit=fetch_limit
         )
@@ -99,6 +101,8 @@ class TraceQueryService:
                 spans = []
             summary = summarise_trace(spans)
             if session_id is not None and summary.get("session") != session_id:
+                continue
+            if user_id is not None and summary.get("user") != user_id:
                 continue
             enriched = dict(r)
             if with_llm:

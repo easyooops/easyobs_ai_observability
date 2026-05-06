@@ -2,13 +2,12 @@
 # =============================================================================
 # EasyObs API (FastAPI + uvicorn) — production multi-stage image.
 #
-# Build context (반드시): docs/comparison/03.develop/easyobs
-# (소스가 그 디렉터리에 있으므로 그곳을 build context 로 지정)
+# Build context: 프로젝트 루트 디렉터리
 #
 #   docker build \
-#     -f docs/comparison/03.develop/easyobs/setup/images/api/Dockerfile \
+#     -f setup/images/api/Dockerfile \
 #     -t easyobs/api:0.2.0 \
-#     docs/comparison/03.develop/easyobs
+#     .
 # =============================================================================
 
 # ---- Stage 1: builder -------------------------------------------------------

@@ -22,6 +22,38 @@ DEFAULT_JUDGE_USER_MESSAGE_TEMPLATE = (
 )
 
 
+async def resolve_active_prompts(org_id: str) -> dict[str, dict[str, str]]:
+    """Load active versioned prompts from DB for an org.
+
+    Returns ``{dimension_id: {"system_prompt": ..., "user_message_template": ...}}``.
+    Falls back to empty dict on any error (keeps the eval pipeline resilient).
+    """
+    try:
+        from easyobs.db.models import EvalJudgePromptRow
+        from easyobs.db.session import session_scope
+        from sqlalchemy import select
+
+        session = session_scope()
+        async with session() as db:
+            rows = (
+                await db.execute(
+                    select(EvalJudgePromptRow).where(
+                        EvalJudgePromptRow.org_id == org_id,
+                        EvalJudgePromptRow.is_active == True,  # noqa: E712
+                    )
+                )
+            ).scalars().all()
+        return {
+            r.dimension_id: {
+                "system_prompt": r.system_prompt,
+                "user_message_template": r.user_message_template,
+            }
+            for r in rows
+        }
+    except Exception:
+        return {}
+
+
 def context_json(context: dict[str, Any]) -> str:
     return json.dumps(context, ensure_ascii=False, default=str, sort_keys=True)
 

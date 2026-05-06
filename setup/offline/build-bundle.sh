@@ -7,8 +7,8 @@
 #
 #   easyobs-images.tar         # easyobs/api, easyobs/web (docker save 합본)
 #   third-party-images.tar     # postgres:16, nginx:1.27-alpine
-#   easyobs-source.tar.gz      # docs/comparison/03.develop/easyobs/ 소스 (setup/ 제외)
-#   easyobs-product.tar.gz     # docs/comparison/03.develop/easyobs/setup/ (compose+offline+...)
+#   easyobs-source.tar.gz      # 소스 (setup/ 제외)
+#   easyobs-product.tar.gz     # setup/ (compose+offline+...)
 #   load-bundle.sh             # 폐쇄망 호스트가 실행할 로더
 #   deploy-single.sh           # 단일 노드 자동 배포
 #   deploy-cluster.sh          # 클러스터 leader/worker/web 역할 별 배포
@@ -17,7 +17,7 @@
 #
 # 사용:
 #   cd <repo-root>
-#   ./docs/comparison/03.develop/easyobs/setup/offline/build-bundle.sh \
+#   ./setup/offline/build-bundle.sh \
 #       [--output ./dist/easyobs-bundle] \
 #       [--api-tag easyobs/api:0.2.0] \
 #       [--web-tag easyobs/web:0.2.0] \
@@ -26,13 +26,10 @@
 # =============================================================================
 set -euo pipefail
 
-# 이 스크립트 위치: docs/comparison/03.develop/easyobs/setup/offline/build-bundle.sh
-# → SOURCE_DIR = docs/comparison/03.develop/easyobs (= setup 의 부모)
-# → PRODUCT_DIR = docs/comparison/03.develop/easyobs/setup
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PRODUCT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SOURCE_DIR="$(cd "$PRODUCT_DIR/.." && pwd)"
-REPO_ROOT="$(cd "$SOURCE_DIR/../../../.." && pwd)"
+REPO_ROOT="$SOURCE_DIR"
 
 OUT="$REPO_ROOT/dist/easyobs-bundle"
 API_TAG="easyobs/api:0.2.0"

@@ -3,14 +3,14 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Tracing - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
 <body>
 <div class="docs-layout">
-  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link active">Tracing</a><a href="sessions.html" class="docs-nav-link">Sessions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link active">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
   <main class="docs-main">
-    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Tracing — Detailed Manual</span></header>
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Tracing ??Detailed Manual</span></header>
     <article class="docs-content">
-      <h1>Tracing — Full Feature Manual</h1>
+      <h1>Tracing ??Full Feature Manual</h1>
       <p class="docs-lede">The Tracing page is the primary interface for exploring every agent invocation captured by EasyObs. It provides a dual-view (Traces / Spans), rich filtering, configurable columns, a slide-out inspector drawer, and a graph-based flow visualizer.</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">📸 Image: Full Tracing page layout — left filter panel, center table, right inspector drawer</div></div>
+      <div class="docs-hero-placeholder"><div class="placeholder-box">?�� Image: Full Tracing page layout ??left filter panel, center table, right inspector drawer</div></div>
 
       <h2>Page Layout</h2>
       <p>The Tracing page is divided into three regions:</p>
@@ -46,7 +46,7 @@
       </table>
 
       <div class="docs-info">
-        <strong>💡 LLM Column Auto-Switch:</strong> When arriving from the Sessions page via <code>?session=...</code>, the Tokens/Cost/Model/Session columns are automatically toggled on so you immediately see LLM-relevant data.
+        <strong>?�� LLM Column Auto-Switch:</strong> When arriving from the Sessions page via <code>?session=...</code>, the Tokens/Cost/Model/Session columns are automatically toggled on so you immediately see LLM-relevant data.
       </div>
 
       <h3>Spans Tab</h3>
@@ -62,7 +62,7 @@
           <tr><td>Tokens</td><td>Per-span token count</td></tr>
           <tr><td>Cost</td><td>Per-span USD cost</td></tr>
           <tr><td>Status</td><td>OK / ERROR / UNSET</td></tr>
-          <tr><td>Trace</td><td>Parent trace ID (truncated, clickable → detail)</td></tr>
+          <tr><td>Trace</td><td>Parent trace ID (truncated, clickable ??detail)</td></tr>
         </tbody>
       </table>
 
@@ -83,7 +83,7 @@
       <h2>Pagination</h2>
       <ul>
         <li><strong>Rows per page:</strong> Select from 25 / 50 / 100 / 200</li>
-        <li><strong>Page navigation:</strong> ‹ Previous / Current/Total / Next ›</li>
+        <li><strong>Page navigation:</strong> ??Previous / Current/Total / Next ??/li>
         <li>Page resets to 1 when filters or time window change</li>
       </ul>
 
@@ -96,15 +96,15 @@
       <h2>Trace Inspector Drawer</h2>
       <p>Click any row to open the right-side inspector drawer. The drawer has a header with action buttons and 4 sub-tabs:</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">📸 Image: Trace inspector drawer showing Summary tab with KV pairs and span preview</div></div>
+      <div class="docs-hero-placeholder"><div class="placeholder-box">?�� Image: Trace inspector drawer showing Summary tab with KV pairs and span preview</div></div>
 
       <h3>Drawer Header Actions</h3>
       <table class="docs-table">
         <thead><tr><th>Button</th><th>Action</th></tr></thead>
         <tbody>
-          <tr><td><strong>Evaluate ▶</strong></td><td>Navigate to Quality > Runs with this trace pre-filled for evaluation</td></tr>
+          <tr><td><strong>Evaluate ??/strong></td><td>Navigate to Quality > Runs with this trace pre-filled for evaluation</td></tr>
           <tr><td><strong>+ Label</strong></td><td>Navigate to Golden Sets > Human Labels with this trace ID pre-filled</td></tr>
-          <tr><td><strong>Full view →</strong></td><td>Navigate to the dedicated trace detail page (full-screen waterfall)</td></tr>
+          <tr><td><strong>Full view ??/strong></td><td>Navigate to the dedicated trace detail page (full-screen waterfall)</td></tr>
           <tr><td><strong>×</strong></td><td>Close the drawer</td></tr>
         </tbody>
       </table>
@@ -112,22 +112,22 @@
       <h3>Tab: Summary</h3>
       <p>Key-value overview of the trace:</p>
       <ul>
-        <li><strong>Operation</strong> — Root span name</li>
-        <li><strong>Service</strong> — Service name</li>
-        <li><strong>Status</strong> — Color-coded badge</li>
-        <li><strong>Duration</strong> — End-to-end latency</li>
-        <li><strong>Spans</strong> — Total count (N error)</li>
-        <li><strong>Session</strong> — Session ID (if present)</li>
-        <li><strong>Tokens</strong> — Input / Output token breakdown</li>
-        <li><strong>Cost</strong> — Total USD cost</li>
-        <li><strong>Models</strong> — All LLM models used (as chips)</li>
-        <li><strong>Started</strong> — Absolute timestamp</li>
-        <li><strong>Trace ID</strong> — Full identifier</li>
+        <li><strong>Operation</strong> ??Root span name</li>
+        <li><strong>Service</strong> ??Service name</li>
+        <li><strong>Status</strong> ??Color-coded badge</li>
+        <li><strong>Duration</strong> ??End-to-end latency</li>
+        <li><strong>Spans</strong> ??Total count (N error)</li>
+        <li><strong>Session</strong> ??Session ID (if present)</li>
+        <li><strong>Tokens</strong> ??Input / Output token breakdown</li>
+        <li><strong>Cost</strong> ??Total USD cost</li>
+        <li><strong>Models</strong> ??All LLM models used (as chips)</li>
+        <li><strong>Started</strong> ??Absolute timestamp</li>
+        <li><strong>Trace ID</strong> ??Full identifier</li>
       </ul>
       <p>Below the KV list:</p>
       <ul>
-        <li><strong>View Span Flow</strong> button — Opens the graph modal</li>
-        <li><strong>First spans</strong> — Preview of the first 6 spans with status icon and duration</li>
+        <li><strong>View Span Flow</strong> button ??Opens the graph modal</li>
+        <li><strong>First spans</strong> ??Preview of the first 6 spans with status icon and duration</li>
       </ul>
 
       <h3>Tab: LLM</h3>
@@ -149,7 +149,7 @@
 
       <h2>Span Flow Graph (Modal)</h2>
       <p>Clicking "View Span Flow" in the Summary tab opens a full-screen modal displaying the trace as a directed graph:</p>
-      <div class="docs-hero-placeholder"><div class="placeholder-box">📸 Image: Span Flow Graph modal showing nested span tree as a visual DAG</div></div>
+      <div class="docs-hero-placeholder"><div class="placeholder-box">?�� Image: Span Flow Graph modal showing nested span tree as a visual DAG</div></div>
       <ul>
         <li>Each node represents a span (colored by kind: agent=blue, llm=purple, retrieve=green, tool=orange)</li>
         <li>Edges show parent-child relationships</li>
@@ -159,19 +159,19 @@
       </ul>
 
       <h2>Full Trace Detail Page</h2>
-      <p>Accessible via "Full view →" in the drawer, or directly at <code>/workspace/tracing/detail/?id=&lt;traceId&gt;</code>. Provides:</p>
+      <p>Accessible via "Full view ?? in the drawer, or directly at <code>/workspace/tracing/detail/?id=&lt;traceId&gt;</code>. Provides:</p>
       <ul>
-        <li><strong>Waterfall timeline</strong> — Visual Gantt chart of all spans showing nesting, duration, and overlap</li>
-        <li><strong>Span detail panel</strong> — Click any span in the waterfall to see its attributes, events, and status</li>
-        <li><strong>LLM View</strong> — Formatted prompt/completion for LLM-kind spans</li>
-        <li><strong>Full attributes table</strong> — All attributes across all spans</li>
+        <li><strong>Waterfall timeline</strong> ??Visual Gantt chart of all spans showing nesting, duration, and overlap</li>
+        <li><strong>Span detail panel</strong> ??Click any span in the waterfall to see its attributes, events, and status</li>
+        <li><strong>LLM View</strong> ??Formatted prompt/completion for LLM-kind spans</li>
+        <li><strong>Full attributes table</strong> ??All attributes across all spans</li>
       </ul>
 
       <h2>Supported Span Kinds &amp; Attributes</h2>
       <table class="docs-table">
         <thead><tr><th>Kind (<code>o.kind</code>)</th><th>Badge Color</th><th>Key Attributes</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>agent</code></td><td>Blue</td><td><code>o.q</code>, <code>o.r</code>, <code>o.sess</code>, <code>o.user</code></td><td>Root agent turn — overall orchestration</td></tr>
+          <tr><td><code>agent</code></td><td>Blue</td><td><code>o.q</code>, <code>o.r</code>, <code>o.sess</code>, <code>o.user</code></td><td>Root agent turn ??overall orchestration</td></tr>
           <tr><td><code>llm</code></td><td>Purple</td><td><code>o.model</code>, <code>o.tok.in</code>, <code>o.tok.out</code>, <code>o.price</code></td><td>LLM API call (inference)</td></tr>
           <tr><td><code>retrieve</code></td><td>Green</td><td><code>o.target</code>, <code>o.q</code></td><td>Vector search / document retrieval</td></tr>
           <tr><td><code>tool</code></td><td>Orange</td><td><code>o.tool</code>, input/output</td><td>External tool invocation</td></tr>
@@ -184,21 +184,21 @@
       <ol>
         <li>Agent SDK records <code>o.tok.in</code> and <code>o.tok.out</code> on each LLM span</li>
         <li>On ingest, the server enriches with <code>o.price</code> = tokens × per-token rate</li>
-        <li>Pricing source priority: <code>tokencost</code> → <code>litellm</code> → built-in fallback table</li>
+        <li>Pricing source priority: <code>tokencost</code> ??<code>litellm</code> ??built-in fallback table</li>
         <li>Configurable via <code>EASYOBS_PRICING_SOURCE</code></li>
         <li>Cost is summed across all LLM spans for the trace-level total</li>
       </ol>
 
       <h2>Data Flow</h2>
       <pre><code>Agent Service (@traced / span_block)
-  └─ OpenTelemetry BatchSpanProcessor
-       └─ OTLP/HTTP POST → /v1/traces (or /otlp/v1/traces)
-            └─ EasyObs API Server
-                 ├─ Parse proto/JSON → flatten spans
-                 ├─ Enrich: cost calculation, model detection
-                 ├─ Persist: catalog DB (metadata) + blob store (raw)
-                 ├─ Auto-rule evaluation (fire-and-forget, if enabled)
-                 └─ Response: 200 OK to SDK</code></pre>
+  ?��? OpenTelemetry BatchSpanProcessor
+       ?��? OTLP/HTTP POST ??/v1/traces (or /otlp/v1/traces)
+            ?��? EasyObs API Server
+                 ?��? Parse proto/JSON ??flatten spans
+                 ?��? Enrich: cost calculation, model detection
+                 ?��? Persist: catalog DB (metadata) + blob store (raw)
+                 ?��? Auto-rule evaluation (fire-and-forget, if enabled)
+                 ?��? Response: 200 OK to SDK</code></pre>
 
       <h2>Keyboard Shortcuts</h2>
       <table class="docs-table">

@@ -269,8 +269,7 @@ const IMPROVEMENT_CATEGORIES: {
   { group: "supply", category: "supply.cache_acl", intent: "Public cache ACL audit", example: "Block world-readable model meta", effort: "low" },
 ];
 
-/** 52 metric × N detail mapping mirrored from
- *  ``docs/comparison/02.design/06.evaluation-metrics-and-pipelines.md`` §9.
+/** 52 metric × N detail mapping.
  *  Each row is the operator-facing remediation menu — primary = first try,
  *  secondary = also worth investigating. */
 const METRIC_TO_IMPROVEMENT: {

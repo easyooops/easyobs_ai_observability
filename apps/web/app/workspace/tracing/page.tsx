@@ -217,7 +217,7 @@ export default function TracingPage() {
           <span className="eo-tag">
             traces: {fmtInt(tracesQ.data?.length ?? 0)}
           </span>
-          <Link href="/workspace/sessions/" className="eo-btn">
+          <Link href="/workspace/interactions/" className="eo-btn">
             Sessions view
           </Link>
         </div>
@@ -355,7 +355,7 @@ export default function TracingPage() {
               </button>
             </div>
 
-            <Link href="/workspace/sessions/" className="eo-chip">
+            <Link href="/workspace/interactions/" className="eo-chip">
               Sessions
             </Link>
             <Link href="/workspace/" className="eo-chip">

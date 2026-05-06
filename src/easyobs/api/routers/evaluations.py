@@ -235,6 +235,13 @@ class JudgeModelPatch(BaseModel):
     enabled: bool | None = None
 
 
+class JudgePromptIn(BaseModel):
+    dimension_id: str
+    system_prompt: str = ""
+    user_message_template: str = ""
+    description: str = ""
+
+
 class HumanLabelIn(BaseModel):
     trace_id: str
     expected_response: str | None = None
@@ -525,6 +532,149 @@ async def delete_judge_model(
     ok = await _judge_model_svc(request).delete(org_id=org_id, model_id=model_id)
     if not ok:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="judge model not found")
+
+
+# ---------------------------------------------------------------------------
+# Judge prompts (versioned per dimension)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/judge-prompts")
+async def list_judge_prompts(
+    request: Request,
+    caller: CurrentUser,
+    scope: CallerScope,
+    dimension_id: Annotated[str | None, Query()] = None,
+):
+    _ = scope
+    org_id = _require_org(caller)
+    from easyobs.db.models import EvalJudgePromptRow
+
+    session = _services(request).get("db_session")
+    if session is None:
+        from easyobs.db.session import session_scope
+
+        session = session_scope()
+    from sqlalchemy import select
+
+    async with session() as db:
+        stmt = select(EvalJudgePromptRow).where(
+            EvalJudgePromptRow.org_id == org_id
+        ).order_by(EvalJudgePromptRow.dimension_id, EvalJudgePromptRow.version.desc())
+        if dimension_id:
+            stmt = stmt.where(EvalJudgePromptRow.dimension_id == dimension_id)
+        rows = (await db.execute(stmt)).scalars().all()
+    return {"items": [_judge_prompt_to_json(r) for r in rows]}
+
+
+@router.post("/judge-prompts", status_code=status.HTTP_201_CREATED)
+async def create_judge_prompt(
+    request: Request,
+    caller: CurrentUser,
+    scope: CallerScope,
+    body: JudgePromptIn,
+):
+    _ = scope
+    _require_write(caller)
+    org_id = _require_org(caller)
+    from easyobs.eval.judge.dimensions_meta import JUDGE_DIMENSION_IDS
+
+    if body.dimension_id not in JUDGE_DIMENSION_IDS:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail=f"unknown dimension: {body.dimension_id!r}",
+        )
+    from easyobs.db.models import EvalJudgePromptRow
+
+    session = _services(request).get("db_session")
+    if session is None:
+        from easyobs.db.session import session_scope
+
+        session = session_scope()
+    import uuid
+    from sqlalchemy import select, func
+
+    async with session() as db:
+        max_ver = (
+            await db.execute(
+                select(func.coalesce(func.max(EvalJudgePromptRow.version), 0)).where(
+                    EvalJudgePromptRow.org_id == org_id,
+                    EvalJudgePromptRow.dimension_id == body.dimension_id,
+                )
+            )
+        ).scalar() or 0
+        new_ver = max_ver + 1
+        # Deactivate previous versions
+        from sqlalchemy import update
+
+        await db.execute(
+            update(EvalJudgePromptRow)
+            .where(
+                EvalJudgePromptRow.org_id == org_id,
+                EvalJudgePromptRow.dimension_id == body.dimension_id,
+            )
+            .values(is_active=False)
+        )
+        row = EvalJudgePromptRow(
+            id=str(uuid.uuid4()),
+            org_id=org_id,
+            dimension_id=body.dimension_id,
+            version=new_ver,
+            system_prompt=body.system_prompt,
+            user_message_template=body.user_message_template,
+            is_active=True,
+            description=body.description,
+            created_at=datetime.now(timezone.utc),
+            created_by=caller.user_id,
+        )
+        db.add(row)
+        await db.commit()
+        await db.refresh(row)
+    return _judge_prompt_to_json(row)
+
+
+@router.post("/judge-prompts/{prompt_id}:activate")
+async def activate_judge_prompt(
+    request: Request,
+    caller: CurrentUser,
+    scope: CallerScope,
+    prompt_id: str,
+):
+    _ = scope
+    _require_write(caller)
+    org_id = _require_org(caller)
+    from easyobs.db.models import EvalJudgePromptRow
+
+    session = _services(request).get("db_session")
+    if session is None:
+        from easyobs.db.session import session_scope
+
+        session = session_scope()
+    from sqlalchemy import select, update
+
+    async with session() as db:
+        row = (
+            await db.execute(
+                select(EvalJudgePromptRow).where(
+                    EvalJudgePromptRow.id == prompt_id,
+                    EvalJudgePromptRow.org_id == org_id,
+                )
+            )
+        ).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="prompt not found")
+        await db.execute(
+            update(EvalJudgePromptRow)
+            .where(
+                EvalJudgePromptRow.org_id == org_id,
+                EvalJudgePromptRow.dimension_id == row.dimension_id,
+            )
+            .values(is_active=False)
+        )
+        row.is_active = True
+        await db.commit()
+        await db.refresh(row)
+    return _judge_prompt_to_json(row)
 
 
 # ---------------------------------------------------------------------------
@@ -2069,3 +2219,18 @@ def _iso(value: datetime) -> str:
         # treat naive as UTC since every store path writes UTC.
         return value.replace(tzinfo=timezone.utc).isoformat()
     return value.astimezone(timezone.utc).isoformat()
+
+
+def _judge_prompt_to_json(row) -> dict[str, Any]:
+    return {
+        "id": row.id,
+        "orgId": row.org_id,
+        "dimensionId": row.dimension_id,
+        "version": row.version,
+        "systemPrompt": row.system_prompt,
+        "userMessageTemplate": row.user_message_template,
+        "isActive": row.is_active,
+        "description": row.description or "",
+        "createdAt": _iso(row.created_at),
+        "createdBy": row.created_by,
+    }

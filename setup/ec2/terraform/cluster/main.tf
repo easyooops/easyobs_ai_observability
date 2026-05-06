@@ -7,7 +7,7 @@ locals {
   }
 
   source_dir  = abspath("${path.module}/${var.easyobs_source_dir}")
-  product_dir = abspath("${path.module}/../../..") # docs/comparison/03.develop/easyobs/setup
+  product_dir = abspath("${path.module}/../../..")
 }
 
 # =============================================================================

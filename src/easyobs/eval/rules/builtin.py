@@ -1,8 +1,7 @@
 """Built-in rule-based evaluator catalog.
 
 Each entry is a *deterministic* check that runs at trace-ingest time and
-produces a bounded score plus a short reason string. Categories follow the
-metric tree from ``02.design/06.evaluation-metrics-and-pipelines.md``.
+produces a bounded score plus a short reason string.
 
 We deliberately bake the catalog as plain Python (rather than reading
 shipped YAML) so the test suite can pin the canonical IDs and the API can

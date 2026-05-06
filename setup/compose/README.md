@@ -1,7 +1,6 @@
 # EasyObs — Compose 운영 배포
 
-이 디렉터리는 EasyObs(`docs/comparison/03.develop/easyobs/`) 를 운영 환경에
-한 번에 띄우기 위한 Docker Compose 시리즈를 담는다.
+이 디렉터리는 EasyObs 를 운영 환경에 한 번에 띄우기 위한 Docker Compose 시리즈를 담는다.
 
 | 파일 | 용도 |
 |------|------|
@@ -11,19 +10,19 @@
 | `nginx.cluster.conf`         | 클러스터용 nginx 라우팅 (`/v1·/otlp·/healthz·/docs` → API, 그 외 → Web) |
 | `env.sample`                 | `.env` 의 모든 변수 (단일/클러스터 공통) |
 
-이미지는 워크스페이스 루트에서 한 번만 빌드한다.
+이미지는 프로젝트 루트에서 한 번만 빌드한다.
 
 ```bash
 docker build \
-  -f docs/comparison/03.develop/easyobs/setup/images/api/Dockerfile \
+  -f setup/images/api/Dockerfile \
   -t easyobs/api:0.2.0 \
-  docs/comparison/03.develop/easyobs
+  .
 
 docker build \
-  -f docs/comparison/03.develop/easyobs/setup/images/web/Dockerfile \
+  -f setup/images/web/Dockerfile \
   -t easyobs/web:0.2.0 \
   --build-arg NEXT_PUBLIC_API_URL=http://127.0.0.1:8787 \
-  docs/comparison/03.develop/easyobs/apps/web
+  apps/web
 ```
 
 > 빌드 컨텍스트는 각각 **소스가 있는 디렉터리** 임에 주의. Compose 자체는
@@ -35,7 +34,7 @@ docker build \
 가장 빠른 운영 시작. 한 VM 한 대에서 API+Web+Postgres 모두 띄움.
 
 ```bash
-cd docs/comparison/03.develop/easyobs/setup/compose
+cd setup/compose
 cp env.sample .env
 
 # .env 편집: POSTGRES_PASSWORD, EASYOBS_JWT_SECRET, NEXT_PUBLIC_API_URL ...
@@ -66,7 +65,7 @@ docker compose -f docker-compose.deps.yml -f docker-compose.app.yml down -v
 가장 빠른 확장 경로(코드 수정 없음).
 
 ```bash
-cd docs/comparison/03.develop/easyobs/setup/compose
+cd setup/compose
 cp env.sample .env  # 이미 만들었으면 생략
 # .env 의 EASYOBS_API_REPLICAS=4 로 워커 수 결정
 

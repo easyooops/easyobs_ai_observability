@@ -1,3 +1,3 @@
-"""EasyObs: lightweight observability console (design docs 02.design)."""
+"""EasyObs: lightweight AI observability platform."""
 
 __version__ = "0.1.0"
