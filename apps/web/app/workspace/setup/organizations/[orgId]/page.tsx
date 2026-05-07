@@ -417,13 +417,7 @@ function ServicesTab({
         // button from stretching across a phantom second row — the default
         // .eo-token-new template (1fr auto) only has room for two children.
         <div
-          className="eo-token-new"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(180px, 1fr) minmax(220px, 2fr) auto",
-            gap: 8,
-            alignItems: "center",
-          }}
+          className="eo-token-new eo-service-form-grid"
         >
           <input
             className="eo-input"

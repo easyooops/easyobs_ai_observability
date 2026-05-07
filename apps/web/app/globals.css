@@ -542,6 +542,7 @@ pre,
   display: grid;
   gap: 14px;
   min-width: 0;
+  overflow-x: hidden;
 }
 
 .eo-page-head {
@@ -572,6 +573,7 @@ pre,
   display: inline-flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
   color: var(--eo-mute);
   font-size: 12px;
 }
@@ -611,6 +613,7 @@ pre,
   padding: 14px 16px;
   box-shadow: var(--eo-shadow);
   min-width: 0;
+  overflow-x: auto;
 }
 
 .eo-card-h {
@@ -721,6 +724,77 @@ pre,
 }
 
 /* ---------- Grid layout helpers ---------- */
+
+.eo-run-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 240px) 1fr;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.eo-run-sticky {
+  position: sticky;
+  top: 8px;
+  align-self: flex-start;
+}
+
+@media (max-width: 768px) {
+  .eo-run-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .eo-run-sticky {
+    position: static;
+  }
+}
+
+.eo-service-form-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 2fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .eo-service-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.eo-source-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+@media (max-width: 768px) {
+  .eo-source-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.eo-judges-prompt-layout {
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+}
+.eo-judges-prompt-layout > *:last-child {
+  min-width: 0;
+  flex: 1;
+}
+.eo-judges-dim-list {
+  min-width: 260px;
+  max-width: 300px;
+  flex-shrink: 0;
+}
+@media (max-width: 768px) {
+  .eo-judges-prompt-layout {
+    flex-direction: column;
+  }
+  .eo-judges-dim-list {
+    min-width: 0;
+    max-width: none;
+  }
+}
+
 .eo-grid-2 {
   display: grid;
   gap: 12px;
@@ -1036,6 +1110,30 @@ pre,
   .eo-trace-layout,
   .eo-trace-layout[data-drawer="true"] {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Trace detail 4-panel grid */
+.eo-trace-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(190px, 14%) minmax(280px, 27%) minmax(320px, 34%) minmax(280px, 25%);
+}
+.eo-trace-grid > section {
+  min-width: 0;
+  overflow: hidden;
+}
+@media (max-width: 1200px) {
+  .eo-trace-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .eo-trace-grid {
+    grid-template-columns: 1fr;
+  }
+  .eo-trace-grid > section {
+    overflow: visible;
   }
 }
 
@@ -1482,10 +1580,10 @@ pre,
 }
 
 /* On narrow viewports, collapse to two rows so the Flow graph is legible. */
-@media (max-width: 1280px) {
+@media (max-width: 1280px) and (min-width: 769px) {
   .eo-trace-grid {
     grid-template-columns:
-      minmax(220px, 22%) minmax(0, 1fr) minmax(300px, 30%) !important;
+      minmax(220px, 22%) minmax(0, 1fr) minmax(300px, 30%);
     grid-template-areas:
       "tree timeline detail"
       "flow flow     detail";
@@ -2308,6 +2406,21 @@ pre,
   }
   .eo-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Drawer: overlay on mobile */
+  .eo-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 200;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+    background: var(--eo-paper);
+    overflow-y: auto;
   }
 }
 

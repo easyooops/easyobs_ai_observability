@@ -786,9 +786,9 @@ function PromptsTab() {
         {t("pages.judges.promptsDesc")}
       </p>
 
-      <div style={{ display: "flex", gap: 16 }}>
+      <div className="eo-judges-prompt-layout">
         {/* Dimension list */}
-        <div className="eo-card" style={{ minWidth: 260, maxWidth: 300 }}>
+        <div className="eo-card eo-judges-dim-list">
           <div className="eo-card-h">
             <h3 className="eo-card-title">{t("pages.judges.dimensions")}</h3>
           </div>

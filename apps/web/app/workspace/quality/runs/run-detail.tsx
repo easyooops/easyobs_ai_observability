@@ -161,11 +161,8 @@ function RunSticky({
     run.status === "succeeded" ? "ok" : run.status === "failed" ? "err" : "warn";
   return (
     <aside
-      className="eo-card"
+      className="eo-card eo-run-sticky"
       style={{
-        position: "sticky",
-        top: 8,
-        alignSelf: "flex-start",
         padding: 10,
         fontSize: 12,
         display: "flex",
@@ -1050,12 +1047,7 @@ export function WorkbenchRunDetail({ runId }: { runId: string }) {
 
   return (
     <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "minmax(220px, 240px) 1fr",
-        gap: 12,
-        alignItems: "flex-start",
-      }}
+      className="eo-run-detail-grid"
     >
       <RunSticky
         run={r}

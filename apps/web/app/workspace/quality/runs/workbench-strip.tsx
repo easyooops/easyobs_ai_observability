@@ -175,14 +175,7 @@ export function SourceCards({
 }) {
   const { t } = useI18n();
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: 10,
-        marginBottom: 12,
-      }}
-    >
+    <div className="eo-source-cards-grid">
       {SOURCE_DEFS.map((s) => {
         const isActive = s.id === active;
         const title = t(`pages.runs.workbench.source.${s.id}.title` as never);

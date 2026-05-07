@@ -167,12 +167,6 @@ export function TraceDetailInner() {
       {q.data && (
         <div
           className="eo-trace-grid"
-          style={{
-            display: "grid",
-            gap: 12,
-            gridTemplateColumns:
-              "minmax(190px, 14%) minmax(280px, 27%) minmax(320px, 34%) minmax(280px, 25%)",
-          }}
         >
           <section className="eo-card" style={{ padding: 10 }}>
             <div className="eo-card-h">
