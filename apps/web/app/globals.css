@@ -274,18 +274,52 @@ pre,
   font-size: 12px;
 }
 
-/* collapse variant */
-.eo-shell[data-collapsed="true"] .eo-brand-sub,
-.eo-shell[data-collapsed="true"] .eo-scope-row,
-.eo-shell[data-collapsed="true"] .eo-rail-group,
-.eo-shell[data-collapsed="true"] .eo-nav-link span:not(.eo-nav-icon):not(.eo-nav-badge),
-.eo-shell[data-collapsed="true"] .eo-rail-foot span {
+/* collapse variant — only targets the desktop aside, not mobile nav */
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-brand-sub,
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-scope-row,
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-rail-group,
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-nav-link span:not(.eo-nav-icon):not(.eo-nav-badge),
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-rail-foot span {
   display: none;
+}
+
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-rail-head {
+  justify-content: center;
+  padding: 14px 0;
+}
+
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-rail-head > div {
+  display: none;
+}
+
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-rail-scope {
+  display: none;
+}
+
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-rail-foot {
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 10px 6px;
+  gap: 6px;
+}
+
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-rail-foot .eo-avatar {
+  display: none;
+}
+
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-rail-foot button {
+  margin-left: 0;
+}
+
+.eo-shell[data-collapsed="true"] > .eo-rail .eo-nav-link {
+  justify-content: center;
+  padding: 10px 0;
 }
 
 /* ---------- Topbar ---------- */
 .eo-main {
   min-width: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -2185,6 +2219,24 @@ pre,
   flex: 1;
   overflow: auto;
 }
+.eo-mobile-nav .eo-nav-link span {
+  display: inline;
+}
+.eo-mobile-nav .eo-nav-link {
+  justify-content: flex-start;
+  padding: 10px 14px;
+}
+.eo-mobile-nav .eo-rail-foot {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  padding: 10px 12px;
+}
+.eo-mobile-nav .eo-rail-foot span {
+  display: inline;
+}
+.eo-mobile-nav .eo-rail-group {
+  display: block;
+}
 @keyframes eo-mobile-slide-in {
   from { transform: translateX(-100%); }
   to { transform: translateX(0); }
@@ -2226,7 +2278,8 @@ pre,
   .eo-rail {
     display: none;
   }
-  .eo-shell {
+  .eo-shell,
+  .eo-shell[data-collapsed="true"] {
     grid-template-columns: 1fr;
   }
   .eo-mobile-menu-btn {

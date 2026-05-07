@@ -1,197 +1,423 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>52 Metric Catalog - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+
 <body>
+
 <div class="docs-layout">
+
   <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics</a><div class="docs-nav-group">SDK</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-metrics-catalog.html" class="docs-nav-link active">52 Metrics</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav></aside>
+
   <main class="docs-main">
+
     <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">52 Metric Catalog</span></header>
+
     <article class="docs-content">
 
-      <h1>52 Evaluation Metrics ??Complete Catalog</h1>
-      <p class="docs-lede">EasyObs evaluates agent quality using a stage-aligned metric framework covering the full pipeline: Query ??Retrieval ??Context ??Response ??Agent/Tool ??Operations ??Human Feedback. Each metric answers a specific "what went wrong?" question and maps to actionable improvement categories.</p>
+      <h1>52 Evaluation Metrics — Complete Catalog</h1>
+
+      <p class="docs-lede">EasyObs evaluates agent quality using a stage-aligned metric framework covering the full pipeline: Query → Retrieval → Context → Response → Agent/Tool → Operations → Human Feedback. Each metric answers a specific "what went wrong?" question and maps to actionable improvement categories.</p>
 
       <h2>How to Read This Catalog</h2>
+
       <table class="docs-table">
+
         <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+
         <tbody>
+
           <tr><td><strong>Code</strong></td><td>Short identifier (e.g., A1, B3, D4)</td></tr>
+
           <tr><td><strong>Mode</strong></td><td><strong>R</strong> = Rule (deterministic, free), <strong>J</strong> = LLM Judge (token-priced), <strong>H</strong> = Human label</td></tr>
-          <tr><td><strong>GT</strong></td><td>Golden-set layer required: L1 (intent), L2 (retrieval docs), L3 (expected output), ??= none needed</td></tr>
-          <tr><td><strong>Cause Code</strong></td><td>Structured failure code attached to findings ??drives Improvement Packs</td></tr>
+
+          <tr><td><strong>GT</strong></td><td>Golden-set layer required: L1 (intent), L2 (retrieval docs), L3 (expected output); — = none needed</td></tr>
+
+          <tr><td><strong>Cause Code</strong></td><td>Structured failure code attached to findings and drives Improvement Packs</td></tr>
+
         </tbody>
+
       </table>
 
       <div class="docs-info"><strong>Why 52 metrics?</strong> Agents fail for different reasons at different pipeline stages. A single "quality score" cannot tell you <em>what to fix</em>. By decomposing quality into 52 specific metrics across 7 groups, EasyObs pinpoints the exact failure stage and maps it to concrete remediation actions via Improvement Packs.</div>
 
       <hr>
-      <h2>Group A ??Query Understanding (5 metrics)</h2>
+
+      <h2>Group A — Query Understanding (5 metrics)</h2>
+
       <p><strong>Purpose:</strong> Evaluates whether the agent correctly understood the user's intent before any processing begins. Failures here cascade to all downstream stages.</p>
-      <p><strong>What you learn:</strong> If your agent misclassifies intent, rewrites queries incorrectly, or fails to handle ambiguous/multilingual inputs ??fix these first before tuning retrieval or generation.</p>
+
+      <p><strong>What you learn:</strong> If your agent misclassifies intent, rewrites queries incorrectly, or fails to handle ambiguous/multilingual inputs — fix these first before tuning retrieval or generation.</p>
 
       <table class="docs-table">
+
         <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>What It Measures &amp; Why</th></tr></thead>
+
         <tbody>
+
           <tr><td>A1</td><td>Intent classification accuracy</td><td>R/J</td><td>L1</td><td><code>query.intent_mismatch</code></td><td>Does the agent identify the correct intent (e.g., "order status" vs. "returns")? Misclassification routes the query to wrong workflows, causing complete failure.</td></tr>
-          <tr><td>A2</td><td>Query rewrite semantic preservation</td><td>J</td><td>??/td><td><code>query.rewrite_drift</code></td><td>When the agent rewrites/expands the query for search, does it preserve the original meaning? Drift causes irrelevant retrieval results.</td></tr>
-          <tr><td>A3</td><td>Ambiguity detection rate</td><td>J</td><td>??/td><td><code>query.ambiguous</code></td><td>Can the agent detect when a query is too vague and needs clarification? Missing this causes hallucinated or random answers.</td></tr>
-          <tr><td>A5</td><td>Language detection accuracy</td><td>R</td><td>??/td><td><code>query.lang_mismatch</code></td><td>Does the agent respond in the same language as the user? Language mismatch destroys user experience.</td></tr>
-          <tr><td>A6</td><td>Query complexity score</td><td>R</td><td>??/td><td><code>query.complexity_high</code></td><td>Flags queries that exceed the agent's capability ceiling. Helps route complex queries to human agents or specialized models.</td></tr>
+
+          <tr><td>A2</td><td>Query rewrite semantic preservation</td><td>J</td><td>—</td><td><code>query.rewrite_drift</code></td><td>When the agent rewrites/expands the query for search, does it preserve the original meaning? Drift causes irrelevant retrieval results.</td></tr>
+
+          <tr><td>A3</td><td>Ambiguity detection rate</td><td>J</td><td>—</td><td><code>query.ambiguous</code></td><td>Can the agent detect when a query is too vague and needs clarification? Missing this causes hallucinated or random answers.</td></tr>
+
+          <tr><td>A5</td><td>Language detection accuracy</td><td>R</td><td>—</td><td><code>query.lang_mismatch</code></td><td>Does the agent respond in the same language as the user? Language mismatch destroys user experience.</td></tr>
+
+          <tr><td>A6</td><td>Query complexity score</td><td>R</td><td>—</td><td><code>query.complexity_high</code></td><td>Flags queries that exceed the agent's capability ceiling. Helps route complex queries to human agents or specialized models.</td></tr>
+
         </tbody>
+
       </table>
 
       <hr>
-      <h2>Group B ??Retrieval Quality (10 metrics)</h2>
+
+      <h2>Group B — Retrieval Quality (10 metrics)</h2>
+
       <p><strong>Purpose:</strong> Measures whether the RAG retrieval stage finds the right documents with good ranking. This is the most metric-dense group because retrieval is the #1 failure point in RAG systems.</p>
-      <p><strong>What you learn:</strong> Exactly which retrieval sub-system needs fixing ??embedding model, chunking strategy, reranker, index coverage, or latency.</p>
+
+      <p><strong>What you learn:</strong> Exactly which retrieval sub-system needs fixing — embedding model, chunking strategy, reranker, index coverage, or latency.</p>
 
       <table class="docs-table">
+
         <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>What It Measures &amp; Why</th></tr></thead>
+
         <tbody>
+
           <tr><td>B1</td><td>Recall@K</td><td>R</td><td>L2</td><td><code>retrieval.recall_low</code></td><td>Of all relevant documents, what fraction did the system retrieve in the top K? Low recall = missing critical information that should be in the answer.</td></tr>
+
           <tr><td>B2</td><td>Precision@K</td><td>R</td><td>L2</td><td><code>retrieval.noise_high</code></td><td>Of the K documents retrieved, what fraction is actually relevant? Low precision = context polluted with noise, confusing the LLM.</td></tr>
+
           <tr><td>B3</td><td>MRR (Mean Reciprocal Rank)</td><td>R</td><td>L2</td><td><code>retrieval.first_hit_late</code></td><td>How early does the first relevant document appear? Low MRR means the model must scan deep into context to find useful information.</td></tr>
-          <tr><td>B4</td><td>HitRate@K</td><td>R</td><td>L2</td><td><code>retrieval.miss</code></td><td>Binary: did at least one relevant document appear in top K? A "miss" means zero relevant context was retrieved ??guaranteed bad answer.</td></tr>
-          <tr><td>B5</td><td>nDCG@K</td><td>R</td><td>L2</td><td><code>retrieval.rank_quality</code></td><td>Normalized Discounted Cumulative Gain ??evaluates ranking quality weighted by position. Relevant docs ranked lower contribute less.</td></tr>
-          <tr><td>B6</td><td>MAP (Mean Average Precision)</td><td>R</td><td>L2</td><td><code>retrieval.precision_low</code></td><td>Average precision across all relevant docs ??penalizes when relevant docs are scattered among irrelevant ones rather than clustered at top.</td></tr>
-          <tr><td>B7</td><td>Context precision (judge)</td><td>J</td><td>??/td><td><code>retrieval.chunk_irrelevant</code></td><td>LLM judge assesses: are the retrieved chunks actually useful for answering this query? Catches semantic irrelevance that keyword metrics miss.</td></tr>
+
+          <tr><td>B4</td><td>HitRate@K</td><td>R</td><td>L2</td><td><code>retrieval.miss</code></td><td>Binary: did at least one relevant document appear in top K? A "miss" means zero relevant context was retrieved — a guaranteed bad answer.</td></tr>
+
+          <tr><td>B5</td><td>nDCG@K</td><td>R</td><td>L2</td><td><code>retrieval.rank_quality</code></td><td>Normalized Discounted Cumulative Gain — evaluates ranking quality weighted by position. Relevant docs ranked lower contribute less.</td></tr>
+
+          <tr><td>B6</td><td>MAP (Mean Average Precision)</td><td>R</td><td>L2</td><td><code>retrieval.precision_low</code></td><td>Average precision across all relevant docs — penalizes when relevant docs are scattered among irrelevant ones rather than clustered at top.</td></tr>
+
+          <tr><td>B7</td><td>Context precision (judge)</td><td>J</td><td>—</td><td><code>retrieval.chunk_irrelevant</code></td><td>LLM judge assesses: are the retrieved chunks actually useful for answering this query? Catches semantic irrelevance that keyword metrics miss.</td></tr>
+
           <tr><td>B8</td><td>Context recall (judge)</td><td>J</td><td>L3</td><td><code>retrieval.coverage_low</code></td><td>LLM judge assesses: does the retrieved context contain enough information to produce the expected answer? Detects knowledge gaps.</td></tr>
-          <tr><td>B10</td><td>Reranker gain</td><td>R</td><td>L2</td><td><code>retrieval.rerank_no_gain</code></td><td>Does the reranker improve ranking vs. raw retrieval? Zero gain means the reranker adds latency without benefit ??consider removing it.</td></tr>
-          <tr><td>B11</td><td>Retrieval diversity</td><td>R</td><td>??/td><td><code>retrieval.dup_high</code></td><td>Are retrieved chunks too similar to each other? High duplication wastes context window on redundant information.</td></tr>
-          <tr><td>B12</td><td>Retrieval latency budget</td><td>R</td><td>??/td><td><code>retrieval.latency_over</code></td><td>Does retrieval complete within the time budget? Slow retrieval delays the entire response and degrades UX.</td></tr>
+
+          <tr><td>B10</td><td>Reranker gain</td><td>R</td><td>L2</td><td><code>retrieval.rerank_no_gain</code></td><td>Does the reranker improve ranking vs. raw retrieval? Zero gain means the reranker adds latency without benefit — consider removing it.</td></tr>
+
+          <tr><td>B11</td><td>Retrieval diversity</td><td>R</td><td>—</td><td><code>retrieval.dup_high</code></td><td>Are retrieved chunks too similar to each other? High duplication wastes context window on redundant information.</td></tr>
+
+          <tr><td>B12</td><td>Retrieval latency budget</td><td>R</td><td>—</td><td><code>retrieval.latency_over</code></td><td>Does retrieval complete within the time budget? Slow retrieval delays the entire response and degrades UX.</td></tr>
+
         </tbody>
+
       </table>
 
       <hr>
-      <h2>Group C ??Context Quality (6 metrics)</h2>
+
+      <h2>Group C — Context Quality (6 metrics)</h2>
+
       <p><strong>Purpose:</strong> Evaluates the quality of context <em>after</em> retrieval but <em>before</em> generation. Even if retrieval finds good documents, poor context assembly (chunking, ordering, deduplication) degrades LLM output.</p>
-      <p><strong>What you learn:</strong> Whether your context assembly pipeline needs improvement ??chunk sizes, ordering strategy, deduplication, or semantic similarity filtering.</p>
+
+      <p><strong>What you learn:</strong> Whether your context assembly pipeline needs improvement — chunk sizes, ordering strategy, deduplication, or semantic similarity filtering.</p>
 
       <table class="docs-table">
+
         <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>What It Measures &amp; Why</th></tr></thead>
+
         <tbody>
-          <tr><td>C1</td><td>Chunk noise ratio</td><td>R/J</td><td>??/td><td><code>context.noise</code></td><td>What fraction of context tokens are irrelevant to the query? High noise dilutes the signal, causing the LLM to lose focus or hallucinate.</td></tr>
-          <tr><td>C2</td><td>Duplicate chunk ratio</td><td>R</td><td>??/td><td><code>context.dup</code></td><td>What fraction of chunks are near-duplicates? Duplicates waste context window without adding new information.</td></tr>
-          <tr><td>C3</td><td>Context token waste</td><td>R</td><td>??/td><td><code>context.token_waste</code></td><td>How many tokens are consumed by context that doesn't contribute to the answer? Direct cost waste + potential confusion.</td></tr>
+
+          <tr><td>C1</td><td>Chunk noise ratio</td><td>R/J</td><td>—</td><td><code>context.noise</code></td><td>What fraction of context tokens are irrelevant to the query? High noise dilutes the signal, causing the LLM to lose focus or hallucinate.</td></tr>
+
+          <tr><td>C2</td><td>Duplicate chunk ratio</td><td>R</td><td>—</td><td><code>context.dup</code></td><td>What fraction of chunks are near-duplicates? Duplicates waste context window without adding new information.</td></tr>
+
+          <tr><td>C3</td><td>Context token waste</td><td>R</td><td>—</td><td><code>context.token_waste</code></td><td>How many tokens are consumed by context that doesn't contribute to the answer? Direct cost waste + potential confusion.</td></tr>
+
           <tr><td>C4</td><td>Evidence sufficiency</td><td>J</td><td>L3</td><td><code>context.insufficient</code></td><td>Does the assembled context contain enough evidence to produce a complete, correct answer? Insufficiency guarantees incomplete/wrong responses.</td></tr>
-          <tr><td>C5</td><td>Context ordering quality</td><td>J</td><td>??/td><td><code>context.order_bad</code></td><td>Are chunks ordered logically (most relevant first, coherent flow)? Bad ordering forces the LLM to mentally reorder, reducing accuracy.</td></tr>
-          <tr><td>C7</td><td>Chunk semantic similarity</td><td>R</td><td>??/td><td><code>context.sim_low</code></td><td>How semantically similar are chunks to the original query? Low similarity = retrieval passed chunks that don't match user intent.</td></tr>
+
+          <tr><td>C5</td><td>Context ordering quality</td><td>J</td><td>—</td><td><code>context.order_bad</code></td><td>Are chunks ordered logically (most relevant first, coherent flow)? Bad ordering forces the LLM to mentally reorder, reducing accuracy.</td></tr>
+
+          <tr><td>C7</td><td>Chunk semantic similarity</td><td>R</td><td>—</td><td><code>context.sim_low</code></td><td>How semantically similar are chunks to the original query? Low similarity = retrieval passed chunks that don't match user intent.</td></tr>
+
         </tbody>
+
       </table>
 
       <hr>
-      <h2>Group D ??Response Quality (12 metrics)</h2>
-      <p><strong>Purpose:</strong> The largest group ??evaluates the final generated response across multiple dimensions: relevance, correctness, faithfulness, format, tone, safety. This is what the end-user directly experiences.</p>
-      <p><strong>What you learn:</strong> Precisely what's wrong with the generated answer ??hallucination? incompleteness? wrong format? safety violation? Each metric maps to a different fix strategy.</p>
+
+      <h2>Group D — Response Quality (12 metrics)</h2>
+
+      <p><strong>Purpose:</strong> The largest group — evaluates the final generated response across multiple dimensions: relevance, correctness, faithfulness, format, tone, safety. This is what the end-user directly experiences.</p>
+
+      <p><strong>What you learn:</strong> Precisely what's wrong with the generated answer — hallucination? incompleteness? wrong format? safety violation? Each metric maps to a different fix strategy.</p>
 
       <table class="docs-table">
+
         <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>What It Measures &amp; Why</th></tr></thead>
+
         <tbody>
-          <tr><td>D1</td><td>Answer relevance</td><td>J</td><td>??/td><td><code>gen.relevance_low</code></td><td>Does the answer address what the user actually asked? Irrelevant answers (even if factually correct) frustrate users.</td></tr>
+
+          <tr><td>D1</td><td>Answer relevance</td><td>J</td><td>—</td><td><code>gen.relevance_low</code></td><td>Does the answer address what the user actually asked? Irrelevant answers (even if factually correct) frustrate users.</td></tr>
+
           <tr><td>D2</td><td>Correctness</td><td>J/H</td><td>L3</td><td><code>gen.incorrect</code></td><td>Is the factual content of the answer correct when compared to ground truth? The most critical quality dimension.</td></tr>
-          <tr><td>D3</td><td>Faithfulness / groundedness</td><td>J</td><td>??/td><td><code>gen.unfaithful</code></td><td>Does the answer only contain claims supported by the provided context? Unfaithful answers introduce information the LLM "made up."</td></tr>
-          <tr><td>D4</td><td>Hallucination rate</td><td>J</td><td>??/td><td><code>gen.hallucination</code></td><td>What fraction of claims in the answer have no basis in context or fact? Even 5% hallucination can destroy user trust.</td></tr>
+
+          <tr><td>D3</td><td>Faithfulness / groundedness</td><td>J</td><td>—</td><td><code>gen.unfaithful</code></td><td>Does the answer only contain claims supported by the provided context? Unfaithful answers introduce information the LLM "made up."</td></tr>
+
+          <tr><td>D4</td><td>Hallucination rate</td><td>J</td><td>—</td><td><code>gen.hallucination</code></td><td>What fraction of claims in the answer have no basis in context or fact? Even 5% hallucination can destroy user trust.</td></tr>
+
           <tr><td>D5</td><td>Completeness</td><td>J</td><td>L3</td><td><code>gen.incomplete</code></td><td>Does the answer cover all aspects the user asked about? Partial answers force follow-up questions and frustration.</td></tr>
-          <tr><td>D6</td><td>Conciseness</td><td>R/J</td><td>??/td><td><code>gen.verbose</code></td><td>Is the answer appropriately brief without unnecessary padding? Verbose answers waste user time and increase token costs.</td></tr>
-          <tr><td>D7</td><td>Tone consistency</td><td>J</td><td>??/td><td><code>gen.tone_off</code></td><td>Does the response maintain the expected tone (professional, friendly, technical)? Tone mismatches feel jarring to users.</td></tr>
-          <tr><td>D8</td><td>Policy compliance</td><td>R/J</td><td>??/td><td><code>gen.policy_violation</code></td><td>Does the answer comply with organizational policies (no PII, no competitors, brand guidelines)? Violations create legal/brand risk.</td></tr>
+
+          <tr><td>D6</td><td>Conciseness</td><td>R/J</td><td>—</td><td><code>gen.verbose</code></td><td>Is the answer appropriately brief without unnecessary padding? Verbose answers waste user time and increase token costs.</td></tr>
+
+          <tr><td>D7</td><td>Tone consistency</td><td>J</td><td>—</td><td><code>gen.tone_off</code></td><td>Does the response maintain the expected tone (professional, friendly, technical)? Tone mismatches feel jarring to users.</td></tr>
+
+          <tr><td>D8</td><td>Policy compliance</td><td>R/J</td><td>—</td><td><code>gen.policy_violation</code></td><td>Does the answer comply with organizational policies (no PII, no competitors, brand guidelines)? Violations create legal/brand risk.</td></tr>
+
           <tr><td>D9</td><td>Citation accuracy</td><td>R</td><td>L3</td><td><code>gen.citation_wrong</code></td><td>When sources are cited, are they correct? Wrong citations mislead users and erode credibility.</td></tr>
-          <tr><td>D10</td><td>Structured format validity</td><td>R</td><td>??/td><td><code>gen.format_invalid</code></td><td>If JSON/XML/structured output is expected, is it valid? Invalid format breaks downstream systems that parse the output.</td></tr>
-          <tr><td>D11</td><td>Language quality</td><td>J</td><td>??/td><td><code>gen.grammar</code></td><td>Is the response grammatically correct and well-written? Poor language quality suggests low model capability or bad prompting.</td></tr>
-          <tr><td>D12</td><td>Refusal appropriateness</td><td>J</td><td>??/td><td><code>gen.refusal_bad</code></td><td>When the agent refuses to answer, is the refusal warranted? False refusals frustrate users; missing refusals create safety risks.</td></tr>
+
+          <tr><td>D10</td><td>Structured format validity</td><td>R</td><td>—</td><td><code>gen.format_invalid</code></td><td>If JSON/XML/structured output is expected, is it valid? Invalid format breaks downstream systems that parse the output.</td></tr>
+
+          <tr><td>D11</td><td>Language quality</td><td>J</td><td>—</td><td><code>gen.grammar</code></td><td>Is the response grammatically correct and well-written? Poor language quality suggests low model capability or bad prompting.</td></tr>
+
+          <tr><td>D12</td><td>Refusal appropriateness</td><td>J</td><td>—</td><td><code>gen.refusal_bad</code></td><td>When the agent refuses to answer, is the refusal warranted? False refusals frustrate users; missing refusals create safety risks.</td></tr>
+
         </tbody>
+
       </table>
 
       <hr>
-      <h2>Group E ??Agent &amp; Tool Quality (8 metrics)</h2>
-      <p><strong>Purpose:</strong> Evaluates the agent's orchestration layer ??tool selection, argument formatting, planning, and multi-step reasoning. Critical for agentic (non-RAG) workloads.</p>
+
+      <h2>Group E — Agent &amp; Tool Quality (8 metrics)</h2>
+
+      <p><strong>Purpose:</strong> Evaluates the agent's orchestration layer — tool selection, argument formatting, planning, and multi-step reasoning. Critical for agentic (non-RAG) workloads.</p>
+
       <p><strong>What you learn:</strong> Whether your agent architecture, tool descriptions, or planning logic needs redesign vs. simple parameter tuning.</p>
 
       <table class="docs-table">
+
         <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>What It Measures &amp; Why</th></tr></thead>
+
         <tbody>
+
           <tr><td>E1</td><td>Tool selection accuracy</td><td>R/J</td><td>L1</td><td><code>tool.wrong</code></td><td>Did the agent choose the correct tool for the task? Wrong tool selection means the task cannot succeed regardless of other factors.</td></tr>
-          <tr><td>E2</td><td>Tool argument validity</td><td>R</td><td>??/td><td><code>tool.arg_invalid</code></td><td>Were the arguments passed to the tool correctly formatted? Invalid args cause tool execution failures and retries.</td></tr>
-          <tr><td>E3</td><td>Tool call success rate</td><td>R</td><td>??/td><td><code>tool.fail</code></td><td>What percentage of tool calls succeed? Low success indicates systematic issues (auth, schema, availability).</td></tr>
-          <tr><td>E4</td><td>Tool retry count</td><td>R</td><td>??/td><td><code>tool.retry_high</code></td><td>How many retries before success? Excessive retries add latency and cost. Usually indicates poor error handling.</td></tr>
-          <tr><td>E5</td><td>Unnecessary tool call ratio</td><td>J</td><td>??/td><td><code>tool.over_call</code></td><td>Did the agent call tools it didn't need? Unnecessary calls waste time, money, and may cause unintended side effects.</td></tr>
+
+          <tr><td>E2</td><td>Tool argument validity</td><td>R</td><td>—</td><td><code>tool.arg_invalid</code></td><td>Were the arguments passed to the tool correctly formatted? Invalid args cause tool execution failures and retries.</td></tr>
+
+          <tr><td>E3</td><td>Tool call success rate</td><td>R</td><td>—</td><td><code>tool.fail</code></td><td>What percentage of tool calls succeed? Low success indicates systematic issues (auth, schema, availability).</td></tr>
+
+          <tr><td>E4</td><td>Tool retry count</td><td>R</td><td>—</td><td><code>tool.retry_high</code></td><td>How many retries before success? Excessive retries add latency and cost. Usually indicates poor error handling.</td></tr>
+
+          <tr><td>E5</td><td>Unnecessary tool call ratio</td><td>J</td><td>—</td><td><code>tool.over_call</code></td><td>Did the agent call tools it didn't need? Unnecessary calls waste time, money, and may cause unintended side effects.</td></tr>
+
           <tr><td>E6</td><td>Multi-step plan correctness</td><td>J</td><td>L1</td><td><code>agent.plan_wrong</code></td><td>For multi-step tasks, did the agent produce a valid plan? Wrong plans lead to cascading failures across steps.</td></tr>
-          <tr><td>E7</td><td>Reasoning path length</td><td>R</td><td>??/td><td><code>agent.path_long</code></td><td>How many steps did the agent take? Excessive steps indicate planning loops or indecision ??costs tokens and time.</td></tr>
-          <tr><td>E8</td><td>Final synthesis quality</td><td>J</td><td>??/td><td><code>agent.synthesis_low</code></td><td>After gathering information from multiple tools, did the agent synthesize a coherent final answer? Poor synthesis wastes good tool outputs.</td></tr>
+
+          <tr><td>E7</td><td>Reasoning path length</td><td>R</td><td>—</td><td><code>agent.path_long</code></td><td>How many steps did the agent take? Excessive steps indicate planning loops or indecision — costs tokens and time.</td></tr>
+
+          <tr><td>E8</td><td>Final synthesis quality</td><td>J</td><td>—</td><td><code>agent.synthesis_low</code></td><td>After gathering information from multiple tools, did the agent synthesize a coherent final answer? Poor synthesis wastes good tool outputs.</td></tr>
+
         </tbody>
+
       </table>
 
       <hr>
-      <h2>Group F ??Performance &amp; Cost (5 metrics)</h2>
-      <p><strong>Purpose:</strong> Operational health metrics ??latency, cost, token usage, and reliability. Even a perfectly accurate agent fails if it's too slow or too expensive.</p>
+
+      <h2>Group F — Performance &amp; Cost (5 metrics)</h2>
+
+      <p><strong>Purpose:</strong> Operational health metrics — latency, cost, token usage, and reliability. Even a perfectly accurate agent fails if it's too slow or too expensive.</p>
+
       <p><strong>What you learn:</strong> Whether performance issues are in retrieval, generation, tool calls, or overall architecture. Directly feeds into cost governance decisions.</p>
 
       <table class="docs-table">
+
         <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>What It Measures &amp; Why</th></tr></thead>
+
         <tbody>
-          <tr><td>F1</td><td>End-to-end latency</td><td>R</td><td>??/td><td><code>ops.latency_over</code></td><td>Total time from user query to final response. Users abandon after 3?? seconds; latency directly impacts satisfaction.</td></tr>
-          <tr><td>F2</td><td>Model inference latency</td><td>R</td><td>??/td><td><code>ops.gen_slow</code></td><td>Time spent specifically on LLM inference. Isolates whether slowness is in the model vs. other pipeline stages.</td></tr>
-          <tr><td>F3</td><td>Cost per trace</td><td>R</td><td>??/td><td><code>ops.cost_over</code></td><td>Total USD cost for a single agent invocation. Tracks budget compliance and identifies cost-inefficient traces.</td></tr>
-          <tr><td>F4</td><td>Token consumption</td><td>R</td><td>??/td><td><code>ops.token_over</code></td><td>Total input + output tokens used. Excessive consumption usually means verbose prompts or unnecessary context stuffing.</td></tr>
-          <tr><td>F5</td><td>Failure / timeout rate</td><td>R</td><td>??/td><td><code>ops.failure</code></td><td>Percentage of traces that end in error or timeout. Directly measures reliability ??the most basic SLA metric.</td></tr>
+
+          <tr><td>F1</td><td>End-to-end latency</td><td>R</td><td>—</td><td><code>ops.latency_over</code></td><td>Total time from user query to final response. Users abandon after 3–5 seconds; latency directly impacts satisfaction.</td></tr>
+
+          <tr><td>F2</td><td>Model inference latency</td><td>R</td><td>—</td><td><code>ops.gen_slow</code></td><td>Time spent specifically on LLM inference. Isolates whether slowness is in the model vs. other pipeline stages.</td></tr>
+
+          <tr><td>F3</td><td>Cost per trace</td><td>R</td><td>—</td><td><code>ops.cost_over</code></td><td>Total USD cost for a single agent invocation. Tracks budget compliance and identifies cost-inefficient traces.</td></tr>
+
+          <tr><td>F4</td><td>Token consumption</td><td>R</td><td>—</td><td><code>ops.token_over</code></td><td>Total input + output tokens used. Excessive consumption usually means verbose prompts or unnecessary context stuffing.</td></tr>
+
+          <tr><td>F5</td><td>Failure / timeout rate</td><td>R</td><td>—</td><td><code>ops.failure</code></td><td>Percentage of traces that end in error or timeout. Directly measures reliability — the most basic SLA metric.</td></tr>
+
         </tbody>
+
       </table>
 
       <hr>
-      <h2>Group G ??Human Outcomes (5 metrics)</h2>
+
+      <h2>Group G — Human Outcomes (5 metrics)</h2>
+
       <p><strong>Purpose:</strong> Captures real end-user satisfaction signals that automated metrics cannot fully replace. Human judgment remains the gold standard for subjective quality.</p>
-      <p><strong>What you learn:</strong> Whether your automated metrics (A?�F) actually correlate with user satisfaction. Gaps reveal blind spots in your evaluation framework.</p>
+
+      <p><strong>What you learn:</strong> Whether your automated metrics (A–F) actually correlate with user satisfaction. Gaps reveal blind spots in your evaluation framework.</p>
 
       <table class="docs-table">
+
         <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>What It Measures &amp; Why</th></tr></thead>
+
         <tbody>
-          <tr><td>G1</td><td>User thumbs up ratio</td><td>H</td><td>??/td><td><code>human.dislike</code></td><td>Ratio of positive explicit feedback from end-users. The simplest satisfaction signal ??low ratios mean users are unhappy.</td></tr>
-          <tr><td>G2</td><td>User dissatisfaction rate</td><td>H</td><td>??/td><td><code>human.complaint</code></td><td>Rate of explicit negative signals (complaints, escalations). More actionable than thumbs-up because it indicates active frustration.</td></tr>
+
+          <tr><td>G1</td><td>User thumbs up ratio</td><td>H</td><td>—</td><td><code>human.dislike</code></td><td>Ratio of positive explicit feedback from end-users. The simplest satisfaction signal — low ratios mean users are unhappy.</td></tr>
+
+          <tr><td>G2</td><td>User dissatisfaction rate</td><td>H</td><td>—</td><td><code>human.complaint</code></td><td>Rate of explicit negative signals (complaints, escalations). More actionable than thumbs-up because it indicates active frustration.</td></tr>
+
           <tr><td>G3</td><td>Reviewer correctness label</td><td>H</td><td>L3</td><td><code>human.incorrect</code></td><td>Expert reviewer marks answer as correct/incorrect. The most reliable quality signal but expensive and slow to collect.</td></tr>
-          <tr><td>G4</td><td>Reviewer failure taxonomy</td><td>H</td><td>??/td><td><code>human.taxonomy</code></td><td>Expert categorizes the failure type. Creates structured data for root cause analysis that automated systems can learn from.</td></tr>
-          <tr><td>G5</td><td>CSAT / NPS-style score</td><td>H</td><td>??/td><td><code>human.csat_low</code></td><td>Standardized satisfaction survey score. Enables benchmarking against industry standards and tracking trends over time.</td></tr>
+
+          <tr><td>G4</td><td>Reviewer failure taxonomy</td><td>H</td><td>—</td><td><code>human.taxonomy</code></td><td>Expert categorizes the failure type. Creates structured data for root cause analysis that automated systems can learn from.</td></tr>
+
+          <tr><td>G5</td><td>CSAT / NPS-style score</td><td>H</td><td>—</td><td><code>human.csat_low</code></td><td>Standardized satisfaction survey score. Enables benchmarking against industry standards and tracking trends over time.</td></tr>
+
         </tbody>
+
       </table>
 
       <hr>
+
       <h2>Mode Distribution Summary</h2>
+
       <table class="docs-table">
+
         <thead><tr><th>Mode</th><th>Count</th><th>Cost</th><th>Speed</th><th>When to Use</th></tr></thead>
+
         <tbody>
+
           <tr><td><strong>R (Rule)</strong></td><td>23</td><td>Free</td><td>&lt; 50ms</td><td>Always-on baseline. Run automatically on every trace ingest.</td></tr>
-          <tr><td><strong>J (Judge)</strong></td><td>17</td><td>$0.001??.05/eval</td><td>1??0s</td><td>Deeper semantic analysis. Run on-demand or scheduled.</td></tr>
-          <tr><td><strong>R or J</strong></td><td>7</td><td>Free ??token-priced</td><td>Fast ??slower</td><td>Rule provides initial screen; Judge adds nuanced assessment on exceptions.</td></tr>
+
+          <tr><td><strong>J (Judge)</strong></td><td>17</td><td>$0.001–$0.05/eval</td><td>1–10s</td><td>Deeper semantic analysis. Run on-demand or scheduled.</td></tr>
+
+          <tr><td><strong>R or J</strong></td><td>7</td><td>Free to token-priced</td><td>Fast to slower</td><td>Rule provides initial screen; Judge adds nuanced assessment on exceptions.</td></tr>
+
           <tr><td><strong>H (Human)</strong></td><td>5</td><td>Staff time</td><td>Minutes+</td><td>Ground truth validation, subjective quality, CSAT.</td></tr>
+
         </tbody>
+
       </table>
 
       <h2>Pipeline Stage Flow</h2>
-      <pre><code>User Query ??[A: Query Understanding]
-         ??[B: Retrieval] ??[C: Context Assembly]
-         ??[D: Response Generation]
-         ??[E: Agent/Tool Orchestration] (parallel with B?�D)
-         ??[F: Operational Metrics] (measured across all stages)
-         ??[G: Human Feedback] (collected post-response)</code></pre>
+
+            <p class="docs-pipeline-caption">Primary path: <strong>A &rarr; B &rarr; C &rarr; D</strong>. <strong>E</strong> (agent &amp; tools) typically runs <em>in parallel</em> with <strong>B&ndash;D</strong>. <strong>F</strong> spans all stages; <strong>G</strong> is collected after the response.</p>
+
+      <div class="docs-pipeline-diagram" role="img" aria-label="Pipeline diagram: user query, then A query understanding, B retrieval, C context, D response. E agent and tools runs in parallel with B through D. F performance and cost spans all stages. G human outcomes after the response.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 520" preserveAspectRatio="xMidYMid meet">
+          <title>Metric groups A through G along the agent pipeline</title>
+          <desc>Vertical flow A through D, parallel E, then F and G.</desc>
+          <defs>
+            <marker id="evalPlArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/>
+            </marker>
+            <linearGradient id="evalPlCard" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#21262d"/>
+              <stop offset="100%" stop-color="#1a1f26"/>
+            </linearGradient>
+            <filter id="evalPlSh" x="-8%" y="-8%" width="116%" height="116%">
+              <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.35"/>
+            </filter>
+          </defs>
+          <rect width="680" height="520" fill="#0d1117" rx="10"/>
+          <text x="340" y="30" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">How the 52 metrics map onto runtime</text>
+
+          <rect x="178" y="48" width="324" height="40" rx="20" fill="#1c2128" stroke="#22c07a" stroke-width="1.2" filter="url(#evalPlSh)"/>
+          <text x="340" y="73" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">User query</text>
+
+          <line x1="340" y1="88" x2="340" y2="102" stroke="#22c07a" stroke-width="2.2" marker-end="url(#evalPlArr)"/>
+
+          <g id="mainCol">
+            <rect x="48" y="108" width="304" height="48" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+            <text x="68" y="138" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">A</text>
+            <text x="96" y="130" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Query understanding</text>
+            <text x="96" y="148" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Intent, rewrite, language</text>
+
+            <line x1="200" y1="156" x2="200" y2="170" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+            <rect x="48" y="176" width="304" height="48" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+            <text x="68" y="206" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">B</text>
+            <text x="96" y="198" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Retrieval</text>
+            <text x="96" y="216" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Recall, ranking, chunk quality</text>
+
+            <line x1="200" y1="224" x2="200" y2="238" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+            <rect x="48" y="244" width="304" height="48" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+            <text x="68" y="274" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">C</text>
+            <text x="96" y="266" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Context assembly</text>
+            <text x="96" y="284" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Noise, ordering, evidence</text>
+
+            <line x1="200" y1="292" x2="200" y2="306" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+            <rect x="48" y="312" width="304" height="48" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+            <text x="68" y="342" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">D</text>
+            <text x="96" y="334" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Response generation</text>
+            <text x="96" y="352" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Groundedness, safety, format</text>
+          </g>
+
+          <rect x="400" y="168" width="232" height="188" rx="10" fill="#0d1117" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="7 5" filter="url(#evalPlSh)"/>
+          <text x="516" y="194" text-anchor="middle" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="12" font-weight="700">E &middot; Parallel track</text>
+          <text x="516" y="214" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Agent &amp; tool quality</text>
+          <text x="516" y="236" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Planning, tool choice, args</text>
+          <text x="516" y="268" text-anchor="middle" fill="#6e7681" font-family="system-ui,sans-serif" font-size="10">Overlaps B&ndash;D in most traces</text>
+          <line x1="516" y1="278" x2="516" y2="286" stroke="#30363d"/>
+          <text x="516" y="308" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="10">Dashed links = concurrent work,</text>
+          <text x="516" y="324" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="10">not a fourth sequential hop</text>
+
+          <path d="M 352 200 C 380 200, 392 210, 400 220" fill="none" stroke="#58a6ff" stroke-width="1.3" stroke-dasharray="5 4" opacity="0.9"/>
+          <path d="M 352 268 C 385 268, 395 250, 400 238" fill="none" stroke="#58a6ff" stroke-width="1.3" stroke-dasharray="5 4" opacity="0.9"/>
+          <path d="M 352 336 C 388 320, 398 280, 410 265" fill="none" stroke="#58a6ff" stroke-width="1.3" stroke-dasharray="5 4" opacity="0.9"/>
+
+          <line x1="200" y1="360" x2="200" y2="374" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+          <rect x="48" y="380" width="584" height="44" rx="8" fill="url(#evalPlCard)" stroke="#22c07a" stroke-width="1" stroke-opacity="0.45" filter="url(#evalPlSh)"/>
+          <text x="68" y="407" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">F</text>
+          <text x="96" y="400" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Performance &amp; cost</text>
+          <text x="96" y="416" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Latency, tokens, failures &mdash; measured across <tspan font-weight="600" fill="#8b949e">all</tspan> stages</text>
+
+          <line x1="340" y1="424" x2="340" y2="438" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+          <rect x="48" y="444" width="584" height="44" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+          <text x="68" y="471" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">G</text>
+          <text x="96" y="464" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Human outcomes</text>
+          <text x="96" y="480" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Thumbs, CSAT, reviewer labels &mdash; <tspan font-weight="600" fill="#8b949e">after</tspan> the response</text>
+        </svg>
+      </div>
+
 
       <h2>How Metrics Connect to Improvement Packs</h2>
+
       <p>When a metric fails (score below threshold), the system:</p>
+
       <ol>
+
         <li>Records the <strong>cause code</strong> (e.g., <code>retrieval.recall_low</code>)</li>
+
         <li>Maps the cause code to <strong>primary remediation category</strong> (e.g., "Retrieval tuning")</li>
+
         <li>Generates an <strong>Improvement Pack proposal</strong> with specific actions</li>
+
         <li>Assigns an <strong>effort level</strong> (Low/Medium/High) based on the category</li>
+
       </ol>
+
       <p>This closed-loop system ensures every failed metric directly leads to a concrete, prioritized action item.</p>
 
       <div class="docs-next-grid">
+
         <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>Bind metrics to evaluation profiles</span></a>
+
         <a href="eval-improvements.html" class="docs-next-card"><strong>Improvements</strong><span>Act on metric failures</span></a>
+
         <a href="eval-golden.html" class="docs-next-card"><strong>Golden Sets</strong><span>Provide ground truth for metrics</span></a>
+
       </div>
+
     </article>
+
     <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+
   </main>
+
 </div>
+
 <script src="docs.js"></script>
+
 </body>
+
 </html>

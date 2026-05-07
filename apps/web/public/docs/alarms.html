@@ -11,7 +11,7 @@
       <h1>Alarms &mdash; Full Feature Manual</h1>
       <p class="docs-lede">Alarms provide threshold-based alerting for key observability metrics. When a metric crosses a defined threshold within an evaluation window, the alarm transitions to a FIRING state and is prominently displayed on the dashboard.</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">Image: Alarms page &mdash; alarm list with status indicators, thresholds, and sparklines</div></div>
+      <div class="docs-hero-image"><img src="../images/alarms-channels.png" alt="Alarms page in Organizations: Alarms tab with delivery channels cards (Slack, Teams, Discord, PagerDuty, Opsgenie, Webhook, Email), channel table status, and edit channel form with enabled toggle and webhook fields" loading="lazy" decoding="async" /></div>
 
       <h2>Concept</h2>
       <p>An alarm continuously monitors a single metric and compares its value against a threshold:</p>
@@ -159,16 +159,63 @@ Service: all</code></pre>
       </ul>
 
       <h2>State Transitions</h2>
-      <pre><code>      +--------------------------------+
-      |                                |
-      v                                |
-   [OK] --threshold breached--> [PENDING]
-      ^                                |
-      |                                |
-      |                     window elapsed
-      |                                |
-      |                                v
-      +---metric recovers--------- [FIRING]</code></pre>
+      <p class="docs-pipeline-caption">UI view: alerts move through clear visual states so operators can decide whether to wait, investigate, or acknowledge.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="Alarm state transition diagram showing OK, PENDING, FIRING, NO_DATA, and DISABLED with transition conditions from metric changes and user actions.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" preserveAspectRatio="xMidYMid meet">
+          <title>Alarm State Transitions (operator UX)</title>
+          <desc>State machine from OK to pending to firing, with recovery and manual disable paths.</desc>
+          <defs>
+            <marker id="alArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="alCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="alSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="420" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Alarm engine + operator actions</text>
+
+          <rect x="64" y="82" width="130" height="64" rx="10" fill="url(#alCard)" stroke="#22c07a" stroke-width="1.4" filter="url(#alSh)"/>
+          <text x="129" y="107" text-anchor="middle" fill="#22c07a" font-family="system-ui,sans-serif" font-size="12" font-weight="700">OK</text>
+          <text x="129" y="125" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">within threshold</text>
+
+          <rect x="292" y="82" width="138" height="64" rx="10" fill="url(#alCard)" stroke="#f2cc60" stroke-width="1.4" filter="url(#alSh)"/>
+          <text x="361" y="107" text-anchor="middle" fill="#f2cc60" font-family="system-ui,sans-serif" font-size="12" font-weight="700">PENDING</text>
+          <text x="361" y="125" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">breached, waiting window</text>
+
+          <rect x="532" y="82" width="130" height="64" rx="10" fill="url(#alCard)" stroke="#f85149" stroke-width="1.4" filter="url(#alSh)"/>
+          <text x="597" y="107" text-anchor="middle" fill="#f85149" font-family="system-ui,sans-serif" font-size="12" font-weight="700">FIRING</text>
+          <text x="597" y="125" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">active incident</text>
+
+          <line x1="194" y1="114" x2="292" y2="114" stroke="#22c07a" stroke-width="2" marker-end="url(#alArr)"/>
+          <text x="243" y="101" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">threshold breached</text>
+
+          <line x1="430" y1="114" x2="532" y2="114" stroke="#22c07a" stroke-width="2" marker-end="url(#alArr)"/>
+          <text x="481" y="101" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">window elapsed + still breached</text>
+
+          <path d="M 596 146 C 596 202, 462 212, 360 146" fill="none" stroke="#22c07a" stroke-width="1.8" marker-end="url(#alArr)"/>
+          <text x="478" y="214" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">metric recovers</text>
+
+          <path d="M 360 146 C 360 184, 220 196, 129 146" fill="none" stroke="#22c07a" stroke-width="1.8" marker-end="url(#alArr)"/>
+          <text x="250" y="196" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">recovers before window end</text>
+
+          <rect x="124" y="262" width="154" height="62" rx="9" fill="url(#alCard)" stroke="#6e7681" stroke-width="1.2" filter="url(#alSh)"/>
+          <text x="201" y="287" text-anchor="middle" fill="#c9d1d9" font-family="system-ui,sans-serif" font-size="11" font-weight="700">DISABLED</text>
+          <text x="201" y="304" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">manual toggle off</text>
+
+          <rect x="442" y="262" width="154" height="62" rx="9" fill="url(#alCard)" stroke="#6e7681" stroke-width="1.2" filter="url(#alSh)"/>
+          <text x="519" y="287" text-anchor="middle" fill="#c9d1d9" font-family="system-ui,sans-serif" font-size="11" font-weight="700">NO_DATA</text>
+          <text x="519" y="304" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">insufficient samples</text>
+
+          <line x1="129" y1="146" x2="201" y2="262" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#alArr)"/>
+          <line x1="361" y1="146" x2="228" y2="262" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#alArr)"/>
+          <line x1="597" y1="146" x2="536" y2="262" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#alArr)"/>
+          <text x="318" y="248" text-anchor="middle" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="9">user action: disable</text>
+
+          <line x1="519" y1="262" x2="361" y2="146" stroke="#8b949e" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#alArr)"/>
+          <text x="451" y="227" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">data returns</text>
+
+          <line x1="201" y1="324" x2="129" y2="146" stroke="#8b949e" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#alArr)"/>
+          <text x="146" y="248" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">re-enable</text>
+        </svg>
+      </div>
       <ul>
         <li><strong>OK &rarr; PENDING:</strong> Metric breaches threshold (first detection)</li>
         <li><strong>PENDING &rarr; FIRING:</strong> Metric still breaching after full evaluation window</li>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Tracing - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
 <body>
@@ -10,7 +10,7 @@
       <h1>Tracing &mdash; Full Feature Manual</h1>
       <p class="docs-lede">The Tracing page is the primary interface for exploring every agent invocation captured by EasyObs. It provides a dual-view (Traces / Spans), rich filtering, configurable columns, a slide-out inspector drawer, and a graph-based flow visualizer.</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">Image: Full Tracing page layout &mdash; left filter panel, center table, right inspector drawer</div></div>
+      <div class="docs-hero-image"><img src="../images/tracing-full-layout.png" alt="Tracing page: left filters (status, session, service, columns), center trace table with 500 traces, right inspector drawer open on agent.rag.pipeline with Summary tab and span preview" loading="lazy" decoding="async" /></div>
 
       <h2>Page Layout</h2>
       <p>The Tracing page is divided into three regions:</p>
@@ -96,7 +96,7 @@
       <h2>Trace Inspector Drawer</h2>
       <p>Click any row to open the right-side inspector drawer. The drawer has a header with action buttons and 4 sub-tabs:</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">Image: Trace inspector drawer showing Summary tab with KV pairs and span preview</div></div>
+      <div class="docs-hero-image"><img src="../images/tracing-inspector-summary.png" alt="Trace inspector drawer: Summary tab with KV fields (status, duration, tokens, cost, models, trace id), First spans text preview, and Span Flow Graph modal showing agent.rag.plan tree with retrieve, llm.call, post.process" loading="lazy" decoding="async" /></div>
 
       <h3>Drawer Header Actions</h3>
       <table class="docs-table">
@@ -104,7 +104,7 @@
         <tbody>
           <tr><td><strong>Evaluate &rarr;</strong></td><td>Navigate to Quality > Runs with this trace pre-filled for evaluation</td></tr>
           <tr><td><strong>+ Label</strong></td><td>Navigate to Golden Sets > Human Labels with this trace ID pre-filled</td></tr>
-          <tr><td><strong>Full view &rarr;</strong></td><td>Navigate to the dedicated trace detail page (full-screen waterfall)</td></tr>
+          <tr><td><strong>Full view &rarr;</strong></td><td>Open <strong>Full View</strong>: dedicated trace page with LLM summary, span tree, flow DAG, timeline waterfall, and per-span inspector</td></tr>
           <tr><td><strong>&times;</strong></td><td>Close the drawer</td></tr>
         </tbody>
       </table>
@@ -126,8 +126,8 @@
       </ul>
       <p>Below the KV list:</p>
       <ul>
-        <li><strong>View Span Flow</strong> button &rarr; Opens the graph modal</li>
-        <li><strong>First spans</strong> &rarr; Preview of the first 6 spans with status icon and duration</li>
+        <li><strong>View Span Flow</strong> &rarr; Opens a centered modal with a directed graph of the trace (one node per span, parent/child edges, duration labels; colors follow span kind &mdash; see <a href="#supported-span-kinds">Supported Span Kinds</a>). The inspector screenshot above includes this modal so a separate figure is not repeated here.</li>
+        <li><strong>First spans</strong> &rarr; Text preview of the first spans with indentation, names, and durations</li>
       </ul>
 
       <h3>Tab: LLM</h3>
@@ -147,27 +147,46 @@
       <h3>Tab: Events</h3>
       <p>List of all span events across all spans in the trace. Each event shows its name and the span it belongs to. Useful for seeing exceptions, log messages, or custom events recorded during execution.</p>
 
-      <h2>Span Flow Graph (Modal)</h2>
-      <p>Clicking "View Span Flow" in the Summary tab opens a full-screen modal displaying the trace as a directed graph:</p>
-      <div class="docs-hero-placeholder"><div class="placeholder-box">Image: Span Flow Graph modal showing nested span tree as a visual DAG</div></div>
+      <h2 id="full-view">Full View (trace detail page)</h2>
+      <p><strong>Full View</strong> is the dedicated, full-screen trace experience for a single trace. Open it from the inspector drawer via <strong>Full view &rarr;</strong>, or navigate directly to <code>/workspace/tracing/detail/?id=&lt;traceId&gt;</code>. The page is built from the same NDJSON span payload as the list view but arranges analysis into a header, an LLM-centric summary band, and a four-column workspace below.</p>
+
+      <div class="docs-hero-image"><img src="../images/tracing-full-view.png" alt="Full View for agent.rag.plan: header with trace id and duration, LLM summary with session user tokens cost and user query vs final response, and four panels: Span tree, Flow DAG, Timeline waterfall, Inspector with LLM tab" loading="lazy" decoding="async" /></div>
+
+      <h3>Header strip</h3>
       <ul>
-        <li>Each node represents a span (colored by kind: agent=blue, llm=purple, retrieve=green, tool=orange)</li>
-        <li>Edges show parent-child relationships</li>
-        <li>Node labels show span name and duration</li>
-        <li>The graph is built from the trace's span tree using <code>buildTree()</code></li>
-        <li>Close with &times; or click outside the modal</li>
+        <li><strong>Operation</strong> &mdash; Root span name (e.g. <code>agent.rag.plan</code>) with an <strong>OK</strong> / error badge</li>
+        <li><strong>Context line</strong> &mdash; Short note that the view is a waterfall derived from stored spans</li>
+        <li><strong>Trace ID</strong> &mdash; Identifier (often truncated in the UI with full value available in copy/inspector)</li>
+        <li><strong>Environment / service</strong> &mdash; e.g. service or env label such as <code>demo</code></li>
+        <li><strong>Total duration</strong> &mdash; End-to-end latency for the whole trace</li>
+        <li><strong>Evaluate</strong> &mdash; Jump to Quality workflows with this trace in context</li>
+        <li><strong>+ Human label</strong> &mdash; Jump to human labeling / golden workflows for this trace</li>
       </ul>
 
-      <h2>Full Trace Detail Page</h2>
-      <p>Accessible via "Full view &rarr;" in the drawer, or directly at <code>/workspace/tracing/detail/?id=&lt;traceId&gt;</code>. Provides:</p>
+      <h3>LLM summary band</h3>
+      <p>A horizontal summary aggregates what matters for LLM agent traces before you drill into spans:</p>
       <ul>
-        <li><strong>Waterfall timeline</strong> &rarr; Visual Gantt chart of all spans showing nesting, duration, and overlap</li>
-        <li><strong>Span detail panel</strong> &rarr; Click any span in the waterfall to see its attributes, events, and status</li>
-        <li><strong>LLM View</strong> &rarr; Formatted prompt/completion for LLM-kind spans</li>
-        <li><strong>Full attributes table</strong> &rarr; All attributes across all spans</li>
+        <li><strong>Session &amp; identity</strong> &mdash; Session id, user (if present), request id</li>
+        <li><strong>Shape of work</strong> &mdash; Counts such as how many LLM, retrieve, and tool spans appear in the trace</li>
+        <li><strong>Usage &amp; cost</strong> &mdash; Token totals (in/out), estimated USD cost, primary model name</li>
+        <li><strong>Conversation preview</strong> &mdash; First captured user input and last captured assistant output as quick sanity checks</li>
       </ul>
 
-      <h2>Supported Span Kinds &amp; Attributes</h2>
+      <h3>Four-panel workspace</h3>
+      <p>The lower area stays in sync: selecting a span in one panel updates the others where applicable.</p>
+      <table class="docs-table">
+        <thead><tr><th>Panel</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Span tree</strong></td><td>Hierarchical list of all spans (root and children) with durations. Fast navigation and mental model of nesting.</td></tr>
+          <tr><td><strong>Flow</strong></td><td>Visual DAG: parent node at the top, children below, edges showing call structure (same tree as the modal graph, laid out for the detail page).</td></tr>
+          <tr><td><strong>Timeline</strong></td><td>Waterfall / Gantt-style chart over the trace clock: bar length = duration, vertical stacking = nesting, so overlap and ordering are obvious.</td></tr>
+          <tr><td><strong>Inspector</strong></td><td>Detail for the <em>selected</em> span: tabs such as <strong>LLM</strong> (prompt/response when applicable), <strong>Attributes</strong>, <strong>Events</strong> (with counts), and <strong>Raw</strong>. Shows span id, start time, and other fields needed for debugging.</td></tr>
+        </tbody>
+      </table>
+
+      <p>Use <strong>Full View</strong> when the drawer is too narrow: long prompts, deep trees, comparing timeline vs graph, or stepping span-by-span with the inspector while keeping the waterfall visible.</p>
+
+      <h2 id="supported-span-kinds">Supported Span Kinds &amp; Attributes</h2>
       <table class="docs-table">
         <thead><tr><th>Kind (<code>o.kind</code>)</th><th>Badge Color</th><th>Key Attributes</th><th>Description</th></tr></thead>
         <tbody>
@@ -190,15 +209,70 @@
       </ol>
 
       <h2>Data Flow</h2>
-      <pre><code>Agent Service (@traced / span_block)
-  &#9492;&#9472;&#9654; OpenTelemetry BatchSpanProcessor
-       &#9492;&#9472;&#9654; OTLP/HTTP POST &rarr; /v1/traces (or /otlp/v1/traces)
-            &#9492;&#9472;&#9654; EasyObs API Server
-                 &#9500;&#9472;&#9654; Parse proto/JSON &rarr; flatten spans
-                 &#9500;&#9472;&#9654; Enrich: cost calculation, model detection
-                 &#9500;&#9472;&#9654; Persist: catalog DB (metadata) + blob store (raw)
-                 &#9500;&#9472;&#9654; Auto-rule evaluation (fire-and-forget, if enabled)
-                 &#9492;&#9472;&#9654; Response: 200 OK to SDK</code></pre>
+      <p class="docs-pipeline-caption">UI/UX perspective: what operators feel as &ldquo;near real-time trace visibility&rdquo; is this ingest pipeline from SDK export to parsed, enriched, queryable rows.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="Tracing data flow from instrumented agent service, through OTLP export and API ingestion, to parsing, enrichment, persistence, optional auto-rules, and 200 OK response to SDK.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450" preserveAspectRatio="xMidYMid meet">
+          <title>Tracing Data Flow (runtime to UI)</title>
+          <desc>Agent spans are exported over OTLP HTTP, ingested by API, enriched, persisted, optionally evaluated, then available to the tracing UI.</desc>
+          <defs>
+            <marker id="trDfArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="trDfCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="trDfSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="450" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Ingest path behind the Tracing table and inspector</text>
+
+          <rect x="24" y="64" width="200" height="76" rx="9" fill="url(#trDfCard)" stroke="#22c07a" stroke-width="1.2" filter="url(#trDfSh)"/>
+          <text x="44" y="89" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">INSTRUMENTED APP</text>
+          <text x="44" y="108" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Agent service</text>
+          <text x="44" y="126" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">@traced / span_block creates spans</text>
+
+          <rect x="260" y="64" width="220" height="76" rx="9" fill="url(#trDfCard)" stroke="#30363d" stroke-width="1.2" filter="url(#trDfSh)"/>
+          <text x="280" y="89" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">SDK EXPORT LAYER</text>
+          <text x="280" y="108" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">OpenTelemetry</text>
+          <text x="280" y="124" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">BatchSpanProcessor</text>
+
+          <rect x="516" y="64" width="180" height="76" rx="9" fill="url(#trDfCard)" stroke="#22c07a" stroke-opacity="0.7" stroke-width="1.2" filter="url(#trDfSh)"/>
+          <text x="536" y="89" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">INGEST API</text>
+          <text x="536" y="108" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">EasyObs API Server</text>
+          <text x="536" y="126" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">accepts OTLP proto/JSON</text>
+
+          <line x1="224" y1="102" x2="260" y2="102" stroke="#22c07a" stroke-width="2" marker-end="url(#trDfArr)"/>
+          <line x1="480" y1="102" x2="516" y2="102" stroke="#22c07a" stroke-width="2" marker-end="url(#trDfArr)"/>
+          <text x="498" y="88" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">POST /v1/traces</text>
+          <line x1="516" y1="116" x2="486" y2="116" stroke="#22c07a" stroke-width="1.5" marker-end="url(#trDfArr)"/>
+          <text x="500" y="129" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">200 OK</text>
+
+          <line x1="606" y1="140" x2="606" y2="170" stroke="#22c07a" stroke-width="2" marker-end="url(#trDfArr)"/>
+
+          <rect x="28" y="184" width="206" height="64" rx="8" fill="url(#trDfCard)" stroke="#30363d" stroke-width="1" filter="url(#trDfSh)"/>
+          <text x="46" y="210" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Parse + flatten</text>
+          <text x="46" y="228" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">resource/span attrs -> row model</text>
+
+          <rect x="257" y="184" width="206" height="64" rx="8" fill="url(#trDfCard)" stroke="#30363d" stroke-width="1" filter="url(#trDfSh)"/>
+          <text x="275" y="210" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Enrich</text>
+          <text x="275" y="228" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">model detect, token/cost compute</text>
+
+          <rect x="486" y="184" width="210" height="64" rx="8" fill="url(#trDfCard)" stroke="#30363d" stroke-width="1" filter="url(#trDfSh)"/>
+          <text x="504" y="210" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Persist</text>
+          <text x="504" y="228" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">catalog DB metadata + blob raw</text>
+
+          <line x1="234" y1="216" x2="257" y2="216" stroke="#22c07a" stroke-width="1.7" marker-end="url(#trDfArr)"/>
+          <line x1="463" y1="216" x2="486" y2="216" stroke="#22c07a" stroke-width="1.7" marker-end="url(#trDfArr)"/>
+
+          <rect x="28" y="274" width="320" height="76" rx="9" fill="#0d1117" stroke="#58a6ff" stroke-width="1.2" stroke-dasharray="6 4" filter="url(#trDfSh)"/>
+          <text x="48" y="300" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="10" font-weight="700">ASYNC SIDE FLOW (optional)</text>
+          <text x="48" y="319" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10">Auto-rule evaluation runs fire-and-forget</text>
+          <text x="48" y="337" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">does not block ingest response</text>
+
+          <line x1="590" y1="248" x2="590" y2="290" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#trDfArr)"/>
+          <path d="M 590 312 C 515 312, 430 312, 348 312" fill="none" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#trDfArr)"/>
+
+          <rect x="370" y="368" width="326" height="58" rx="9" fill="url(#trDfCard)" stroke="#22c07a" stroke-opacity="0.45" stroke-width="1" filter="url(#trDfSh)"/>
+          <text x="388" y="391" fill="#22c07a" font-family="system-ui,sans-serif" font-size="10" font-weight="700">OPERATOR EXPERIENCE</text>
+          <text x="388" y="409" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10">Tracing table, filters, drawer, and Full View read from persisted/enriched data.</text>
+        </svg>
+      </div>
 
       <h2>Keyboard Shortcuts</h2>
       <table class="docs-table">
@@ -221,3 +295,4 @@
 <script src="docs.js"></script>
 </body>
 </html>
+

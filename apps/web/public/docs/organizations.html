@@ -11,20 +11,71 @@
       <h1>Organizations &mdash; Full Feature Manual</h1>
       <p class="docs-lede">EasyObs uses a multi-tenant organization model to isolate data, manage access control, and scope resources. Each organization is a complete, self-contained environment.</p>
 
-      <div class="docs-hero-placeholder"><div class="placeholder-box">Image: Organization settings page &mdash; members table, services list, invite form</div></div>
+      <div class="docs-hero-image"><img src="../images/organizations-members.png" alt="Organization settings page: Members tab with role selector, pending and approved member statuses, approve and remove actions, plus Services and Alarms tabs" loading="lazy" decoding="async" /></div>
 
       <h2>Hierarchy</h2>
-      <pre><code>EasyObs Instance
-&#x2514;&#x2500;&#x2500; Organization (tenant boundary)
-    &#x251C;&#x2500;&#x2500; Members (users with roles)
-    &#x251C;&#x2500;&#x2500; Services (registered agent services)
-    &#x2502;   &#x2514;&#x2500;&#x2500; Ingest Tokens (per-service auth)
-    &#x251C;&#x2500;&#x2500; Traces (all ingested data)
-    &#x251C;&#x2500;&#x2500; Evaluation Profiles &amp; Runs
-    &#x251C;&#x2500;&#x2500; Golden Sets
-    &#x251C;&#x2500;&#x2500; Judges
-    &#x251C;&#x2500;&#x2500; Alarms
-    &#x2514;&#x2500;&#x2500; Improvement Packs</code></pre>
+      <p class="docs-pipeline-caption">UI perspective: users switch org context at the top, then work inside org-scoped modules. Service tokens are nested under Services.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="Hierarchy diagram: EasyObs instance at top, multiple organizations below, selected organization expanding to Members, Services with Ingest Tokens, Traces, Evaluation modules, Golden Sets, Judges, Alarms, and Improvement Packs.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 430" preserveAspectRatio="xMidYMid meet">
+          <title>EasyObs Hierarchy and Navigation Context</title>
+          <desc>Tenant hierarchy from instance to organization-scoped resources with service token nesting.</desc>
+          <defs>
+            <marker id="orgArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="orgCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="orgSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="430" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Tenant boundary and module scope in the Organizations UX</text>
+
+          <rect x="250" y="44" width="220" height="46" rx="9" fill="url(#orgCard)" stroke="#22c07a" stroke-width="1.2" filter="url(#orgSh)"/>
+          <text x="360" y="71" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">EasyObs instance</text>
+
+          <line x1="360" y1="90" x2="360" y2="108" stroke="#22c07a" stroke-width="2" marker-end="url(#orgArr)"/>
+
+          <rect x="56" y="112" width="176" height="50" rx="8" fill="url(#orgCard)" stroke="#30363d" stroke-width="1.1" filter="url(#orgSh)"/>
+          <text x="144" y="133" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="10">Org A</text>
+          <text x="144" y="149" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">tenant isolated</text>
+
+          <rect x="272" y="112" width="176" height="50" rx="8" fill="url(#orgCard)" stroke="#22c07a" stroke-width="1.2" filter="url(#orgSh)"/>
+          <text x="360" y="133" text-anchor="middle" fill="#22c07a" font-family="system-ui,sans-serif" font-size="10" font-weight="700">Selected org (current context)</text>
+          <text x="360" y="149" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="9">shown in workspace header</text>
+
+          <rect x="488" y="112" width="176" height="50" rx="8" fill="url(#orgCard)" stroke="#30363d" stroke-width="1.1" filter="url(#orgSh)"/>
+          <text x="576" y="133" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="10">Org B</text>
+          <text x="576" y="149" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">tenant isolated</text>
+
+          <line x1="360" y1="162" x2="360" y2="178" stroke="#22c07a" stroke-width="2" marker-end="url(#orgArr)"/>
+
+          <rect x="24" y="188" width="130" height="52" rx="7" fill="url(#orgCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="89" y="216" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Members</text>
+          <text x="89" y="231" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">SA / PO / DV</text>
+
+          <rect x="166" y="188" width="150" height="52" rx="7" fill="url(#orgCard)" stroke="#22c07a" stroke-opacity="0.7" stroke-width="1.1"/>
+          <text x="241" y="216" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Services</text>
+          <text x="241" y="231" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">registered agents</text>
+
+          <rect x="328" y="188" width="110" height="52" rx="7" fill="url(#orgCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="383" y="216" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Traces</text>
+          <text x="383" y="231" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">data scoped</text>
+
+          <rect x="450" y="188" width="150" height="52" rx="7" fill="url(#orgCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="525" y="216" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Eval profiles &amp; runs</text>
+          <text x="525" y="231" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">quality workbench</text>
+
+          <rect x="612" y="188" width="84" height="52" rx="7" fill="url(#orgCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="654" y="216" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Alarms</text>
+          <text x="654" y="231" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">thresholds</text>
+
+          <line x1="241" y1="240" x2="241" y2="258" stroke="#22c07a" stroke-width="1.7" marker-end="url(#orgArr)"/>
+          <rect x="184" y="262" width="114" height="44" rx="7" fill="#0d1117" stroke="#58a6ff" stroke-width="1.2" stroke-dasharray="6 4"/>
+          <text x="241" y="287" text-anchor="middle" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Ingest tokens</text>
+
+          <rect x="24" y="324" width="672" height="78" rx="9" fill="url(#orgCard)" stroke="#30363d" stroke-width="1" filter="url(#orgSh)"/>
+          <text x="42" y="347" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">Org-scoped quality modules</text>
+          <text x="42" y="366" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10">Golden Sets · Judges · Improvement Packs are visible only inside the selected organization.</text>
+          <text x="42" y="383" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Switching organization in the header instantly changes table contents and permissions context.</text>
+        </svg>
+      </div>
 
       <h2>Roles &amp; Permissions (RBAC)</h2>
       <table class="docs-table">

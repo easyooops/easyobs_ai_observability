@@ -59,8 +59,8 @@
       <h1>EasyObs Documentation</h1>
       <p class="docs-lede">A lightweight observability platform for LLM agents. OTLP/HTTP-based tracing, multi-tenant RBAC, and a 3-Way evaluation system.</p>
 
-      <div class="docs-hero-placeholder" data-placeholder="hero-screenshot">
-        <div class="placeholder-box">📸 Hero Image: EasyObs Overview Dashboard Screenshot</div>
+      <div class="docs-hero-image">
+        <img src="../images/overview-dashboard.png" alt="EasyObs Overview dashboard — trace KPIs, pinned alarms, volume and latency charts" loading="lazy" decoding="async" />
       </div>
 
       <h2>What is EasyObs?</h2>
@@ -95,8 +95,42 @@
       </div>
 
       <h2>Architecture Overview</h2>
-      <div class="docs-hero-placeholder" data-placeholder="architecture-diagram">
-        <div class="placeholder-box">📸 Image: Architecture Diagram (Agent → OTLP/HTTP → API Server → SQLite/Postgres → Web Console)</div>
+      <div class="docs-hero-image" role="img" aria-label="Architecture: Agent SDK sends traces over OTLP HTTP to the API server, data is stored in SQLite or PostgreSQL, operators use the Web Console.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 200" preserveAspectRatio="xMidYMid meet">
+          <title>EasyObs architecture</title>
+          <desc>Agent → OTLP/HTTP → API Server → Catalog DB → Web Console</desc>
+          <defs>
+            <marker id="index-arch-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/>
+            </marker>
+            <linearGradient id="index-arch-box" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#21262d"/>
+              <stop offset="100%" style="stop-color:#1a1f26"/>
+            </linearGradient>
+          </defs>
+          <rect width="920" height="200" fill="#0d1117" rx="8"/>
+          <text x="460" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,-apple-system,sans-serif" font-size="12">High-level data path</text>
+          <rect x="24" y="52" width="132" height="96" rx="8" fill="url(#index-arch-box)" stroke="#30363d" stroke-width="1.5"/>
+          <text x="90" y="88" text-anchor="middle" fill="#e6edf3" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">Agent</text>
+          <text x="90" y="108" text-anchor="middle" fill="#8b949e" font-family="system-ui,-apple-system,sans-serif" font-size="11">SDK · your service</text>
+          <line x1="156" y1="100" x2="188" y2="100" stroke="#22c07a" stroke-width="2" marker-end="url(#index-arch-arrow)"/>
+          <rect x="188" y="52" width="132" height="96" rx="8" fill="url(#index-arch-box)" stroke="#22c07a" stroke-width="1.5" stroke-opacity="0.5"/>
+          <text x="254" y="88" text-anchor="middle" fill="#e6edf3" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">OTLP / HTTP</text>
+          <text x="254" y="108" text-anchor="middle" fill="#8b949e" font-family="system-ui,-apple-system,sans-serif" font-size="11">trace export</text>
+          <line x1="320" y1="100" x2="352" y2="100" stroke="#22c07a" stroke-width="2" marker-end="url(#index-arch-arrow)"/>
+          <rect x="352" y="52" width="148" height="96" rx="8" fill="url(#index-arch-box)" stroke="#30363d" stroke-width="1.5"/>
+          <text x="426" y="88" text-anchor="middle" fill="#e6edf3" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">API Server</text>
+          <text x="426" y="108" text-anchor="middle" fill="#8b949e" font-family="system-ui,-apple-system,sans-serif" font-size="11">FastAPI · ingest · REST</text>
+          <line x1="500" y1="100" x2="532" y2="100" stroke="#22c07a" stroke-width="2" marker-end="url(#index-arch-arrow)"/>
+          <rect x="532" y="52" width="156" height="96" rx="8" fill="url(#index-arch-box)" stroke="#30363d" stroke-width="1.5"/>
+          <text x="610" y="88" text-anchor="middle" fill="#e6edf3" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">Catalog DB</text>
+          <text x="610" y="108" text-anchor="middle" fill="#8b949e" font-family="system-ui,-apple-system,sans-serif" font-size="11">SQLite · PostgreSQL</text>
+          <line x1="688" y1="100" x2="720" y2="100" stroke="#22c07a" stroke-width="2" marker-end="url(#index-arch-arrow)"/>
+          <rect x="720" y="52" width="176" height="96" rx="8" fill="url(#index-arch-box)" stroke="#30363d" stroke-width="1.5"/>
+          <text x="808" y="88" text-anchor="middle" fill="#e6edf3" font-family="system-ui,-apple-system,sans-serif" font-size="13" font-weight="600">Web Console</text>
+          <text x="808" y="108" text-anchor="middle" fill="#8b949e" font-family="system-ui,-apple-system,sans-serif" font-size="11">Next.js · operators</text>
+          <text x="460" y="178" text-anchor="middle" fill="#6e7681" font-family="system-ui,-apple-system,sans-serif" font-size="11">Blob/object storage for raw spans is handled by the API tier (not shown).</text>
+        </svg>
       </div>
       <table class="docs-table">
         <thead><tr><th>Component</th><th>Tech Stack</th><th>Role</th></tr></thead>
