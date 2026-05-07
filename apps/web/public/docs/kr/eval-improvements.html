@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Improvement Packs - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭 &amp; 대시보드</a><div class="docs-nav-group">SDK 연동</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link active">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Improvement Packs &mdash; 상세 매뉴얼</span></header>
+    <article class="docs-content">
+
+      <h1>Improvement Packs &mdash; 전체 기능 매뉴얼</h1>
+      <p class="docs-lede">Improvement Pack은 평가 실패를 실행 가능한 엔지니어링 작업으로 변환합니다. 각 팩은 품질 이슈의 근본 원인을 식별하고, 카테고리화된 해결 제안과 노력 등급을 제공합니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/eval-improvements-page.png" alt="Improvements 페이지: 노력 분포 바와 함께 그룹화된 자동 팩 카드, Medium 노력 필터 활성화, judge cost와 agreement 칩, Accept/Reject 같은 워크플로 액션, 상태 셀렉터" loading="lazy" decoding="async" /></div>
+
+      <h2>Improvement Pack 동작 방식</h2>
+      <ol>
+        <li>평가 실행이 reasoning과 함께 FAIL 또는 WARN verdict를 만듭니다.</li>
+        <li>시스템이 reasoning을 분석해 <strong>cause code</strong>로 매핑합니다.</li>
+        <li>각 cause code는 <strong>1차 카테고리</strong>와 <strong>2차 디테일</strong>에 매핑됩니다.</li>
+        <li>카테고리는 <strong>11개 그룹</strong> 중 하나에 속합니다.</li>
+        <li>각 제안은 <strong>노력 수준</strong>(Low / Medium / High)을 가집니다.</li>
+        <li>팩은 팀이 워크플로 상태를 통해 추적할 수 있는 액셔너블 카드 형태로 제공됩니다.</li>
+      </ol>
+
+      <h2>노력 수준</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Level</th><th>Badge</th><th>예상 시간</th><th>예시</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Low</strong></td><td>Green</td><td>&lt; 1시간</td><td>프롬프트 문구 조정, 가드레일 규칙 추가, temperature 조정</td></tr>
+          <tr><td><strong>Medium</strong></td><td>Yellow</td><td>1시간 ~ 1일</td><td>프롬프트 템플릿 재구성, retrieval 단계 추가, 청크 전략 개선</td></tr>
+          <tr><td><strong>High</strong></td><td>Red</td><td>&gt; 1일</td><td>에이전트 아키텍처 재설계, 모델 fine-tune, 새로운 데이터 파이프라인 구축</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>워크플로 상태</h2>
+      <p>각 improvement pack은 다음 상태들을 거칩니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>State</th><th>의미</th><th>액션</th></tr></thead>
+        <tbody>
+          <tr><td><strong>open</strong></td><td>새로 식별되었으며 트리아지 대기 중.</td><td>리뷰 후 우선순위 결정.</td></tr>
+          <tr><td><strong>in_progress</strong></td><td>팀이 적극적으로 수정 작업 중.</td><td>제안 사항 구현.</td></tr>
+          <tr><td><strong>resolved</strong></td><td>수정 적용 완료, 검증 대기.</td><td>평가를 다시 실행하여 확인.</td></tr>
+          <tr><td><strong>dismissed</strong></td><td>해당 없음 또는 수정하지 않기로 결정.</td><td>아카이브(히스토리에는 남음).</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>카테고리 카탈로그 &mdash; 11 그룹, 46 카테고리</h2>
+
+      <h3>Group 1: Prompt Engineering</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>System prompt clarity</td><td>Low</td><td>시스템 지시가 모호하거나 모순됨.</td></tr>
+          <tr><td>2</td><td>Few-shot examples</td><td>Low</td><td>프롬프트 내 예시가 누락되었거나 품질이 낮음.</td></tr>
+          <tr><td>3</td><td>Output format instruction</td><td>Low</td><td>응답 형식이 명시적으로 지정되지 않음.</td></tr>
+          <tr><td>4</td><td>Chain-of-thought guidance</td><td>Medium</td><td>단계별 추론 지시가 부족함.</td></tr>
+          <tr><td>5</td><td>Prompt decomposition</td><td>Medium</td><td>지나치게 복잡한 단일 프롬프트로, 분리가 필요함.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 2: Context &amp; Retrieval</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>6</td><td>Retrieval relevance</td><td>Medium</td><td>검색된 청크가 주제에서 벗어났거나 관련성이 낮음.</td></tr>
+          <tr><td>7</td><td>Context window overflow</td><td>Medium</td><td>컨텍스트가 너무 많이 채워져 모델이 핵심을 놓침.</td></tr>
+          <tr><td>8</td><td>Chunk size tuning</td><td>Medium</td><td>작업에 비해 청크가 너무 크거나 작음.</td></tr>
+          <tr><td>9</td><td>Missing knowledge source</td><td>High</td><td>필요한 정보가 어떤 지식 베이스에도 없음.</td></tr>
+          <tr><td>10</td><td>Embedding model quality</td><td>High</td><td>임베딩 모델이 의미적 매칭을 충분히 잘 하지 못함.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 3: Model Selection</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>11</td><td>Model capability gap</td><td>High</td><td>현재 모델이 요구되는 추론 능력을 갖추지 못함.</td></tr>
+          <tr><td>12</td><td>Temperature misconfiguration</td><td>Low</td><td>temperature가 너무 높거나(환각) 너무 낮음(반복).</td></tr>
+          <tr><td>13</td><td>Token limit exceeded</td><td>Medium</td><td>max_tokens 설정으로 응답이 잘림.</td></tr>
+          <tr><td>14</td><td>Model version drift</td><td>Low</td><td>provider 업데이트 이후 모델 동작이 달라짐.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 4: Tool Usage</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>15</td><td>Tool selection error</td><td>Medium</td><td>에이전트가 작업에 맞지 않는 도구를 선택함.</td></tr>
+          <tr><td>16</td><td>Tool argument formatting</td><td>Low</td><td>도구에 전달된 파라미터 형식이 잘못됨.</td></tr>
+          <tr><td>17</td><td>Tool description clarity</td><td>Low</td><td>도구 설명이 불명확해 오용을 유발함.</td></tr>
+          <tr><td>18</td><td>Missing tool availability</td><td>High</td><td>필요한 도구가 에이전트의 도구 셋에 없음.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 5: Safety &amp; Compliance</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>19</td><td>Harmful content generation</td><td>Low</td><td>출력에 안전하지 않거나 편향·유해한 내용 포함.</td></tr>
+          <tr><td>20</td><td>Data leakage</td><td>Medium</td><td>출력에 PII나 민감 데이터가 노출됨.</td></tr>
+          <tr><td>21</td><td>Guardrail bypass</td><td>Medium</td><td>adversarial 입력이 안전 필터를 우회함.</td></tr>
+          <tr><td>22</td><td>Policy violation</td><td>Low</td><td>출력이 조직의 콘텐츠 정책을 위반함.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 6: Hallucination &amp; Accuracy</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>23</td><td>Factual hallucination</td><td>Medium</td><td>원본에 없는 거짓 사실을 생성.</td></tr>
+          <tr><td>24</td><td>Source attribution error</td><td>Low</td><td>출처 인용이 부정확함.</td></tr>
+          <tr><td>25</td><td>Numerical accuracy</td><td>Medium</td><td>출력에 수학·통계 오류가 있음.</td></tr>
+          <tr><td>26</td><td>Temporal confusion</td><td>Low</td><td>날짜·타임라인·순서가 뒤섞임.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 7: Coherence &amp; Consistency</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>27</td><td>Self-contradiction</td><td>Low</td><td>응답이 단락 간에 스스로 모순됨.</td></tr>
+          <tr><td>28</td><td>Context drift</td><td>Medium</td><td>응답이 원래 질문에서 벗어남.</td></tr>
+          <tr><td>29</td><td>Multi-turn inconsistency</td><td>Medium</td><td>대화의 이전 턴과 모순됨.</td></tr>
+          <tr><td>30</td><td>Instruction following</td><td>Low</td><td>사용자 지시를 무시하거나 부분적으로만 따름.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 8: Performance &amp; Latency</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>31</td><td>Excessive latency</td><td>Medium</td><td>총 응답 시간이 허용 임계를 초과함.</td></tr>
+          <tr><td>32</td><td>Redundant LLM calls</td><td>Medium</td><td>배치·캐시할 수 있는데 불필요하게 여러 번 호출함.</td></tr>
+          <tr><td>33</td><td>Token waste</td><td>Low</td><td>장황한 프롬프트가 불필요하게 많은 토큰을 소비함.</td></tr>
+          <tr><td>34</td><td>Retry storms</td><td>Medium</td><td>일시적 실패로 인해 재시도가 폭주함.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 9: Agent Architecture</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>35</td><td>Planning loop failure</td><td>High</td><td>에이전트가 무한 plan-execute 루프에 갇힘.</td></tr>
+          <tr><td>36</td><td>Delegation logic</td><td>High</td><td>멀티 에이전트 위임이 충돌하는 결과를 만듦.</td></tr>
+          <tr><td>37</td><td>Memory management</td><td>High</td><td>에이전트 메모리 오버플로 또는 stale 컨텍스트.</td></tr>
+          <tr><td>38</td><td>Fallback handling</td><td>Medium</td><td>컴포넌트 실패 시 graceful degradation이 없음.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 10: Data Quality</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>39</td><td>Training data bias</td><td>High</td><td>모델 응답이 학습 데이터의 편향을 그대로 반영함.</td></tr>
+          <tr><td>40</td><td>Stale knowledge</td><td>Medium</td><td>지식 베이스가 최신 정보로 업데이트되지 않음.</td></tr>
+          <tr><td>41</td><td>Input preprocessing</td><td>Medium</td><td>사용자 입력이 적절히 정제·정규화되지 않음.</td></tr>
+          <tr><td>42</td><td>Label quality in golden set</td><td>Medium</td><td>그라운드 트루스 라벨이 부정확하거나 모호함.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 11: Integration &amp; Reliability</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>43</td><td>API error handling</td><td>Low</td><td>LLM provider의 API 오류가 처리되지 않음.</td></tr>
+          <tr><td>44</td><td>Rate limiting</td><td>Medium</td><td>provider rate limit에 걸려 실패가 발생함.</td></tr>
+          <tr><td>45</td><td>Serialization error</td><td>Low</td><td>JSON / 구조화 출력 파싱 실패.</td></tr>
+          <tr><td>46</td><td>Timeout configuration</td><td>Low</td><td>LLM 호출에 적절치 않은 timeout 값.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Cause Code 매핑</h2>
+      <p>시스템은 LLM 저지의 reasoning 분석으로 생성된 52개의 내부 cause code를 사용하며, 이를 위 46개 카테고리로 매핑합니다. 여러 cause code가 같은 카테고리로 매핑될 수 있고, 이 매핑 덕분에 미묘한 실패 사유도 모두 액셔너블한 카테고리로 수렴됩니다.</p>
+
+      <p class="docs-pipeline-caption">UI/UX 흐름: 원시 judge finding이 안정된 카테고리로 정규화된 후, 노력·워크플로 컨트롤이 포함된 트리아지 카드로 렌더링됩니다.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="judge reasoning에서 카테고리/노력으로 이어지고, Improvements UI에서 그룹화 카드와 워크플로 상태로 표시되는 cause code 매핑 다이어그램.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" preserveAspectRatio="xMidYMid meet">
+          <title>Cause Code Mapping UX Flow</title>
+          <desc>Data mapping from judge reasoning to cause code, category, and effort, then visualized as grouped cards with workflow states.</desc>
+          <defs>
+            <marker id="impArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="impCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="impSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="420" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">From evaluator reasoning to actionable improvement cards</text>
+
+          <rect x="24" y="58" width="196" height="70" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1.2" filter="url(#impSh)"/>
+          <text x="42" y="84" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">INPUT</text>
+          <text x="42" y="102" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Judge reasoning / fail evidence</text>
+          <text x="42" y="118" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">verdict, reason text, trace context</text>
+
+          <line x1="220" y1="93" x2="246" y2="93" stroke="#22c07a" stroke-width="2" marker-end="url(#impArr)"/>
+
+          <rect x="246" y="58" width="212" height="70" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1.2" filter="url(#impSh)"/>
+          <text x="264" y="84" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">NORMALIZE</text>
+          <text x="264" y="102" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Cause code mapping engine</text>
+          <text x="264" y="118" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">NLP parse -> cause code(52)</text>
+
+          <line x1="458" y1="93" x2="484" y2="93" stroke="#22c07a" stroke-width="2" marker-end="url(#impArr)"/>
+
+          <rect x="484" y="58" width="212" height="70" rx="8" fill="url(#impCard)" stroke="#22c07a" stroke-opacity="0.7" stroke-width="1.2" filter="url(#impSh)"/>
+          <text x="502" y="84" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">STRUCTURE</text>
+          <text x="502" y="102" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Category -> Group -> Effort</text>
+          <text x="502" y="118" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">46 categories, 11 groups, L/M/H</text>
+
+          <line x1="590" y1="128" x2="590" y2="152" stroke="#22c07a" stroke-width="2" marker-end="url(#impArr)"/>
+
+          <rect x="24" y="164" width="672" height="220" rx="10" fill="#0d1117" stroke="#58a6ff" stroke-width="1.4" stroke-dasharray="7 5" filter="url(#impSh)"/>
+          <text x="40" y="188" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">IMPROVEMENTS UI RENDER</text>
+
+          <rect x="40" y="202" width="206" height="72" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="56" y="226" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Grouped card list</text>
+          <text x="56" y="244" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Prompt / Retrieval / Safety ...</text>
+          <text x="56" y="260" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">open count shown per group</text>
+
+          <rect x="258" y="202" width="206" height="72" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="274" y="226" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Card chips</text>
+          <text x="274" y="244" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">cause code, judge cost, agreement</text>
+          <text x="274" y="260" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">effort badge (Low/Med/High)</text>
+
+          <rect x="476" y="202" width="204" height="72" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="492" y="226" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Workflow controls</text>
+          <text x="492" y="244" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Accept / Start / Resolve / Dismiss</text>
+          <text x="492" y="260" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">status filter + effort filter</text>
+
+          <line x1="143" y1="274" x2="143" y2="302" stroke="#30363d" stroke-width="1.2"/>
+          <line x1="361" y1="274" x2="361" y2="302" stroke="#30363d" stroke-width="1.2"/>
+          <line x1="578" y1="274" x2="578" y2="302" stroke="#30363d" stroke-width="1.2"/>
+
+          <rect x="40" y="302" width="640" height="64" rx="8" fill="url(#impCard)" stroke="#22c07a" stroke-opacity="0.55" stroke-width="1"/>
+          <text x="56" y="328" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">OUTCOME</text>
+          <text x="56" y="346" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11">Consistent triage: heterogeneous reasons become trackable, prioritized remediation tasks.</text>
+        </svg>
+      </div>
+
+      <h2>UI 레이아웃</h2>
+
+      <h3>그룹화된 카드 뷰</h3>
+      <ul>
+        <li>improvement는 11개 카테고리 그룹으로 묶인 카드로 표시됩니다.</li>
+        <li>그룹 헤더에는 그룹명과 open 항목 수가 표시됩니다.</li>
+        <li>카드는 카테고리명, 노력 배지, 원인 요약, 제안 액션을 보여줍니다.</li>
+        <li>카드를 클릭하면 상세를 펼쳐 보고 워크플로 상태를 변경할 수 있습니다.</li>
+      </ul>
+
+      <h3>필터</h3>
+      <ul>
+        <li><strong>Effort:</strong> Low / Medium / High로 필터링.</li>
+        <li><strong>State:</strong> Open / In Progress / Resolved / Dismissed.</li>
+        <li><strong>Group:</strong> 특정 카테고리 그룹으로 필터링.</li>
+        <li><strong>Run:</strong> 출처 평가 실행으로 필터링.</li>
+      </ul>
+
+      <h3>카드 상세 (펼친 상태)</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>Category</td><td>(46개 중) 1차 카테고리명.</td></tr>
+          <tr><td>Secondary Detail</td><td>구체적인 상황 설명.</td></tr>
+          <tr><td>Group</td><td>(11개 중) 상위 그룹.</td></tr>
+          <tr><td>Effort</td><td>색상 배지가 있는 Low / Medium / High.</td></tr>
+          <tr><td>Cause Code</td><td>추적성을 위한 내부 코드.</td></tr>
+          <tr><td>Source Run</td><td>이 항목을 만든 평가 실행 링크.</td></tr>
+          <tr><td>Affected Traces</td><td>이슈가 나타난 trace ID 목록.</td></tr>
+          <tr><td>Suggested Action</td><td>시스템이 생성한 구체적인 다음 단계.</td></tr>
+          <tr><td>State Control</td><td>버튼: Start Working / Resolve / Dismiss.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Runs와의 연동</h2>
+      <p>improvement를 해결한 뒤 권장되는 절차는 다음과 같습니다.</p>
+      <ol>
+        <li>에이전트 코드에 수정 사항을 적용합니다.</li>
+        <li>같은 트레이스에 대해 평가를 다시 실행합니다.</li>
+        <li>FAIL/WARN verdict가 PASS로 전환되었는지 확인합니다.</li>
+        <li>검증이 완료되면 improvement를 "resolved"로 표시합니다.</li>
+      </ol>
+
+      <h2>권한</h2>
+      <ul>
+        <li><strong>SA / PO:</strong> 모두 조회, 워크플로 상태 변경 가능.</li>
+        <li><strong>DV:</strong> 모두 조회 (읽기 전용 &mdash; 상태 변경 불가).</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="eval-runs.html" class="docs-next-card"><strong>Runs</strong><span>improvement를 생성하는 평가 실행</span></a>
+        <a href="eval-golden.html" class="docs-next-card"><strong>Golden Sets</strong><span>회귀 테스트용 그라운드 트루스</span></a>
+        <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>평가 기준 설정</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

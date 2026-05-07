@@ -420,7 +420,8 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const auth = useAuth();
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
+  const docsLang = locale === "ko" ? "kr" : "en";
   const [collapsed, setCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [orgPickerOpen, setOrgPickerOpen] = useState(false);
@@ -529,7 +530,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
           {navSetup.map(renderLink)}
           <div className="eo-rail-group">DOCS</div>
           <a
-            href="/docs/index.html"
+            href={`/docs/${docsLang}/index.html`}
             target="_blank"
             rel="noopener noreferrer"
             className="eo-nav-link"
@@ -605,7 +606,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
               {navSetup.map(renderLink)}
               <div className="eo-rail-group">DOCS</div>
               <a
-                href="/docs/index.html"
+                href={`/docs/${docsLang}/index.html`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="eo-nav-link"

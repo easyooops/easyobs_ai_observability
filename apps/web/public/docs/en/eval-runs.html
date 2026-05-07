@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Evaluation Runs - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link active">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Evaluation Runs &mdash; Detailed Manual</span></header>
+    <article class="docs-content">
+
+      <h1>Evaluation Runs &mdash; Full Feature Manual</h1>
+      <p class="docs-lede">The Runs page is the primary workbench for launching, monitoring, and reviewing automated quality evaluations. It combines a 3-way tabbed interface with 4 source strategies, cost estimation, and detailed result drill-down.</p>
+
+      <div class="docs-hero-image"><img src="../../images/eval-runs-launch-source-cards.png" alt="Runs Launch tab: KPI cards, Single Trace / Window / Session / Human-labeled source cards with Window selected, profile picker, trace table in 24h window with session grouping, estimate cost and run actions" loading="lazy" decoding="async" /></div>
+
+      <h2>Page Structure &mdash; 3-Way Workbench</h2>
+      <p>The top of the Runs page has a segmented control with 3 tabs:</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Tab</th><th>URL Param</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Launch</strong></td><td><code>?tab=launch</code> (default)</td><td>Configure and fire new evaluation runs</td></tr>
+          <tr><td><strong>Results</strong></td><td><code>?tab=results</code></td><td>Browse completed runs, inspect verdicts and scores</td></tr>
+          <tr><td><strong>Background Hub</strong></td><td><code>?tab=bg</code></td><td>Monitor in-progress runs with live status</td></tr>
+        </tbody>
+      </table></div>
+
+      <hr>
+
+      <h2>Tab 1: Launch</h2>
+      <p>The Launch tab is a step-by-step wizard for configuring and firing an evaluation run.</p>
+
+      <h3>Step 1 &mdash; Select Evaluation Profile</h3>
+      <p>A dropdown lists all active evaluation profiles (fetched from <code>GET /api/eval/profiles</code>). Each profile defines:</p>
+      <ul>
+        <li>Which evaluator types to use (Rule / LLM Judge / Human)</li>
+        <li>Consensus policy (single, majority, unanimous, weighted)</li>
+        <li>Budget guard (max cost per run)</li>
+        <li>Target project/service scope</li>
+      </ul>
+      <div class="docs-info"><strong>Tip:</strong> Create profiles in Quality &rarr; Profiles before launching your first run.</div>
+
+      <h3>Step 2 &mdash; Choose Source (4 Source Cards)</h3>
+      <p>Four source cards determine <em>which traces</em> are evaluated:</p>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Source</th><th>ID</th><th>Run Mode</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>Time Window</strong></td>
+            <td><code>window</code></td>
+            <td><code>trace</code></td>
+            <td>All traces within the current time window (1h/6h/24h/7d). Pick individual traces from the list or "Select All".</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><strong>Single Trace</strong></td>
+            <td><code>single_trace</code></td>
+            <td><code>trace</code></td>
+            <td>Paste or pre-fill a specific trace ID. Entry point from the Trace Inspector "Evaluate" button.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>Session</strong></td>
+            <td><code>session</code></td>
+            <td><code>trace</code></td>
+            <td>Filter traces by session ID &mdash; evaluates an entire conversation thread.</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>Human Label Cohort</strong></td>
+            <td><code>human_label</code></td>
+            <td><code>golden_judge</code></td>
+            <td>Uses previously human-labeled annotations as ground truth. Compares LLM judge verdicts against human verdicts.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-hero-image"><img src="../../images/eval-runs-source-cards.png" alt="Four evaluation source cards in a row: Single Trace, Window with selected teal highlight, Session, Human-labeled" loading="lazy" decoding="async" /></div>
+
+      <h4>Source: Time Window (detail)</h4>
+      <ul>
+        <li>Fetches up to 2,000 traces matching the profile's project scope</li>
+        <li>Groups traces by session for easy browsing</li>
+        <li>Checkbox per trace &mdash; toggle individually or "Select All in View"</li>
+        <li>Collapsible session groups (click session header to expand/collapse)</li>
+        <li>Shows trace operation name, service, duration, status badge, cost</li>
+      </ul>
+
+      <h4>Source: Single Trace (detail)</h4>
+      <ul>
+        <li>Text input field for a 32-char trace ID</li>
+        <li>Auto-filled via <code>?prefill-trace=&lt;id&gt;</code> URL param (from Trace Inspector CTA)</li>
+        <li>Validates the trace exists before allowing launch</li>
+      </ul>
+
+      <h4>Source: Session (detail)</h4>
+      <ul>
+        <li>Text filter for session ID (substring match)</li>
+        <li>Displays all matching traces &mdash; select the ones you want evaluated</li>
+        <li>Useful for evaluating multi-turn conversation quality</li>
+      </ul>
+
+      <h4>Source: Human Label Cohort (detail)</h4>
+      <ul>
+        <li>Lists all human label annotations (up to 200 recent)</li>
+        <li>Filter by verdict: All / Pass / Warn / Fail</li>
+        <li>Multi-select individual annotations</li>
+        <li>Run mode switches to <code>golden_judge</code> &mdash; compares LLM judge output vs. human labels</li>
+        <li>Falls back to <code>golden_gt</code> mode if no judge models are registered</li>
+      </ul>
+
+      <h3>Step 3 &mdash; Cost Estimation</h3>
+      <p>Before launching, click <strong>"Estimate Cost"</strong> to preview:</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Metric</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Estimated Calls</td><td>Number of LLM judge API calls required</td></tr>
+          <tr><td>Estimated Cost</td><td>Projected USD cost based on judge model pricing</td></tr>
+          <tr><td>Budget Remaining</td><td>How much of the profile's budget guard remains</td></tr>
+          <tr><td>Trace Count</td><td>Number of selected subjects</td></tr>
+        </tbody>
+      </table></div>
+      <div class="docs-warn"><strong>Warning:</strong> If estimated cost exceeds the profile's budget guard, the Launch button is disabled with an explanation.</div>
+
+      <h3>Step 4 &mdash; Notes &amp; Launch</h3>
+      <ul>
+        <li><strong>Notes</strong> (optional) &mdash; Free text field for context (e.g., "Testing new prompt v2")</li>
+        <li><strong>Launch Run</strong> &mdash; Fires the evaluation. The UI switches to Results tab with the new run selected.</li>
+      </ul>
+
+      <hr>
+
+      <h2>Tab 2: Results</h2>
+      <p>Browse and inspect completed evaluation runs.</p>
+
+      <h3>Run List</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Column</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Status</td><td>Badge: pending / running / completed / failed / cancelled</td></tr>
+          <tr><td>Profile</td><td>Name of the evaluation profile used</td></tr>
+          <tr><td>Source</td><td>Which source strategy was used (window/single/session/human)</td></tr>
+          <tr><td>Subjects</td><td>Number of traces evaluated</td></tr>
+          <tr><td>Pass Rate</td><td>Percentage of traces that passed (green bar)</td></tr>
+          <tr><td>Cost</td><td>Actual cost incurred by judge API calls</td></tr>
+          <tr><td>Created</td><td>Relative timestamp</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Run detail &mdash; full workbench</h3>
+      <p>From the <strong>Results</strong> tab, click any run row to open the run workbench. The same view is used when you land with <code>?tab=results&amp;run=&lt;id&gt;</code>. While a run is still <code>running</code>, the UI polls for updates about every 4 seconds.</p>
+
+      <h4>Layout</h4>
+      <p>A two-column layout: a <strong>sticky left sidebar</strong> (always visible while scrolling) and a <strong>main panel</strong> whose title shows the active tab name, run mode (e.g. <code>trace</code>, <code>golden_judge</code>), and optional golden set id when applicable.</p>
+
+      <h4>Sticky sidebar &mdash; run context</h4>
+      <ul>
+        <li><strong>Run id</strong> &mdash; Short prefix of the run UUID and a <strong>status</strong> badge (<code>succeeded</code> / <code>failed</code> / other).</li>
+        <li><strong>cost</strong> &mdash; Actual USD vs estimated USD (<code>costActualUsd / costEstimateUsd</code>).</li>
+        <li><strong>trust</strong> &mdash; A 1&ndash;5 star summary derived from the five trust gauges (mean of available gauge scores).</li>
+        <li><strong>source</strong> &mdash; Inferred label: Golden Set (golden run modes), Human-labeled, Single Trace, or Window.</li>
+        <li><strong>profile</strong> &mdash; Evaluation profile id (short).</li>
+        <li><strong>by</strong> &mdash; Who triggered the run (or <code>system</code>).</li>
+        <li><strong>started</strong> &mdash; Relative time.</li>
+        <li><strong>Tab buttons</strong> &mdash; Switch the seven main tabs (see below).</li>
+      </ul>
+
+      <h4>Seven tabs</h4>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Tab</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Summary</strong></td><td>High-level KPIs, trust warning, compact five gauges, optional run notes</td></tr>
+          <tr><td><strong>Results</strong></td><td>Session grouping, per-trace grid, exports, expandable rows</td></tr>
+          <tr><td><strong>Trust</strong></td><td>Full five gauges, delta histogram, Rule-vs-Judge matrix, judge error breakdown</td></tr>
+          <tr><td><strong>Replay</strong></td><td>Parent/child run comparison when a parent run is linked (<code>parent_run_id</code>)</td></tr>
+          <tr><td><strong>Findings</strong></td><td>All evaluator findings grouped by evaluator id</td></tr>
+          <tr><td><strong>Improvements</strong></td><td>Pointer to Quality &rarr; Improvements for trust-recovery actions</td></tr>
+          <tr><td><strong>Report</strong></td><td>CSV / JSON download of run + results</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Tab: Summary</h4>
+      <ul>
+        <li><strong>Low-trust banner</strong> &mdash; If the mean trust (5-gauge average) is below ~60%, a warning calls out that the run needs trust review.</li>
+        <li><strong>KPI grid</strong> &mdash; Pass rate (with completed vs subject count), average score (with fail count), actual vs estimated cost, and <strong>Judge error</strong> count (verdict <code>error</code> rows excluded from headline stats).</li>
+        <li><strong>Five trust gauges (compact)</strong> &mdash; Coverage (scaled vs 50 subjects), Multi-Judge agreement (from judge disagreement delta), Rule-vs-Judge alignment, Human-vs-Judge kappa (placeholder until labels accrue), Verdict drift delta (placeholder; surfaced on Replay when available).</li>
+        <li><strong>Notes</strong> &mdash; Shown when the run has optional notes from launch.</li>
+      </ul>
+
+      <h4>Tab: Results</h4>
+      <ul>
+        <li><strong>Download CSV / JSON</strong> &mdash; Exports all result rows (disabled if empty).</li>
+        <li><strong>Session groups table</strong> &mdash; One row per session id (or <code>-</code> if none). Columns: trace count, pass / fail / error counts, average score. Click a row to load that session's traces into the grid below.</li>
+        <li><strong>Trace grid</strong> &mdash; After picking a session: trace id (link to Tracing detail), verdict, overall score, Rule score, Judge score, delta (judge disagreement), judge cost, finding count.</li>
+        <li><strong>Expandable rows</strong> &mdash; Click a trace row (not the link) to expand: per-finding list (evaluator, kind, score, verdict, reason), and optional <strong>per-judge votes</strong> (<code>judgePerModel</code>) as JSON when present.</li>
+      </ul>
+
+      <h4>Tab: Trust</h4>
+      <ul>
+        <li><strong>Five gauges</strong> &mdash; Same metrics as Summary, full size with star display per gauge.</li>
+        <li><strong>Delta distribution</strong> &mdash; Histogram of judge disagreement values (empty when no multi-judge delta samples).</li>
+        <li><strong>Rule vs Judge matrix</strong> &mdash; 2&times;2 counts for Rule&plusmn; vs Judge&plusmn;; diagonal = agreement; off-diagonal hints at false positives/negatives for rules.</li>
+        <li><strong>Judge call errors</strong> &mdash; Breakdown by <code>errorType</code> for results with verdict <code>error</code> (excluded from trust stats).</li>
+      </ul>
+
+      <h4>Tab: Replay</h4>
+      <p>When a <strong>parent run</strong> exists, this area compares the same subjects across runs (verdict drift, pass rate, average score, delta) via slope-style charts. If there is no <code>parent_run_id</code>, the UI explains that the run is standalone or the parent is not recorded yet.</p>
+
+      <h4>Tab: Findings</h4>
+      <p>Flattens every <code>finding</code> on every result, groups by <code>evaluatorId</code>, and lists trace prefix, verdict, score, and reason (first 12 per group, with overflow count).</p>
+
+      <h4>Tab: Improvements</h4>
+      <p>Short explanation with a link to <strong>Quality &rarr; Improvements</strong>, where recovery actions are listed when any trust gauge falls below threshold.</p>
+
+      <h4>Tab: Report</h4>
+      <p>Duplicate export actions: <strong>Download CSV</strong> and <strong>Download JSON</strong> (full <code>run</code> plus <code>results</code> object in JSON).</p>
+
+      <div class="docs-hero-image"><img src="../../images/eval-runs-detail-summary.png" alt="Run detail drawer: left sidebar with run id, completed status, cost, trust, source, and nav tabs; Summary pane with trust banner, pass rate and cost KPIs, five trust gauge cards, and notes" loading="lazy" decoding="async" /></div>
+
+      <hr>
+
+      <h2>Tab 3: Background Hub</h2>
+      <p>Monitors all in-progress or recently completed runs with live polling (every 10 seconds).</p>
+      <ul>
+        <li>Shows run status progression: queued &rarr; running &rarr; completed/failed</li>
+        <li>Progress bar with percentage for running tasks</li>
+        <li>Click any row to jump to the Results tab with that run selected</li>
+        <li>Cancelled runs are shown with a strikethrough style</li>
+      </ul>
+
+      <hr>
+
+      <h2>URL Parameters</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Parameter</th><th>Value</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>tab</code></td><td>launch | results | bg</td><td>Active tab</td></tr>
+          <tr><td><code>run</code></td><td>run ID</td><td>Pre-selects a run in Results tab</td></tr>
+          <tr><td><code>src</code></td><td>window | single_trace | session | human_label</td><td>Pre-selects source card</td></tr>
+          <tr><td><code>prefill-trace</code></td><td>trace ID</td><td>Auto-fills Single Trace input</td></tr>
+          <tr><td><code>profile</code></td><td>profile ID</td><td>Pre-selects evaluation profile</td></tr>
+        </tbody>
+      </table></div>
+
+      <hr>
+
+      <h2>Permissions</h2>
+      <ul>
+        <li><strong>Project Owner (PO)</strong> and <strong>Super Admin (SA)</strong> &mdash; Full access: launch, view, cancel runs</li>
+        <li><strong>Developer (DV)</strong> &mdash; Read-only: can view results but cannot launch or cancel</li>
+        <li>If the user lacks write permission, a <em>WriteHint</em> banner appears and the Launch button is disabled</li>
+      </ul>
+
+      <h2>Run Lifecycle (operator view)</h2>
+      <p class="docs-pipeline-caption">What you do in the console from &ldquo;start a run&rdquo; through &ldquo;export evidence&rdquo; &mdash; not the backend worker sequence.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="Run lifecycle: Launch tab, then Background Hub while running, then Results list and run detail with Summary through Report tabs.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" preserveAspectRatio="xMidYMid meet">
+          <title>Evaluation run lifecycle in the UI</title>
+          <desc>Horizontal journey from launch to report, with a branch for monitoring and a block for run detail tabs.</desc>
+          <defs>
+            <marker id="evalRunArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="evalRunCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="evalRunSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="400" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Operator journey in the Runs workbench</text>
+
+          <rect x="24" y="52" width="118" height="72" rx="8" fill="url(#evalRunCard)" stroke="#22c07a" stroke-width="1.2" filter="url(#evalRunSh)"/>
+          <text x="83" y="78" text-anchor="middle" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">1</text>
+          <text x="83" y="96" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Launch</text>
+          <text x="83" y="112" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Profile &middot; source &middot; subjects</text>
+
+          <line x1="142" y1="88" x2="158" y2="88" stroke="#22c07a" stroke-width="2" marker-end="url(#evalRunArr)"/>
+
+          <rect x="158" y="52" width="118" height="72" rx="8" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalRunSh)"/>
+          <text x="217" y="78" text-anchor="middle" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">2</text>
+          <text x="217" y="96" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Track</text>
+          <text x="217" y="112" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Background Hub</text>
+
+          <line x1="276" y1="88" x2="292" y2="88" stroke="#22c07a" stroke-width="2" marker-end="url(#evalRunArr)"/>
+
+          <rect x="292" y="52" width="118" height="72" rx="8" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalRunSh)"/>
+          <text x="351" y="78" text-anchor="middle" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">3</text>
+          <text x="351" y="96" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Results list</text>
+          <text x="351" y="112" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Pick a completed run</text>
+
+          <line x1="410" y1="88" x2="426" y2="88" stroke="#22c07a" stroke-width="2" marker-end="url(#evalRunArr)"/>
+
+          <rect x="426" y="52" width="270" height="72" rx="8" fill="url(#evalRunCard)" stroke="#22c07a" stroke-width="1" stroke-opacity="0.6" filter="url(#evalRunSh)"/>
+          <text x="561" y="78" text-anchor="middle" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">4</text>
+          <text x="561" y="96" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Run detail (drawer / modal)</text>
+          <text x="561" y="112" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Sticky sidebar + tabbed main pane</text>
+
+          <text x="24" y="152" fill="#6e7681" font-family="system-ui,sans-serif" font-size="10">Detail tabs (left rail in UI &mdash; typical review order):</text>
+
+          <rect x="24" y="164" width="96" height="52" rx="6" fill="url(#evalRunCard)" stroke="#22c07a" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="72" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Summary</text>
+          <text x="72" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">KPIs &middot; trust banner</text>
+
+          <line x1="120" y1="190" x2="132" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="132" y="164" width="96" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="180" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Results</text>
+          <text x="180" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">Sessions &rarr; traces</text>
+
+          <line x1="228" y1="190" x2="240" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="240" y="164" width="88" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="284" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Trust</text>
+          <text x="284" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">Gauges &middot; matrix</text>
+
+          <line x1="328" y1="190" x2="340" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="340" y="164" width="88" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="384" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Replay</text>
+          <text x="384" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">vs parent run</text>
+
+          <line x1="428" y1="190" x2="438" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="438" y="164" width="86" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="481" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Findings</text>
+          <text x="481" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">By evaluator</text>
+
+          <line x1="524" y1="190" x2="534" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="534" y="164" width="86" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="577" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Improvements</text>
+          <text x="577" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">Link to Quality</text>
+
+          <line x1="620" y1="190" x2="630" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="630" y="164" width="66" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="663" y="196" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Report</text>
+        </svg>
+      </div>
+      <p class="docs-pipeline-caption" style="margin-top:4px;">API/worker flow (for engineers): launching creates a run row; workers evaluate each subject and update status. The console polls about every 10s while runs are in flight.</p>
+      <pre><code>POST /api/eval/runs &rarr; pending &rarr; worker: fetch traces, run evaluators, consensus &rarr; completed | failed</code></pre>
+
+      <h2>Run Modes Explained</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Mode</th><th>Triggered By</th><th>What Happens</th></tr></thead>
+        <tbody>
+          <tr><td><code>trace</code></td><td>Window / Single Trace / Session sources</td><td>LLM judges evaluate trace quality independently</td></tr>
+          <tr><td><code>golden_judge</code></td><td>Human Label source (with registered judges)</td><td>LLM judges run, then compare against human labels as ground truth</td></tr>
+          <tr><td><code>golden_gt</code></td><td>Human Label source (no judges registered)</td><td>Uses human labels as final verdicts without LLM judging</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-next-grid">
+        <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>Configure evaluation criteria</span></a>
+        <a href="eval-judges.html" class="docs-next-card"><strong>LLM Judges</strong><span>Register judge models</span></a>
+        <a href="eval-improvements.html" class="docs-next-card"><strong>Improvements</strong><span>Act on evaluation findings</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

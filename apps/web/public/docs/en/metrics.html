@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Metrics &amp; Dashboard - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link active">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Metrics &amp; Dashboard &mdash; Detailed Manual</span></header>
+    <article class="docs-content">
+
+      <h1>Metrics &amp; Dashboard &mdash; Full Feature Manual</h1>
+      <p class="docs-lede">The Overview Dashboard is the landing page of the EasyObs workspace. It provides at-a-glance KPIs, trend charts, and quality summary for all ingested traces within the selected time window.</p>
+
+      <div class="docs-hero-image"><img src="../../images/metrics-overview-dashboard.png" alt="Overview dashboard: pinned alarms, trace KPI cards with sparklines, stacked volume and error bars, latency percentiles and duration distribution, LLM calls tokens cost sessions, top models and vendors breakdown" loading="lazy" decoding="async" /></div>
+
+      <h2>Dashboard Layout</h2>
+      <p>The dashboard is organized into rows of metric cards:</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Row</th><th>Components</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>KPI Cards (top row)</td><td>Summary numbers with trend indicators</td></tr>
+          <tr><td>2</td><td>Sparkline Charts</td><td>Time-series trends for key metrics</td></tr>
+          <tr><td>3</td><td>Donut Chart + Stacked Bars</td><td>Distributions and breakdowns</td></tr>
+          <tr><td>4</td><td>Quality Panel</td><td>Latest evaluation pass rates and alarm status</td></tr>
+          <tr><td>5</td><td>Pinned Alarms</td><td>Active/firing alarms displayed prominently</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>KPI Cards (Row 1)</h2>
+      <p>The top row displays 5&ndash;6 key performance indicators:</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>KPI</th><th>Value</th><th>Trend</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Total Traces</strong></td><td>Count</td><td>vs. previous window</td><td>Total trace count in the time window</td></tr>
+          <tr><td><strong>Error Rate</strong></td><td>Percentage</td><td>vs. previous</td><td>% of traces with ERROR status</td></tr>
+          <tr><td><strong>Avg Latency</strong></td><td>ms / seconds</td><td>vs. previous</td><td>Mean end-to-end duration across all traces</td></tr>
+          <tr><td><strong>Total Cost</strong></td><td>USD</td><td>vs. previous</td><td>Cumulative LLM spending in the window</td></tr>
+          <tr><td><strong>Total Tokens</strong></td><td>Count (K/M)</td><td>vs. previous</td><td>Sum of input + output tokens</td></tr>
+          <tr><td><strong>Active Sessions</strong></td><td>Count</td><td>vs. previous</td><td>Distinct session IDs observed</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Trend Indicator Logic</h3>
+      <ul>
+        <li>Compares current window vs. equivalent previous period (e.g., last 1h vs. the 1h before that)</li>
+        <li>Green arrow &rarr; for improvement (lower error rate, lower cost)</li>
+        <li>Red arrow &rarr; for degradation (higher error rate, higher latency)</li>
+        <li>Gray dash &rarr; for insufficient data</li>
+      </ul>
+
+      <h2>Sparkline Charts (Row 2)</h2>
+      <p>Compact time-series line charts showing trends:</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Chart</th><th>Y-Axis</th><th>Granularity</th></tr></thead>
+        <tbody>
+          <tr><td>Trace Volume</td><td>Count per bucket</td><td>Auto (1min / 5min / 1h based on window)</td></tr>
+          <tr><td>Error Rate</td><td>Percentage</td><td>Same</td></tr>
+          <tr><td>P50 / P95 Latency</td><td>Milliseconds</td><td>Same</td></tr>
+          <tr><td>Cost Trend</td><td>USD per bucket</td><td>Same</td></tr>
+        </tbody>
+      </table></div>
+      <p>Hover over any point to see the exact value and timestamp in a tooltip.</p>
+
+      <h2>Donut Chart (Row 3)</h2>
+      <p>Shows the distribution of trace statuses:</p>
+      <ul>
+        <li><strong>OK</strong> (green segment) &rarr; Successful traces</li>
+        <li><strong>ERROR</strong> (red segment) &rarr; Failed traces</li>
+        <li><strong>UNSET</strong> (gray segment) &rarr; Status not explicitly set</li>
+      </ul>
+      <p>Center text shows the dominant status percentage.</p>
+
+      <h2>Percentile Bars</h2>
+      <p>Horizontal bars showing latency percentile distribution:</p>
+      <ul>
+        <li>P50 &rarr; Median latency (50th percentile)</li>
+        <li>P75 &rarr; 75th percentile</li>
+        <li>P90 &rarr; 90th percentile</li>
+        <li>P95 &rarr; 95th percentile (key SLA metric)</li>
+        <li>P99 &rarr; 99th percentile (tail latency)</li>
+      </ul>
+
+      <h2>Stacked Bars (Row 3)</h2>
+      <p>Stacked horizontal bars breaking down usage by dimension:</p>
+      <ul>
+        <li><strong>By Service:</strong> Token/cost distribution across services</li>
+        <li><strong>By Model:</strong> Which LLM models consume the most tokens</li>
+        <li><strong>By Span Kind:</strong> agent / llm / retrieve / tool usage breakdown</li>
+      </ul>
+
+      <h2>Quality Panel (Row 4)</h2>
+      <p>Summary card pulling from the Quality module:</p>
+      <ul>
+        <li><strong>Latest Pass Rate:</strong> From the most recent completed evaluation run</li>
+        <li><strong>Trend:</strong> Pass rate over last 5 runs (mini sparkline)</li>
+        <li><strong>Open Improvements:</strong> Count of improvement packs in "open" state</li>
+        <li><strong>Link:</strong> &ldquo;View Details&rdquo; &rarr; navigates to Quality > Runs</li>
+      </ul>
+
+      <h2>Pinned Alarms (Row 5)</h2>
+      <p>Active alarms (FIRING state) are pinned to the dashboard:</p>
+      <ul>
+        <li>Shows alarm name, current value vs. threshold, and duration</li>
+        <li>Red border for critical, yellow for warning</li>
+        <li>Click to navigate to Alarms page for details</li>
+        <li>Disappears automatically when alarm returns to OK state</li>
+      </ul>
+
+      <h2>Time Window Control</h2>
+      <p>The top-bar time window selector applies globally to all dashboard data:</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Option</th><th>Range</th><th>Bucket Size</th></tr></thead>
+        <tbody>
+          <tr><td>1h</td><td>Last 1 hour</td><td>1 minute</td></tr>
+          <tr><td>6h</td><td>Last 6 hours</td><td>5 minutes</td></tr>
+          <tr><td>24h</td><td>Last 24 hours</td><td>15 minutes</td></tr>
+          <tr><td>7d</td><td>Last 7 days</td><td>1 hour</td></tr>
+          <tr><td>Custom</td><td>User-defined start/end</td><td>Auto-calculated</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Live Mode</h2>
+      <ul>
+        <li>Toggle "Live" in the time window control to enable auto-refresh</li>
+        <li>Dashboard data refreshes every 5 seconds</li>
+        <li>Time window rolls forward (always shows "latest N" period)</li>
+        <li>Useful for monitoring during deployments or load tests</li>
+      </ul>
+
+      <h2>Data Freshness</h2>
+      <ul>
+        <li>KPI data is computed server-side with <code>staleTime: 30s</code></li>
+        <li>Non-live mode requires manual refresh or page reload for fresh data</li>
+        <li>A subtle "last updated X seconds ago" indicator shows data age</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="tracing.html" class="docs-next-card"><strong>Tracing</strong><span>Drill into individual traces</span></a>
+        <a href="alarms.html" class="docs-next-card"><strong>Alarms</strong><span>Set threshold alerts</span></a>
+        <a href="sessions.html" class="docs-next-card"><strong>Sessions</strong><span>Multi-turn conversation view</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

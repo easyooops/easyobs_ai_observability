@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>알람 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭 &amp; 대시보드</a><div class="docs-nav-group">SDK 연동</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link active">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">알람 &mdash; 상세 매뉴얼</span></header>
+    <article class="docs-content">
+
+      <h1>알람 &mdash; 전체 기능 매뉴얼</h1>
+      <p class="docs-lede">알람은 핵심 관측 메트릭에 대한 임계값 기반 경보를 제공합니다. 메트릭이 평가 윈도우 내에서 정의된 임계값을 넘어서면 알람은 FIRING 상태로 전환되고 대시보드에 눈에 띄게 표시됩니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/alarms-channels.png" alt="Organizations 내 Alarms 페이지: delivery channel 카드(Slack, Teams, Discord, PagerDuty, Opsgenie, Webhook, Email)와 채널 표 상태, enabled 토글과 webhook 필드가 있는 채널 편집 폼" loading="lazy" decoding="async" /></div>
+
+      <h2>개념</h2>
+      <p>알람은 단일 메트릭을 지속적으로 모니터링하면서 임계값과 비교합니다.</p>
+      <pre><code>IF metric_value {operator} threshold FOR {evaluation_window}
+  THEN alarm = FIRING
+ELSE
+  alarm = OK</code></pre>
+
+      <h2>알람 상태</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>State</th><th>Color</th><th>의미</th></tr></thead>
+        <tbody>
+          <tr><td><strong>OK</strong></td><td>Green</td><td>메트릭이 허용 범위 안에 있음.</td></tr>
+          <tr><td><strong>FIRING</strong></td><td>Red</td><td>메트릭이 임계값을 위반함.</td></tr>
+          <tr><td><strong>PENDING</strong></td><td>Yellow</td><td>임계값은 위반했지만 평가 윈도우가 아직 경과하지 않음.</td></tr>
+          <tr><td><strong>DISABLED</strong></td><td>Gray</td><td>사용자가 수동으로 비활성화한 알람.</td></tr>
+          <tr><td><strong>NO_DATA</strong></td><td>Gray</td><td>평가에 필요한 데이터가 충분하지 않음 (예: 윈도우 내 트레이스 없음).</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>사용 가능한 메트릭</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Metric</th><th>Unit</th><th>Aggregation</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>error_rate</code></td><td>%</td><td>Percentage</td><td>전체 트레이스 대비 ERROR 트레이스 비율.</td></tr>
+          <tr><td><code>p50_latency</code></td><td>ms</td><td>Percentile</td><td>median(50번째 백분위) 트레이스 duration.</td></tr>
+          <tr><td><code>p95_latency</code></td><td>ms</td><td>Percentile</td><td>95번째 백분위 트레이스 duration.</td></tr>
+          <tr><td><code>p99_latency</code></td><td>ms</td><td>Percentile</td><td>99번째 백분위 트레이스 duration.</td></tr>
+          <tr><td><code>avg_latency</code></td><td>ms</td><td>Average</td><td>평균 트레이스 duration.</td></tr>
+          <tr><td><code>total_cost</code></td><td>USD</td><td>Sum</td><td>평가 윈도우 내 총 LLM 비용.</td></tr>
+          <tr><td><code>total_tokens</code></td><td>count</td><td>Sum</td><td>윈도우 내 소비된 총 토큰 수.</td></tr>
+          <tr><td><code>trace_count</code></td><td>count</td><td>Sum</td><td>윈도우 내 수집된 총 트레이스 수.</td></tr>
+          <tr><td><code>eval_pass_rate</code></td><td>%</td><td>Percentage</td><td>최신 실행의 평가 pass rate.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>연산자</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Operator</th><th>Symbol</th><th>의미</th></tr></thead>
+        <tbody>
+          <tr><td>Greater than</td><td><code>&gt;</code></td><td>메트릭이 임계값을 초과할 때 알림.</td></tr>
+          <tr><td>Greater or equal</td><td><code>&gt;=</code></td><td>메트릭이 임계값 이상일 때 알림.</td></tr>
+          <tr><td>Less than</td><td><code>&lt;</code></td><td>메트릭이 임계값 미만으로 떨어질 때 알림.</td></tr>
+          <tr><td>Less or equal</td><td><code>&lt;=</code></td><td>메트릭이 임계값 이하일 때 알림.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>평가 윈도우</h2>
+      <p>윈도우는 얼마나 최근의 데이터를 기준으로 평가할지를 결정합니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Window</th><th>Checks Every</th><th>Use Case</th></tr></thead>
+        <tbody>
+          <tr><td>5분</td><td>~1분</td><td>트래픽이 많은 service에 대한 빠른 탐지.</td></tr>
+          <tr><td>15분</td><td>~5분</td><td>일반적인 모니터링.</td></tr>
+          <tr><td>1시간</td><td>~10분</td><td>완만한 알림, 노이즈가 적음.</td></tr>
+          <tr><td>6시간</td><td>~30분</td><td>장기 추세 탐지.</td></tr>
+          <tr><td>24시간</td><td>~1시간</td><td>일별 예산/볼륨 임계값 모니터링.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>알람 생성</h2>
+      <ol>
+        <li><strong>Setup &rarr; Alarms</strong>로 이동합니다.</li>
+        <li><strong>"Create Alarm"</strong>을 클릭합니다.</li>
+        <li>다음 폼을 채웁니다.</li>
+      </ol>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>필수 여부</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Name</strong></td><td>Yes</td><td>설명적인 이름 (예: "High Error Rate Alert").</td></tr>
+          <tr><td><strong>Metric</strong></td><td>Yes</td><td>사용 가능한 메트릭 드롭다운에서 선택.</td></tr>
+          <tr><td><strong>Operator</strong></td><td>Yes</td><td>비교 연산자.</td></tr>
+          <tr><td><strong>Threshold</strong></td><td>Yes</td><td>비교할 숫자 값.</td></tr>
+          <tr><td><strong>Evaluation Window</strong></td><td>Yes</td><td>메트릭을 집계할 시간 범위.</td></tr>
+          <tr><td><strong>Service Filter</strong></td><td>No</td><td>특정 service로 스코프 (null이면 전체).</td></tr>
+          <tr><td><strong>Description</strong></td><td>No</td><td>팀을 위한 추가 컨텍스트.</td></tr>
+          <tr><td><strong>Enabled</strong></td><td>Yes</td><td>알람 활성 여부.</td></tr>
+        </tbody>
+      </table></div>
+      <ol start="4">
+        <li><strong>Save</strong>를 클릭합니다.</li>
+        <li>알람이 즉시 평가를 시작합니다.</li>
+      </ol>
+
+      <h2>알람 예시</h2>
+
+      <h3>예시 1: 높은 에러율</h3>
+      <pre><code>Name: "Error Rate > 5%"
+Metric: error_rate
+Operator: >
+Threshold: 5.0
+Window: 15 minutes
+Service: all</code></pre>
+      <p>최근 15분 트레이스 중 ERROR 상태 비율이 5%를 초과하면 발생합니다.</p>
+
+      <h3>예시 2: 지연 시간 급증</h3>
+      <pre><code>Name: "P95 Latency > 3s"
+Metric: p95_latency
+Operator: >
+Threshold: 3000
+Window: 5 minutes
+Service: "customer-support-agent"</code></pre>
+      <p>특정 service의 P95 지연 시간이 3초를 초과하면 발생합니다.</p>
+
+      <h3>예시 3: 비용 예산</h3>
+      <pre><code>Name: "Daily cost > $50"
+Metric: total_cost
+Operator: >
+Threshold: 50.0
+Window: 24 hours
+Service: all</code></pre>
+      <p>24시간 롤링 윈도우 기준 총 LLM 비용이 $50를 초과하면 발생합니다.</p>
+
+      <h3>예시 4: 품질 저하</h3>
+      <pre><code>Name: "Pass rate below 80%"
+Metric: eval_pass_rate
+Operator: <
+Threshold: 80.0
+Window: 6 hours
+Service: all</code></pre>
+      <p>평가 pass rate가 80% 아래로 떨어지면 발생합니다.</p>
+
+      <h2>알람 표</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>Status</td><td>OK / FIRING / PENDING / NO_DATA 배지.</td></tr>
+          <tr><td>Name</td><td>알람 이름 (클릭하여 편집).</td></tr>
+          <tr><td>Metric</td><td>모니터링 중인 메트릭.</td></tr>
+          <tr><td>Condition</td><td>포맷된 조건 (예: "> 5.0%").</td></tr>
+          <tr><td>Current Value</td><td>가장 최근 계산된 메트릭 값.</td></tr>
+          <tr><td>Window</td><td>평가 윈도우 길이.</td></tr>
+          <tr><td>Service</td><td>스코프된 service 또는 "All".</td></tr>
+          <tr><td>Last Fired</td><td>가장 최근 FIRING 전환 timestamp.</td></tr>
+          <tr><td>Enabled</td><td>토글 스위치.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>대시보드 연동</h2>
+      <ul>
+        <li>FIRING 알람은 Overview 대시보드에 빨간 카드로 <strong>고정 표시</strong>됩니다.</li>
+        <li>각 카드는 알람 이름, 현재 값 vs 임계값, FIRING 지속 시간을 보여줍니다.</li>
+        <li>알람이 OK로 복구되면 카드는 사라집니다.</li>
+        <li>최대 5개까지 고정되며, 더 많이 발생하면 "+N more" 링크가 나타납니다.</li>
+      </ul>
+
+      <h2>상태 전이</h2>
+      <p class="docs-pipeline-caption">UI 관점: 알림은 명확한 시각 상태를 거치므로, 운영자가 기다릴지·조사할지·확인 처리할지 판단할 수 있습니다.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="OK, PENDING, FIRING, NO_DATA, DISABLED 상태와 메트릭 변화·사용자 액션에 따른 전이 조건을 보여주는 알람 상태 전이 다이어그램.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" preserveAspectRatio="xMidYMid meet">
+          <title>Alarm State Transitions (operator UX)</title>
+          <desc>State machine from OK to pending to firing, with recovery and manual disable paths.</desc>
+          <defs>
+            <marker id="alArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="alCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="alSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="420" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Alarm engine + operator actions</text>
+
+          <rect x="64" y="82" width="130" height="64" rx="10" fill="url(#alCard)" stroke="#22c07a" stroke-width="1.4" filter="url(#alSh)"/>
+          <text x="129" y="107" text-anchor="middle" fill="#22c07a" font-family="system-ui,sans-serif" font-size="12" font-weight="700">OK</text>
+          <text x="129" y="125" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">within threshold</text>
+
+          <rect x="292" y="82" width="138" height="64" rx="10" fill="url(#alCard)" stroke="#f2cc60" stroke-width="1.4" filter="url(#alSh)"/>
+          <text x="361" y="107" text-anchor="middle" fill="#f2cc60" font-family="system-ui,sans-serif" font-size="12" font-weight="700">PENDING</text>
+          <text x="361" y="125" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">breached, waiting window</text>
+
+          <rect x="532" y="82" width="130" height="64" rx="10" fill="url(#alCard)" stroke="#f85149" stroke-width="1.4" filter="url(#alSh)"/>
+          <text x="597" y="107" text-anchor="middle" fill="#f85149" font-family="system-ui,sans-serif" font-size="12" font-weight="700">FIRING</text>
+          <text x="597" y="125" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">active incident</text>
+
+          <line x1="194" y1="114" x2="292" y2="114" stroke="#22c07a" stroke-width="2" marker-end="url(#alArr)"/>
+          <text x="243" y="101" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">threshold breached</text>
+
+          <line x1="430" y1="114" x2="532" y2="114" stroke="#22c07a" stroke-width="2" marker-end="url(#alArr)"/>
+          <text x="481" y="101" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">window elapsed + still breached</text>
+
+          <path d="M 596 146 C 596 202, 462 212, 360 146" fill="none" stroke="#22c07a" stroke-width="1.8" marker-end="url(#alArr)"/>
+          <text x="478" y="214" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">metric recovers</text>
+
+          <path d="M 360 146 C 360 184, 220 196, 129 146" fill="none" stroke="#22c07a" stroke-width="1.8" marker-end="url(#alArr)"/>
+          <text x="250" y="196" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">recovers before window end</text>
+
+          <rect x="124" y="262" width="154" height="62" rx="9" fill="url(#alCard)" stroke="#6e7681" stroke-width="1.2" filter="url(#alSh)"/>
+          <text x="201" y="287" text-anchor="middle" fill="#c9d1d9" font-family="system-ui,sans-serif" font-size="11" font-weight="700">DISABLED</text>
+          <text x="201" y="304" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">manual toggle off</text>
+
+          <rect x="442" y="262" width="154" height="62" rx="9" fill="url(#alCard)" stroke="#6e7681" stroke-width="1.2" filter="url(#alSh)"/>
+          <text x="519" y="287" text-anchor="middle" fill="#c9d1d9" font-family="system-ui,sans-serif" font-size="11" font-weight="700">NO_DATA</text>
+          <text x="519" y="304" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">insufficient samples</text>
+
+          <line x1="129" y1="146" x2="201" y2="262" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#alArr)"/>
+          <line x1="361" y1="146" x2="228" y2="262" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#alArr)"/>
+          <line x1="597" y1="146" x2="536" y2="262" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#alArr)"/>
+          <text x="318" y="248" text-anchor="middle" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="9">user action: disable</text>
+
+          <line x1="519" y1="262" x2="361" y2="146" stroke="#8b949e" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#alArr)"/>
+          <text x="451" y="227" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">data returns</text>
+
+          <line x1="201" y1="324" x2="129" y2="146" stroke="#8b949e" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#alArr)"/>
+          <text x="146" y="248" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">re-enable</text>
+        </svg>
+      </div>
+      <ul>
+        <li><strong>OK &rarr; PENDING:</strong> 메트릭이 임계값을 처음 위반.</li>
+        <li><strong>PENDING &rarr; FIRING:</strong> 평가 윈도우가 모두 경과해도 여전히 위반 중.</li>
+        <li><strong>FIRING &rarr; OK:</strong> 메트릭이 임계값 안으로 복구.</li>
+        <li><strong>PENDING &rarr; OK:</strong> 윈도우가 끝나기 전에 회복(false alarm 방지).</li>
+      </ul>
+
+      <h2>편집 &amp; 삭제</h2>
+      <ul>
+        <li><strong>편집:</strong> 알람 행을 클릭 &rarr; 필드 수정 &rarr; Save.</li>
+        <li><strong>비활성화:</strong> Enabled 토글을 off로 &rarr; 평가가 멈춥니다.</li>
+        <li><strong>삭제:</strong> 삭제 아이콘 &rarr; 확인 &rarr; 영구 제거됩니다.</li>
+        <li>비활성화된 알람은 설정과 히스토리를 그대로 보존합니다.</li>
+      </ul>
+
+      <h2>권한</h2>
+      <ul>
+        <li><strong>SA / PO:</strong> 알람 생성, 편집, 삭제, 활성화/비활성화.</li>
+        <li><strong>DV:</strong> 알람 목록과 현재 상태를 조회 (읽기 전용).</li>
+      </ul>
+
+      <h2>Best Practices</h2>
+      <ul>
+        <li>처음에는 보수적인 임계값으로 시작한 뒤, baseline을 이해하면서 점차 좁혀 나갑니다.</li>
+        <li>기본 윈도우는 15분이 적절합니다. 반응성과 노이즈의 균형이 좋습니다.</li>
+        <li>하나의 글로벌 알람보다는 핵심 service별로 분리해 알람을 생성합니다.</li>
+        <li>전체 커버리지를 위해 메트릭 알람과 품질 알람을 함께 운영합니다.</li>
+        <li>분기마다 트래픽 패턴 변화에 맞춰 임계값을 검토·조정합니다.</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="metrics.html" class="docs-next-card"><strong>Metrics</strong><span>알람이 고정 표시되는 대시보드</span></a>
+        <a href="organizations.html" class="docs-next-card"><strong>Organizations</strong><span>조직 단위 알람 관리</span></a>
+        <a href="deployment.html" class="docs-next-card"><strong>Deployment</strong><span>운영 모니터링 셋업</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

@@ -17,6 +17,7 @@ import { useI18n, type AppLocale } from "@/lib/i18n/context";
 import { fmtPrice, fmtRel } from "@/lib/format";
 import { ImprovementPackGuideContent } from "../guides";
 import { canMutateQuality, QualityGuard, ScopeBanner, WriteHint } from "../guard";
+import { buildCsv, triggerCsvDownload, fetchTraceEnrichments, TRACE_ENRICHMENT_HEADERS, traceEnrichmentToRow } from "@/lib/csv-export";
 
 const STATUS_OPTIONS = ["open", "accepted", "rejected"] as const;
 
@@ -115,6 +116,43 @@ function Inner() {
           <p className="eo-page-lede">{t("quality.improvements.lede")}</p>
         </div>
         <div className="eo-page-meta">
+          <button
+            type="button"
+            className="eo-btn"
+            disabled={!list.data?.length}
+            onClick={async () => {
+              const data = list.data ?? [];
+              const traceIds = [...new Set(data.map((imp) => imp.traceId))];
+              const traceMap = await fetchTraceEnrichments(traceIds);
+              const headers = [
+                "id", "trace_id", "status", "summary", "pack", "content_locale",
+                "consensus_policy", "agreement_ratio", "judge_cost_usd", "judge_models", "created_at",
+                "proposal_category", "proposal_title", "proposal_effort", "proposal_effort_reason",
+                "proposal_expected_lift", "proposal_rationale",
+                ...TRACE_ENRICHMENT_HEADERS,
+              ];
+              const rows: unknown[][] = [];
+              for (const imp of data) {
+                const te = traceMap.get(imp.traceId);
+                const teRow = traceEnrichmentToRow(te);
+                const base = [
+                  imp.id, imp.traceId, imp.status, imp.summary, imp.improvementPack ?? "",
+                  imp.improvementContentLocale ?? "", imp.consensusPolicy, imp.agreementRatio,
+                  imp.judgeCostUsd, imp.judgeModels.join("; "), imp.createdAt,
+                ];
+                if (imp.proposals.length === 0) {
+                  rows.push([...base, "", "", "", "", "", "", ...teRow]);
+                } else {
+                  for (const p of imp.proposals) {
+                    rows.push([...base, p.category, p.title, p.effort, p.effortReason ?? "", p.expectedLift, p.rationale, ...teRow]);
+                  }
+                }
+              }
+              triggerCsvDownload("improvements.csv", buildCsv(headers, rows));
+            }}
+          >
+            CSV
+          </button>
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="">{t("quality.improvements.allStatuses")}</option>
             {STATUS_OPTIONS.map((s) => (

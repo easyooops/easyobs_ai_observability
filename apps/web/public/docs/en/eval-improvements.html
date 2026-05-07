@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Improvement Packs - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link active">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Improvement Packs &mdash; Detailed Manual</span></header>
+    <article class="docs-content">
+
+      <h1>Improvement Packs &mdash; Full Feature Manual</h1>
+      <p class="docs-lede">Improvement Packs translate evaluation failures into actionable engineering tasks. Each pack identifies the root cause of a quality issue and provides categorized, effort-graded suggestions for fixing it.</p>
+
+      <div class="docs-hero-image"><img src="../../images/eval-improvements-page.png" alt="Improvements page: grouped auto-pack cards with effort distribution bar, Medium effort filter active, judge cost and agreement chips, workflow actions such as Accept and Reject, and status selector" loading="lazy" decoding="async" /></div>
+
+      <h2>How Improvement Packs Work</h2>
+      <ol>
+        <li>An evaluation run produces FAIL or WARN verdicts with reasoning</li>
+        <li>The system analyzes the reasoning and maps it to a <strong>cause code</strong></li>
+        <li>Each cause code maps to a <strong>primary category</strong> and <strong>secondary detail</strong></li>
+        <li>Categories belong to one of <strong>11 groups</strong></li>
+        <li>Each suggestion carries an <strong>effort level</strong> (Low / Medium / High)</li>
+        <li>Packs are presented as actionable cards the team can track through workflow states</li>
+      </ol>
+
+      <h2>Effort Levels</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Level</th><th>Badge</th><th>Typical Time</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Low</strong></td><td>Green</td><td>&lt; 1 hour</td><td>Adjust prompt wording, add guardrail rule, tweak temperature</td></tr>
+          <tr><td><strong>Medium</strong></td><td>Yellow</td><td>1 hour &ndash; 1 day</td><td>Restructure prompt template, add retrieval step, improve chunking</td></tr>
+          <tr><td><strong>High</strong></td><td>Red</td><td>&gt; 1 day</td><td>Redesign agent architecture, fine-tune model, add new data pipeline</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Workflow States</h2>
+      <p>Each improvement pack flows through these states:</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>State</th><th>Meaning</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><strong>open</strong></td><td>Newly identified, awaiting triage</td><td>Review and decide priority</td></tr>
+          <tr><td><strong>in_progress</strong></td><td>Team is actively working on the fix</td><td>Implement the suggestion</td></tr>
+          <tr><td><strong>resolved</strong></td><td>Fix applied, awaiting verification</td><td>Re-run evaluation to confirm</td></tr>
+          <tr><td><strong>dismissed</strong></td><td>Not applicable or won't fix</td><td>Archived (still visible in history)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Category Catalog &mdash; 11 Groups, 46 Categories</h2>
+
+      <h3>Group 1: Prompt Engineering</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>System prompt clarity</td><td>Low</td><td>Ambiguous or contradictory system instructions</td></tr>
+          <tr><td>2</td><td>Few-shot examples</td><td>Low</td><td>Missing or poor quality examples in prompt</td></tr>
+          <tr><td>3</td><td>Output format instruction</td><td>Low</td><td>Response format not explicitly specified</td></tr>
+          <tr><td>4</td><td>Chain-of-thought guidance</td><td>Medium</td><td>Lack of step-by-step reasoning instructions</td></tr>
+          <tr><td>5</td><td>Prompt decomposition</td><td>Medium</td><td>Overly complex single-prompt design needing split</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 2: Context &amp; Retrieval</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>6</td><td>Retrieval relevance</td><td>Medium</td><td>Retrieved chunks are off-topic or low relevance</td></tr>
+          <tr><td>7</td><td>Context window overflow</td><td>Medium</td><td>Too much context stuffed, model loses focus</td></tr>
+          <tr><td>8</td><td>Chunk size tuning</td><td>Medium</td><td>Chunks too large or too small for the task</td></tr>
+          <tr><td>9</td><td>Missing knowledge source</td><td>High</td><td>Required information not in any knowledge base</td></tr>
+          <tr><td>10</td><td>Embedding model quality</td><td>High</td><td>Embedding model produces poor semantic matches</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 3: Model Selection</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>11</td><td>Model capability gap</td><td>High</td><td>Current model lacks required reasoning ability</td></tr>
+          <tr><td>12</td><td>Temperature misconfiguration</td><td>Low</td><td>Temperature too high (hallucination) or too low (repetitive)</td></tr>
+          <tr><td>13</td><td>Token limit exceeded</td><td>Medium</td><td>Response truncated due to max_tokens setting</td></tr>
+          <tr><td>14</td><td>Model version drift</td><td>Low</td><td>Model behavior changed after provider update</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 4: Tool Usage</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>15</td><td>Tool selection error</td><td>Medium</td><td>Agent chose wrong tool for the task</td></tr>
+          <tr><td>16</td><td>Tool argument formatting</td><td>Low</td><td>Incorrect parameter format passed to tool</td></tr>
+          <tr><td>17</td><td>Tool description clarity</td><td>Low</td><td>Tool descriptions unclear, causing misuse</td></tr>
+          <tr><td>18</td><td>Missing tool availability</td><td>High</td><td>Required tool not available in agent's toolset</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 5: Safety &amp; Compliance</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>19</td><td>Harmful content generation</td><td>Low</td><td>Output contains unsafe, biased, or toxic content</td></tr>
+          <tr><td>20</td><td>Data leakage</td><td>Medium</td><td>PII or sensitive data exposed in output</td></tr>
+          <tr><td>21</td><td>Guardrail bypass</td><td>Medium</td><td>Safety filters circumvented by adversarial input</td></tr>
+          <tr><td>22</td><td>Policy violation</td><td>Low</td><td>Output violates organizational content policies</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 6: Hallucination &amp; Accuracy</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>23</td><td>Factual hallucination</td><td>Medium</td><td>Generated false facts not in source material</td></tr>
+          <tr><td>24</td><td>Source attribution error</td><td>Low</td><td>Incorrect citation of sources</td></tr>
+          <tr><td>25</td><td>Numerical accuracy</td><td>Medium</td><td>Math or statistical errors in output</td></tr>
+          <tr><td>26</td><td>Temporal confusion</td><td>Low</td><td>Mixing up dates, timelines, or sequences</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 7: Coherence &amp; Consistency</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>27</td><td>Self-contradiction</td><td>Low</td><td>Response contradicts itself across paragraphs</td></tr>
+          <tr><td>28</td><td>Context drift</td><td>Medium</td><td>Response goes off-topic from the original question</td></tr>
+          <tr><td>29</td><td>Multi-turn inconsistency</td><td>Medium</td><td>Contradicts previous turns in the conversation</td></tr>
+          <tr><td>30</td><td>Instruction following</td><td>Low</td><td>Ignores or partially follows user instructions</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 8: Performance &amp; Latency</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>31</td><td>Excessive latency</td><td>Medium</td><td>Total response time exceeds acceptable threshold</td></tr>
+          <tr><td>32</td><td>Redundant LLM calls</td><td>Medium</td><td>Multiple unnecessary calls that could be batched or cached</td></tr>
+          <tr><td>33</td><td>Token waste</td><td>Low</td><td>Overly verbose prompts consuming unnecessary tokens</td></tr>
+          <tr><td>34</td><td>Retry storms</td><td>Medium</td><td>Excessive retries due to transient failures</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 9: Agent Architecture</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>35</td><td>Planning loop failure</td><td>High</td><td>Agent stuck in infinite plan-execute loop</td></tr>
+          <tr><td>36</td><td>Delegation logic</td><td>High</td><td>Multi-agent delegation produces conflicting outputs</td></tr>
+          <tr><td>37</td><td>Memory management</td><td>High</td><td>Agent memory overflow or stale context</td></tr>
+          <tr><td>38</td><td>Fallback handling</td><td>Medium</td><td>No graceful degradation when component fails</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 10: Data Quality</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>39</td><td>Training data bias</td><td>High</td><td>Model responses reflect training data biases</td></tr>
+          <tr><td>40</td><td>Stale knowledge</td><td>Medium</td><td>Knowledge base not updated with current information</td></tr>
+          <tr><td>41</td><td>Input preprocessing</td><td>Medium</td><td>User input not properly cleaned or normalized</td></tr>
+          <tr><td>42</td><td>Label quality in golden set</td><td>Medium</td><td>Ground truth labels incorrect or ambiguous</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Group 11: Integration &amp; Reliability</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Category</th><th>Effort</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>43</td><td>API error handling</td><td>Low</td><td>Unhandled API errors from LLM providers</td></tr>
+          <tr><td>44</td><td>Rate limiting</td><td>Medium</td><td>Hitting provider rate limits causing failures</td></tr>
+          <tr><td>45</td><td>Serialization error</td><td>Low</td><td>JSON/structured output parsing failures</td></tr>
+          <tr><td>46</td><td>Timeout configuration</td><td>Low</td><td>Inappropriate timeout values for LLM calls</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Cause Code Mapping</h2>
+      <p>The system uses 52 internal cause codes (generated by LLM judge reasoning analysis) which map to the 46 categories above. Multiple cause codes can map to the same category. The mapping ensures that even nuanced failure reasons are funneled into actionable categories.</p>
+
+      <p class="docs-pipeline-caption">UI/UX flow: raw judge findings are normalized into stable categories, then rendered as triage-ready cards with effort and workflow controls.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="Cause code mapping diagram from judge reasoning to category and effort, then grouped cards and workflow states in the Improvements UI.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" preserveAspectRatio="xMidYMid meet">
+          <title>Cause Code Mapping UX Flow</title>
+          <desc>Data mapping from judge reasoning to cause code, category, and effort, then visualized as grouped cards with workflow states.</desc>
+          <defs>
+            <marker id="impArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="impCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="impSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="420" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">From evaluator reasoning to actionable improvement cards</text>
+
+          <rect x="24" y="58" width="196" height="70" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1.2" filter="url(#impSh)"/>
+          <text x="42" y="84" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">INPUT</text>
+          <text x="42" y="102" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Judge reasoning / fail evidence</text>
+          <text x="42" y="118" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">verdict, reason text, trace context</text>
+
+          <line x1="220" y1="93" x2="246" y2="93" stroke="#22c07a" stroke-width="2" marker-end="url(#impArr)"/>
+
+          <rect x="246" y="58" width="212" height="70" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1.2" filter="url(#impSh)"/>
+          <text x="264" y="84" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">NORMALIZE</text>
+          <text x="264" y="102" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Cause code mapping engine</text>
+          <text x="264" y="118" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">NLP parse -> cause code(52)</text>
+
+          <line x1="458" y1="93" x2="484" y2="93" stroke="#22c07a" stroke-width="2" marker-end="url(#impArr)"/>
+
+          <rect x="484" y="58" width="212" height="70" rx="8" fill="url(#impCard)" stroke="#22c07a" stroke-opacity="0.7" stroke-width="1.2" filter="url(#impSh)"/>
+          <text x="502" y="84" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">STRUCTURE</text>
+          <text x="502" y="102" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Category -> Group -> Effort</text>
+          <text x="502" y="118" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">46 categories, 11 groups, L/M/H</text>
+
+          <line x1="590" y1="128" x2="590" y2="152" stroke="#22c07a" stroke-width="2" marker-end="url(#impArr)"/>
+
+          <rect x="24" y="164" width="672" height="220" rx="10" fill="#0d1117" stroke="#58a6ff" stroke-width="1.4" stroke-dasharray="7 5" filter="url(#impSh)"/>
+          <text x="40" y="188" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">IMPROVEMENTS UI RENDER</text>
+
+          <rect x="40" y="202" width="206" height="72" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="56" y="226" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Grouped card list</text>
+          <text x="56" y="244" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Prompt / Retrieval / Safety ...</text>
+          <text x="56" y="260" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">open count shown per group</text>
+
+          <rect x="258" y="202" width="206" height="72" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="274" y="226" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Card chips</text>
+          <text x="274" y="244" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">cause code, judge cost, agreement</text>
+          <text x="274" y="260" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">effort badge (Low/Med/High)</text>
+
+          <rect x="476" y="202" width="204" height="72" rx="8" fill="url(#impCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="492" y="226" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Workflow controls</text>
+          <text x="492" y="244" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Accept / Start / Resolve / Dismiss</text>
+          <text x="492" y="260" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">status filter + effort filter</text>
+
+          <line x1="143" y1="274" x2="143" y2="302" stroke="#30363d" stroke-width="1.2"/>
+          <line x1="361" y1="274" x2="361" y2="302" stroke="#30363d" stroke-width="1.2"/>
+          <line x1="578" y1="274" x2="578" y2="302" stroke="#30363d" stroke-width="1.2"/>
+
+          <rect x="40" y="302" width="640" height="64" rx="8" fill="url(#impCard)" stroke="#22c07a" stroke-opacity="0.55" stroke-width="1"/>
+          <text x="56" y="328" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">OUTCOME</text>
+          <text x="56" y="346" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11">Consistent triage: heterogeneous reasons become trackable, prioritized remediation tasks.</text>
+        </svg>
+      </div>
+
+      <h2>UI Layout</h2>
+
+      <h3>Grouped Card View</h3>
+      <ul>
+        <li>Improvements are displayed as cards grouped by the 11 category groups</li>
+        <li>Each group header shows the group name and count of open items</li>
+        <li>Cards show: category name, effort badge, cause summary, suggested action</li>
+        <li>Click a card to expand full details and change workflow state</li>
+      </ul>
+
+      <h3>Filters</h3>
+      <ul>
+        <li><strong>Effort:</strong> Filter by Low / Medium / High</li>
+        <li><strong>State:</strong> Open / In Progress / Resolved / Dismissed</li>
+        <li><strong>Group:</strong> Filter by specific category group</li>
+        <li><strong>Run:</strong> Filter by source evaluation run</li>
+      </ul>
+
+      <h3>Card Detail (expanded)</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Field</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Category</td><td>Primary category name (from 46 list)</td></tr>
+          <tr><td>Secondary Detail</td><td>Specific contextual explanation</td></tr>
+          <tr><td>Group</td><td>Parent group (from 11 list)</td></tr>
+          <tr><td>Effort</td><td>Low / Medium / High with color badge</td></tr>
+          <tr><td>Cause Code</td><td>Internal code for traceability</td></tr>
+          <tr><td>Source Run</td><td>Link to the evaluation run that produced this</td></tr>
+          <tr><td>Affected Traces</td><td>List of trace IDs where this issue appeared</td></tr>
+          <tr><td>Suggested Action</td><td>Concrete next step generated by the system</td></tr>
+          <tr><td>State Control</td><td>Buttons: Start Working / Resolve / Dismiss</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Integration with Runs</h2>
+      <p>After resolving an improvement, best practice is to:</p>
+      <ol>
+        <li>Apply the fix to your agent code</li>
+        <li>Re-run evaluation on the same traces</li>
+        <li>Verify the FAIL/WARN verdicts have converted to PASS</li>
+        <li>Mark the improvement as "resolved" once verified</li>
+      </ol>
+
+      <h2>Permissions</h2>
+      <ul>
+        <li><strong>SA / PO:</strong> View all, change workflow states</li>
+        <li><strong>DV:</strong> View all (read-only &mdash; cannot change states)</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="eval-runs.html" class="docs-next-card"><strong>Runs</strong><span>Launch evaluations that generate improvements</span></a>
+        <a href="eval-golden.html" class="docs-next-card"><strong>Golden Sets</strong><span>Ground truth for regression testing</span></a>
+        <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>Configure evaluation criteria</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

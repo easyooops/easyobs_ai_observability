@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>평가 실행 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭 &amp; 대시보드</a><div class="docs-nav-group">SDK 통합</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link active">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">평가 실행 &mdash; 상세 매뉴얼</span></header>
+    <article class="docs-content">
+
+      <h1>평가 실행 &mdash; 전체 기능 매뉴얼</h1>
+      <p class="docs-lede">Runs 페이지는 자동 품질 평가를 시작하고 모니터링하며, 결과를 검토하는 핵심 작업 공간입니다. 3-Way 탭 구조와 4가지 소스 전략, 비용 추정, 결과 드릴다운을 한 화면에서 제공합니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/eval-runs-launch-source-cards.png" alt="Runs Launch 탭: KPI 카드, Single Trace / Window / Session / Human-labeled 소스 카드(Window 선택 상태), 프로파일 선택, 24h 윈도우의 트레이스 테이블(세션 그룹핑), 비용 추정과 실행 액션" loading="lazy" decoding="async" /></div>
+
+      <h2>페이지 구조 &mdash; 3-Way 워크벤치</h2>
+      <p>Runs 페이지 상단에는 3개의 탭으로 구성된 세그먼트 컨트롤이 있습니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>탭</th><th>URL 파라미터</th><th>역할</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Launch</strong></td><td><code>?tab=launch</code> (기본)</td><td>새 평가 실행을 구성하고 시작</td></tr>
+          <tr><td><strong>Results</strong></td><td><code>?tab=results</code></td><td>완료된 실행을 탐색하고 verdict/점수를 확인</td></tr>
+          <tr><td><strong>Background Hub</strong></td><td><code>?tab=bg</code></td><td>진행 중인 실행을 라이브 상태로 모니터링</td></tr>
+        </tbody>
+      </table></div>
+
+      <hr>
+
+      <h2>탭 1: Launch</h2>
+      <p>Launch 탭은 평가 실행을 구성하고 시작하는 단계별 위저드입니다.</p>
+
+      <h3>Step 1 &mdash; 평가 프로파일 선택</h3>
+      <p>드롭다운에는 활성화된 모든 평가 프로파일이 표시됩니다(<code>GET /api/eval/profiles</code>로 조회). 각 프로파일은 다음을 정의합니다.</p>
+      <ul>
+        <li>사용할 평가자 종류 (Rule / LLM Judge / Human)</li>
+        <li>합의 정책 (single, majority, unanimous, weighted)</li>
+        <li>Budget Guard (실행당 최대 비용)</li>
+        <li>대상 project/service 범위</li>
+      </ul>
+      <div class="docs-info"><strong>Tip:</strong> 첫 실행을 시작하기 전에 Quality &rarr; Profiles에서 프로파일을 미리 만들어 두세요.</div>
+
+      <h3>Step 2 &mdash; 소스 선택 (4개 소스 카드)</h3>
+      <p>네 개의 소스 카드가 <em>어떤 트레이스를</em> 평가할지 결정합니다.</p>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>Source</th><th>ID</th><th>Run Mode</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>Time Window</strong></td>
+            <td><code>window</code></td>
+            <td><code>trace</code></td>
+            <td>현재 시간 범위(1h/6h/24h/7d) 내 모든 트레이스. 목록에서 개별 선택하거나 "Select All"을 사용할 수 있습니다.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><strong>Single Trace</strong></td>
+            <td><code>single_trace</code></td>
+            <td><code>trace</code></td>
+            <td>특정 trace ID를 직접 입력하거나 미리 채운 상태로 사용. Trace Inspector의 "Evaluate" 버튼이 이 진입점입니다.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>Session</strong></td>
+            <td><code>session</code></td>
+            <td><code>trace</code></td>
+            <td>session ID로 트레이스를 필터링 &mdash; 하나의 대화 스레드 전체를 평가합니다.</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>Human Label Cohort</strong></td>
+            <td><code>human_label</code></td>
+            <td><code>golden_judge</code></td>
+            <td>이전에 휴먼 라벨링된 주석을 그라운드 트루스로 사용. LLM 저지의 verdict를 휴먼 verdict와 비교합니다.</td>
+          </tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-hero-image"><img src="../../images/eval-runs-source-cards.png" alt="가로로 배치된 4개의 평가 소스 카드: Single Trace, Window(선택 상태로 강조), Session, Human-labeled" loading="lazy" decoding="async" /></div>
+
+      <h4>Source: Time Window (상세)</h4>
+      <ul>
+        <li>프로파일의 project 범위에 해당하는 트레이스를 최대 2,000건까지 가져옵니다.</li>
+        <li>탐색을 쉽게 하기 위해 session 단위로 그룹핑합니다.</li>
+        <li>각 트레이스에 체크박스가 있어 개별 선택 또는 "Select All in View"가 가능합니다.</li>
+        <li>session 그룹은 헤더 클릭으로 펼치거나 접을 수 있습니다.</li>
+        <li>트레이스 작업명, 서비스, 지속 시간, 상태 배지, 비용을 함께 표시합니다.</li>
+      </ul>
+
+      <h4>Source: Single Trace (상세)</h4>
+      <ul>
+        <li>32자리 trace ID를 입력하는 텍스트 필드</li>
+        <li>Trace Inspector CTA에서 넘어올 때 <code>?prefill-trace=&lt;id&gt;</code> URL 파라미터로 자동 채워집니다.</li>
+        <li>실행 전에 트레이스 존재 여부를 검증합니다.</li>
+      </ul>
+
+      <h4>Source: Session (상세)</h4>
+      <ul>
+        <li>session ID를 부분 일치로 검색하는 텍스트 필터</li>
+        <li>매칭되는 트레이스를 모두 보여주며 평가할 항목을 선택할 수 있습니다.</li>
+        <li>멀티턴 대화의 품질을 평가할 때 유용합니다.</li>
+      </ul>
+
+      <h4>Source: Human Label Cohort (상세)</h4>
+      <ul>
+        <li>최근 휴먼 라벨 주석 최대 200건을 표시합니다.</li>
+        <li>verdict로 필터링: All / Pass / Warn / Fail</li>
+        <li>여러 주석을 다중 선택할 수 있습니다.</li>
+        <li>Run mode가 <code>golden_judge</code>로 전환되어 LLM 저지 출력과 휴먼 라벨을 비교합니다.</li>
+        <li>등록된 저지 모델이 없으면 <code>golden_gt</code> 모드로 폴백합니다.</li>
+      </ul>
+
+      <h3>Step 3 &mdash; 비용 추정</h3>
+      <p>실행 전에 <strong>"Estimate Cost"</strong>를 클릭하면 다음 정보를 미리 볼 수 있습니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>지표</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>Estimated Calls</td><td>필요한 LLM 저지 API 호출 수</td></tr>
+          <tr><td>Estimated Cost</td><td>저지 모델 가격 기반 USD 추정 비용</td></tr>
+          <tr><td>Budget Remaining</td><td>프로파일의 Budget Guard 잔여 한도</td></tr>
+          <tr><td>Trace Count</td><td>선택된 평가 대상 수</td></tr>
+        </tbody>
+      </table></div>
+      <div class="docs-warn"><strong>주의:</strong> 추정 비용이 프로파일의 Budget Guard를 초과하면 Launch 버튼이 비활성화되며 사유가 표시됩니다.</div>
+
+      <h3>Step 4 &mdash; 메모 &amp; 실행</h3>
+      <ul>
+        <li><strong>Notes</strong> (선택) &mdash; 컨텍스트를 자유롭게 적는 텍스트 필드 (예: "Testing new prompt v2")</li>
+        <li><strong>Launch Run</strong> &mdash; 평가를 시작합니다. UI는 새 실행이 선택된 Results 탭으로 전환됩니다.</li>
+      </ul>
+
+      <hr>
+
+      <h2>탭 2: Results</h2>
+      <p>완료된 평가 실행을 탐색하고 상세를 살펴봅니다.</p>
+
+      <h3>실행 목록</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>Status</td><td>배지: pending / running / completed / failed / cancelled</td></tr>
+          <tr><td>Profile</td><td>사용된 평가 프로파일 이름</td></tr>
+          <tr><td>Source</td><td>사용된 소스 전략 (window / single / session / human)</td></tr>
+          <tr><td>Subjects</td><td>평가된 트레이스 수</td></tr>
+          <tr><td>Pass Rate</td><td>통과한 트레이스 비율 (녹색 막대)</td></tr>
+          <tr><td>Cost</td><td>저지 API 호출에서 실제 발생한 비용</td></tr>
+          <tr><td>Created</td><td>상대 시각</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>실행 상세 &mdash; 전체 워크벤치</h3>
+      <p><strong>Results</strong> 탭에서 실행 행을 클릭하면 상세 워크벤치가 열립니다. <code>?tab=results&amp;run=&lt;id&gt;</code>로 직접 진입해도 동일한 화면을 볼 수 있습니다. 실행이 <code>running</code> 상태라면 약 4초마다 폴링하며 상태가 갱신됩니다.</p>
+
+      <h4>레이아웃</h4>
+      <p>2단 레이아웃: 스크롤해도 항상 보이는 <strong>고정된 좌측 사이드바</strong>와, 활성 탭 이름·실행 모드(예: <code>trace</code>, <code>golden_judge</code>)·골든 셋 ID 등이 제목에 표시되는 <strong>메인 패널</strong>로 구성됩니다.</p>
+
+      <h4>고정 사이드바 &mdash; 실행 컨텍스트</h4>
+      <ul>
+        <li><strong>Run id</strong> &mdash; 실행 UUID의 짧은 prefix와 <strong>status</strong> 배지 (<code>succeeded</code> / <code>failed</code> 등)</li>
+        <li><strong>cost</strong> &mdash; 실제 USD vs 추정 USD (<code>costActualUsd / costEstimateUsd</code>)</li>
+        <li><strong>trust</strong> &mdash; 5개의 신뢰도 게이지 평균을 1~5점 별점으로 요약</li>
+        <li><strong>source</strong> &mdash; 추정된 소스 라벨: Golden Set, Human-labeled, Single Trace, Window 중 하나</li>
+        <li><strong>profile</strong> &mdash; 평가 프로파일 ID (단축)</li>
+        <li><strong>by</strong> &mdash; 실행을 트리거한 주체 (또는 <code>system</code>)</li>
+        <li><strong>started</strong> &mdash; 상대 시각</li>
+        <li><strong>탭 버튼</strong> &mdash; 7개의 메인 탭 전환 (아래 참조)</li>
+      </ul>
+
+      <h4>7개의 탭</h4>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>탭</th><th>용도</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Summary</strong></td><td>핵심 KPI, 신뢰도 경고, 컴팩트한 5개 게이지, 선택 메모</td></tr>
+          <tr><td><strong>Results</strong></td><td>세션 그룹핑, 트레이스별 그리드, 내보내기, 펼침 행</td></tr>
+          <tr><td><strong>Trust</strong></td><td>5개 게이지 전체 보기, 델타 히스토그램, Rule-vs-Judge 매트릭스, 저지 에러 분해</td></tr>
+          <tr><td><strong>Replay</strong></td><td>부모/자식 실행 비교(<code>parent_run_id</code>가 연결된 경우)</td></tr>
+          <tr><td><strong>Findings</strong></td><td>모든 평가자 finding을 evaluator id별로 그룹화</td></tr>
+          <tr><td><strong>Improvements</strong></td><td>신뢰 회복 액션을 위한 Quality &rarr; Improvements로의 이동 안내</td></tr>
+          <tr><td><strong>Report</strong></td><td>실행과 결과를 CSV / JSON으로 다운로드</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>탭: Summary</h4>
+      <ul>
+        <li><strong>Low-trust 배너</strong> &mdash; 5개 게이지 평균이 약 60% 미만이면 신뢰도 검토가 필요하다는 경고가 표시됩니다.</li>
+        <li><strong>KPI 그리드</strong> &mdash; Pass rate(완료/대상 수), 평균 점수(실패 수 포함), 실제 vs 추정 비용, <strong>저지 에러</strong> 수 (verdict가 <code>error</code>인 행은 메인 통계에서 제외됨)</li>
+        <li><strong>5개 신뢰도 게이지(컴팩트)</strong> &mdash; Coverage(50개 대상 기준 정규화), 다중 저지 합의(저지 disagreement delta 기반), Rule-vs-Judge 정합성, Human-vs-Judge kappa(라벨 누적 전까지는 placeholder), Verdict drift delta(placeholder, Replay에서 확인 가능 시 표시)</li>
+        <li><strong>Notes</strong> &mdash; 실행 시 입력된 메모가 있으면 표시됩니다.</li>
+      </ul>
+
+      <h4>탭: Results</h4>
+      <ul>
+        <li><strong>Download CSV / JSON</strong> &mdash; 모든 결과 행을 내보냅니다 (비어 있으면 비활성화).</li>
+        <li><strong>세션 그룹 테이블</strong> &mdash; session id별로 한 행 (없으면 <code>-</code>). 컬럼: 트레이스 수, pass / fail / error 수, 평균 점수. 행을 클릭하면 해당 세션의 트레이스가 아래 그리드에 로드됩니다.</li>
+        <li><strong>트레이스 그리드</strong> &mdash; session 선택 후: trace id(트레이싱 상세로 이동), verdict, 전체 점수, Rule 점수, Judge 점수, delta(저지 disagreement), 저지 비용, finding 수</li>
+        <li><strong>펼침 행</strong> &mdash; 트레이스 행(링크 외 영역)을 클릭하면 펼쳐집니다: finding 목록(evaluator, kind, score, verdict, reason)과 저지별 투표(<code>judgePerModel</code>)가 있으면 JSON으로 표시</li>
+      </ul>
+
+      <h4>탭: Trust</h4>
+      <ul>
+        <li><strong>5개 게이지</strong> &mdash; Summary와 동일한 메트릭을 게이지별 별점과 함께 풀사이즈로 보여줍니다.</li>
+        <li><strong>Delta 분포</strong> &mdash; 저지 disagreement 값의 히스토그램 (다중 저지 delta 샘플이 없으면 비어 있음)</li>
+        <li><strong>Rule vs Judge 매트릭스</strong> &mdash; Rule&plusmn; vs Judge&plusmn;의 2&times;2 카운트. 대각선은 일치, 비대각선은 룰의 false positive/negative 단서</li>
+        <li><strong>저지 호출 에러</strong> &mdash; verdict가 <code>error</code>인 결과를 <code>errorType</code>별로 분해해서 표시(신뢰도 통계에서는 제외됨)</li>
+      </ul>
+
+      <h4>탭: Replay</h4>
+      <p><strong>parent run</strong>이 존재하면, 동일 대상에 대한 두 실행 간의 verdict drift, pass rate, 평균 점수, delta를 슬로프 형태의 차트로 비교합니다. <code>parent_run_id</code>가 없으면 standalone 실행이거나 부모가 기록되지 않았다는 안내가 표시됩니다.</p>
+
+      <h4>탭: Findings</h4>
+      <p>모든 결과의 <code>finding</code>을 평탄화한 뒤 <code>evaluatorId</code>별로 그룹화하고, trace prefix, verdict, score, reason을 보여줍니다(그룹당 최대 12개, 초과분은 카운트만 표시).</p>
+
+      <h4>탭: Improvements</h4>
+      <p>간략한 안내와 함께 <strong>Quality &rarr; Improvements</strong>로의 링크를 제공합니다. 신뢰도 게이지가 임계값 이하로 떨어진 경우 회복 액션 목록을 그곳에서 확인할 수 있습니다.</p>
+
+      <h4>탭: Report</h4>
+      <p>내보내기 액션 중복 제공: <strong>Download CSV</strong>와 <strong>Download JSON</strong> (JSON은 <code>run</code>과 <code>results</code> 객체 전체 포함).</p>
+
+      <div class="docs-hero-image"><img src="../../images/eval-runs-detail-summary.png" alt="실행 상세 드로어: 좌측 사이드바에 run id, completed status, cost, trust, source, 내비게이션 탭, 우측 Summary에 신뢰도 배너, pass rate / cost KPI, 5개 신뢰도 게이지 카드, 메모" loading="lazy" decoding="async" /></div>
+
+      <hr>
+
+      <h2>탭 3: Background Hub</h2>
+      <p>진행 중이거나 최근에 완료된 실행을 라이브 폴링(10초 주기)으로 모니터링합니다.</p>
+      <ul>
+        <li>실행 상태 진행: queued &rarr; running &rarr; completed/failed</li>
+        <li>실행 중인 작업의 진행률 막대(퍼센트 포함)</li>
+        <li>행을 클릭하면 해당 실행이 선택된 Results 탭으로 이동합니다.</li>
+        <li>취소된 실행은 취소선 스타일로 표시됩니다.</li>
+      </ul>
+
+      <hr>
+
+      <h2>URL 파라미터</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>파라미터</th><th>값</th><th>효과</th></tr></thead>
+        <tbody>
+          <tr><td><code>tab</code></td><td>launch | results | bg</td><td>활성 탭 지정</td></tr>
+          <tr><td><code>run</code></td><td>run ID</td><td>Results 탭에서 특정 실행 미리 선택</td></tr>
+          <tr><td><code>src</code></td><td>window | single_trace | session | human_label</td><td>소스 카드 미리 선택</td></tr>
+          <tr><td><code>prefill-trace</code></td><td>trace ID</td><td>Single Trace 입력 자동 채움</td></tr>
+          <tr><td><code>profile</code></td><td>profile ID</td><td>평가 프로파일 미리 선택</td></tr>
+        </tbody>
+      </table></div>
+
+      <hr>
+
+      <h2>권한</h2>
+      <ul>
+        <li><strong>Project Owner (PO)</strong>와 <strong>Super Admin (SA)</strong> &mdash; 모든 권한: 실행 시작, 조회, 취소</li>
+        <li><strong>Developer (DV)</strong> &mdash; 읽기 전용: 결과 조회는 가능하나 실행 시작/취소는 불가</li>
+        <li>쓰기 권한이 없는 사용자에게는 <em>WriteHint</em> 배너가 표시되고 Launch 버튼이 비활성화됩니다.</li>
+      </ul>
+
+      <h2>실행 라이프사이클 (운영자 관점)</h2>
+      <p class="docs-pipeline-caption">백엔드 워커의 처리 순서가 아닌, "Launch부터 Report까지" 운영자가 콘솔에서 거치는 흐름입니다.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="Run 라이프사이클: Launch 탭, Background Hub로 모니터링, Results 목록과 Summary부터 Report까지의 탭이 있는 실행 상세">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" preserveAspectRatio="xMidYMid meet">
+          <title>Evaluation run lifecycle in the UI</title>
+          <desc>Horizontal journey from launch to report, with a branch for monitoring and a block for run detail tabs.</desc>
+          <defs>
+            <marker id="evalRunArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="evalRunCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="evalRunSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="400" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Operator journey in the Runs workbench</text>
+
+          <rect x="24" y="52" width="118" height="72" rx="8" fill="url(#evalRunCard)" stroke="#22c07a" stroke-width="1.2" filter="url(#evalRunSh)"/>
+          <text x="83" y="78" text-anchor="middle" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">1</text>
+          <text x="83" y="96" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Launch</text>
+          <text x="83" y="112" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Profile &middot; source &middot; subjects</text>
+
+          <line x1="142" y1="88" x2="158" y2="88" stroke="#22c07a" stroke-width="2" marker-end="url(#evalRunArr)"/>
+
+          <rect x="158" y="52" width="118" height="72" rx="8" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalRunSh)"/>
+          <text x="217" y="78" text-anchor="middle" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">2</text>
+          <text x="217" y="96" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Track</text>
+          <text x="217" y="112" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Background Hub</text>
+
+          <line x1="276" y1="88" x2="292" y2="88" stroke="#22c07a" stroke-width="2" marker-end="url(#evalRunArr)"/>
+
+          <rect x="292" y="52" width="118" height="72" rx="8" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalRunSh)"/>
+          <text x="351" y="78" text-anchor="middle" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">3</text>
+          <text x="351" y="96" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Results list</text>
+          <text x="351" y="112" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Pick a completed run</text>
+
+          <line x1="410" y1="88" x2="426" y2="88" stroke="#22c07a" stroke-width="2" marker-end="url(#evalRunArr)"/>
+
+          <rect x="426" y="52" width="270" height="72" rx="8" fill="url(#evalRunCard)" stroke="#22c07a" stroke-width="1" stroke-opacity="0.6" filter="url(#evalRunSh)"/>
+          <text x="561" y="78" text-anchor="middle" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">4</text>
+          <text x="561" y="96" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Run detail (drawer / modal)</text>
+          <text x="561" y="112" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Sticky sidebar + tabbed main pane</text>
+
+          <text x="24" y="152" fill="#6e7681" font-family="system-ui,sans-serif" font-size="10">Detail tabs (left rail in UI &mdash; typical review order):</text>
+
+          <rect x="24" y="164" width="96" height="52" rx="6" fill="url(#evalRunCard)" stroke="#22c07a" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="72" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Summary</text>
+          <text x="72" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">KPIs &middot; trust banner</text>
+
+          <line x1="120" y1="190" x2="132" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="132" y="164" width="96" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="180" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Results</text>
+          <text x="180" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">Sessions &rarr; traces</text>
+
+          <line x1="228" y1="190" x2="240" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="240" y="164" width="88" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="284" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Trust</text>
+          <text x="284" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">Gauges &middot; matrix</text>
+
+          <line x1="328" y1="190" x2="340" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="340" y="164" width="88" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="384" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Replay</text>
+          <text x="384" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">vs parent run</text>
+
+          <line x1="428" y1="190" x2="438" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="438" y="164" width="86" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="481" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Findings</text>
+          <text x="481" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">By evaluator</text>
+
+          <line x1="524" y1="190" x2="534" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="534" y="164" width="86" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="577" y="188" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Improvements</text>
+          <text x="577" y="204" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">Link to Quality</text>
+
+          <line x1="620" y1="190" x2="630" y2="190" stroke="#22c07a" stroke-width="1.5" marker-end="url(#evalRunArr)"/>
+
+          <rect x="630" y="164" width="66" height="52" rx="6" fill="url(#evalRunCard)" stroke="#30363d" stroke-width="1" filter="url(#evalRunSh)"/>
+          <text x="663" y="196" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Report</text>
+        </svg>
+      </div>
+      <p class="docs-pipeline-caption" style="margin-top:4px;">엔지니어를 위한 API/워커 흐름: 실행 시작 시 run row가 생성되고, 워커가 각 대상에 대해 평가를 수행하며 상태를 업데이트합니다. 실행 중인 동안 콘솔은 약 10초마다 폴링합니다.</p>
+      <pre><code>POST /api/eval/runs &rarr; pending &rarr; worker: fetch traces, run evaluators, consensus &rarr; completed | failed</code></pre>
+
+      <h2>Run Mode 설명</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Mode</th><th>트리거</th><th>동작</th></tr></thead>
+        <tbody>
+          <tr><td><code>trace</code></td><td>Window / Single Trace / Session 소스</td><td>LLM 저지가 트레이스 품질을 독립적으로 평가</td></tr>
+          <tr><td><code>golden_judge</code></td><td>Human Label 소스 (저지 모델 등록 시)</td><td>LLM 저지를 실행한 뒤, 휴먼 라벨을 그라운드 트루스로 비교</td></tr>
+          <tr><td><code>golden_gt</code></td><td>Human Label 소스 (저지 모델 미등록 시)</td><td>LLM 저지 없이 휴먼 라벨을 최종 verdict로 사용</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-next-grid">
+        <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>평가 기준 구성</span></a>
+        <a href="eval-judges.html" class="docs-next-card"><strong>LLM Judges</strong><span>저지 모델 등록</span></a>
+        <a href="eval-improvements.html" class="docs-next-card"><strong>Improvements</strong><span>평가 결과를 바탕으로 액션 수행</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

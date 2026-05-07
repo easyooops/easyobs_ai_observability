@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quickstart - EasyObs Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar">
+    <div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div>
+    <nav class="docs-nav">
+      <div class="docs-nav-group">Getting Started</div>
+      <a href="index.html" class="docs-nav-link">Introduction</a>
+      <a href="quickstart.html" class="docs-nav-link active">Quickstart</a>
+      <a href="installation.html" class="docs-nav-link">Installation</a>
+      <a href="configuration.html" class="docs-nav-link">Configuration</a>
+      <div class="docs-nav-group">Observability</div>
+      <a href="tracing.html" class="docs-nav-link">Tracing</a>
+      <a href="interactions.html" class="docs-nav-link">Interactions</a>
+      <a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a>
+      <div class="docs-nav-group">SDK Integration</div>
+      <a href="sdk-python.html" class="docs-nav-link">Python SDK</a>
+      <a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a>
+      <a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP (Any Language)</a>
+      <a href="sdk-langchain.html" class="docs-nav-link">LangChain Integration</a>
+      <div class="docs-nav-group">Quality (Evaluation)</div>
+      <a href="eval-overview.html" class="docs-nav-link">Overview</a>
+      <a href="eval-profiles.html" class="docs-nav-link">Profiles</a>
+      <a href="eval-runs.html" class="docs-nav-link">Runs</a>
+      <a href="eval-judges.html" class="docs-nav-link">LLM Judges</a>
+      <a href="eval-golden.html" class="docs-nav-link">Golden Sets</a>
+      <a href="eval-improvements.html" class="docs-nav-link">Improvements</a>
+      <div class="docs-nav-group">Platform</div>
+      <a href="organizations.html" class="docs-nav-link">Organizations &amp; RBAC</a>
+      <a href="alarms.html" class="docs-nav-link">Alarms</a>
+      <a href="deployment.html" class="docs-nav-link">Deployment</a>
+      <a href="api-reference.html" class="docs-nav-link">API Reference</a>
+    </nav>
+    <div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div>
+  </aside>
+
+  <main class="docs-main">
+    <header class="docs-header">
+      <button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+      <span class="docs-header-title">Quickstart</span>
+    </header>
+
+    <article class="docs-content">
+      <h1>Quickstart</h1>
+      <p class="docs-lede">Get EasyObs running locally and send your first trace in under 3 minutes.</p>
+
+      <h2>Prerequisites</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Tool</th><th>Min Version</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Python</td><td>3.11+</td><td>For the FastAPI server</td></tr>
+          <tr><td>Node.js</td><td>20+</td><td>For the Next.js web console</td></tr>
+          <tr><td>npm</td><td>9+</td><td>Bundled with Node.js</td></tr>
+          <tr><td>uv (optional)</td><td>0.1+</td><td>Auto-manages virtual environments (recommended)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Step 1: Navigate to the Project</h2>
+      <pre><code># Clone and enter the project
+git clone &lt;repository-url&gt;
+cd easyobs_ai_observability</code></pre>
+
+      <h2>Step 2: Create Environment File</h2>
+      <pre><code># Copy the sample .env
+cp .env.sample .env          # Linux/macOS
+Copy-Item .env.sample .env   # Windows PowerShell</code></pre>
+      <p>Default settings work out of the box. Set <code>EASYOBS_SEED_MOCK_DATA=true</code> to auto-generate demo data.</p>
+
+      <h2>Step 3: Start the Servers</h2>
+      <h3>Windows (PowerShell)</h3>
+      <pre><code>.\scripts\run-dev.ps1</code></pre>
+      <h3>Linux / macOS</h3>
+      <pre><code>chmod +x scripts/run-dev.sh
+./scripts/run-dev.sh</code></pre>
+
+      <p>The script automatically:</p>
+      <ol>
+        <li>Creates a Python virtual environment and installs dependencies</li>
+        <li>Installs npm packages (apps/web)</li>
+        <li>Starts the FastAPI server in background (port 8787)</li>
+        <li>Starts the Next.js dev server in foreground (port 3000)</li>
+      </ol>
+
+      <div class="docs-hero-image">
+        <img src="../../images/quickstart-run-dev-terminal.png" alt="Terminal output after run-dev: API ready on 127.0.0.1:8787 with OpenAPI docs, Next.js 15 dev server on localhost:3000 (network URL shown), Ready in 2.7s" loading="lazy" decoding="async" />
+      </div>
+
+      <h2>Step 4: Access the Console</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Service</th><th>URL</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Web Console</td><td><code>http://localhost:3000</code></td><td>Main dashboard</td></tr>
+          <tr><td>API Server</td><td><code>http://127.0.0.1:8787</code></td><td>REST API endpoints</td></tr>
+          <tr><td>OpenAPI Docs</td><td><code>http://127.0.0.1:8787/docs</code></td><td>Swagger UI (API explorer)</td></tr>
+          <tr><td>Health Check</td><td><code>http://127.0.0.1:8787/healthz</code></td><td>Server status</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-hero-image">
+        <img src="../../images/quickstart-signup-screen.png" alt="EasyObs sign-up screen with fields for email, display name, password, organization, and requested role, plus Request access button" loading="lazy" decoding="async" />
+      </div>
+
+      <div class="docs-info">
+        <strong>💡 First user auto-promotion:</strong> The first person to sign up automatically becomes Super Admin (SA) and is added to the default <code>administrator</code> organization as PO.
+      </div>
+
+      <h2>Step 5: Send Your First Trace</h2>
+      <p>Install the agent SDK:</p>
+      <pre><code>pip install -e ".[agent]"</code></pre>
+
+      <p>Minimal integration code:</p>
+      <pre><code>from easyobs_agent import init, traced
+
+init(
+    "http://127.0.0.1:8787",
+    token="eobs_...",       # Get from Organizations > Services
+    service="my-agent",
+)
+
+@traced("agent.turn")
+def answer(query: str) -> str:
+    return llm.invoke(query).content</code></pre>
+
+      <div class="docs-hero-image">
+        <img src="../../images/quickstart-first-trace-console.png" alt="EasyObs Tracing page: trace table with operations like agent.rag.pipeline and agent.llm.generate, demo service, duration and OK status, filters and 24h time window" loading="lazy" decoding="async" />
+      </div>
+
+      <h2>Step 6: Explore Demo Data</h2>
+      <p>When <code>EASYOBS_SEED_MOCK_DATA=true</code> is set, the server generates synthetic traces on first boot:</p>
+      <ul>
+        <li>1000 synthetic traces by default</li>
+        <li>Distributed across a 10-day time window</li>
+        <li>Immediately explorable in Overview, Tracing, and Interactions pages</li>
+      </ul>
+
+      <h2>Server Options</h2>
+      <h3>Change Ports</h3>
+      <pre><code># Windows
+.\scripts\run-dev.ps1 -ApiPort 9000 -WebPort 4000
+
+# Linux/macOS
+API_PORT=9000 WEB_PORT=4000 ./scripts/run-dev.sh</code></pre>
+
+      <h3>Skip Dependency Install (restart)</h3>
+      <pre><code>.\scripts\run-dev.ps1 -SkipInstall      # Windows
+./scripts/run-dev.sh --skip-install     # Linux/macOS</code></pre>
+
+      <h3>Reset Data</h3>
+      <pre><code>.\.venv\Scripts\easyobs.exe reset-data --force --yes   # Windows
+./.venv/bin/easyobs reset-data --force --yes           # Linux/macOS</code></pre>
+
+      <h2>Next Steps</h2>
+      <div class="docs-next-grid">
+        <a href="installation.html" class="docs-next-card">
+          <strong>Full Installation Guide</strong>
+          <span>Production deployment, Docker, Postgres</span>
+        </a>
+        <a href="sdk-python.html" class="docs-next-card">
+          <strong>Python SDK Guide</strong>
+          <span>@traced, span_block, record_llm</span>
+        </a>
+        <a href="configuration.html" class="docs-next-card">
+          <strong>Configuration</strong>
+          <span>All environment variable options</span>
+        </a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0 &middot; PolyForm Noncommercial License 1.0.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

@@ -11,6 +11,8 @@ import {
   createGoldenSet,
   deleteGoldenItem,
   deleteGoldenSet,
+  fetchEvalResults,
+  fetchEvalRuns,
   fetchGoldenItems,
   fetchGoldenSets,
   fetchOrgServices,
@@ -35,6 +37,7 @@ import { GoldenRegressionPanel } from "./regression-panel";
 import { GoldenSynthesizerPanel } from "./synthesizer-panel";
 import { GoldenUploadPanel } from "./upload-panel";
 import { GoldenTriPanel, GoldenWorkbenchKpiStrip } from "./overview-strip";
+import { buildCsv, triggerCsvDownload, fetchTraceEnrichments, TRACE_ENRICHMENT_HEADERS, traceEnrichmentToRow } from "@/lib/csv-export";
 
 const LAYER_OPTIONS: GoldenLayer[] = ["L1", "L2", "L3"];
 const STATUS_OPTIONS = ["draft", "approved", "deprecated", "candidate", "active"] as const;
@@ -813,6 +816,83 @@ function SetItems({ set: g, writable }: { set: GoldenSet; writable: boolean }) {
       )}
 
       <div className="eo-divider" style={{ margin: "10px 0" }} />
+      <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
+        <button
+          type="button"
+          className="eo-btn"
+          disabled={!items.data?.length}
+          onClick={async () => {
+            const data = items.data ?? [];
+            const traceIds = data.map((it) => it.sourceTraceId).filter(Boolean) as string[];
+            const enrichments = await fetchTraceEnrichments(traceIds);
+            const headers = [
+              "id", "layer", "source_kind", "status", "review_state", "source_trace_id",
+              "created_at", "payload_query", "payload_expected", "payload_full",
+              ...TRACE_ENRICHMENT_HEADERS,
+            ];
+            const rows = data.map((it) => {
+              const p = it.payload ?? {};
+              const te = it.sourceTraceId ? enrichments.get(it.sourceTraceId) : undefined;
+              return [
+                it.id, it.layer, it.sourceKind, it.status, it.reviewState ?? "unreviewed",
+                it.sourceTraceId ?? "", it.createdAt,
+                (p as Record<string, unknown>).query ?? (p as Record<string, unknown>).input ?? "",
+                (p as Record<string, unknown>).expected ?? (p as Record<string, unknown>).expectedResponse ?? (p as Record<string, unknown>).expected_response ?? "",
+                JSON.stringify(p),
+                ...traceEnrichmentToRow(te),
+              ];
+            });
+            triggerCsvDownload(`golden-items-${g.name.replace(/\s+/g, "_")}.csv`, buildCsv(headers, rows));
+          }}
+        >
+          Items CSV
+        </button>
+        <button
+          type="button"
+          className="eo-btn eo-btn-primary"
+          disabled={!items.data?.length}
+          onClick={async () => {
+            const runs = await fetchEvalRuns(200);
+            const setRuns = runs.filter((r) => r.goldenSetId === g.id);
+            if (setRuns.length === 0) {
+              alert("No evaluation runs found for this golden set.");
+              return;
+            }
+            const latest = setRuns.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())[0];
+            const results = await fetchEvalResults(latest.id, 1000);
+            const data = items.data ?? [];
+            const traceIds = data.map((it) => it.sourceTraceId).filter(Boolean) as string[];
+            const enrichments = await fetchTraceEnrichments(traceIds);
+            const resultByTrace = new Map(results.map((r) => [r.traceId, r]));
+            const headers = [
+              "item_id", "layer", "source_kind", "status", "review_state", "source_trace_id",
+              "payload_query", "payload_expected",
+              "eval_verdict", "eval_score", "eval_rule_score", "eval_judge_score",
+              "eval_judge_cost_usd", "eval_findings", "eval_run_id",
+              ...TRACE_ENRICHMENT_HEADERS,
+            ];
+            const rows = data.map((it) => {
+              const p = it.payload ?? {};
+              const evalResult = it.sourceTraceId ? resultByTrace.get(it.sourceTraceId) : undefined;
+              const te = it.sourceTraceId ? enrichments.get(it.sourceTraceId) : undefined;
+              return [
+                it.id, it.layer, it.sourceKind, it.status, it.reviewState ?? "unreviewed",
+                it.sourceTraceId ?? "",
+                (p as Record<string, unknown>).query ?? (p as Record<string, unknown>).input ?? "",
+                (p as Record<string, unknown>).expected ?? (p as Record<string, unknown>).expectedResponse ?? (p as Record<string, unknown>).expected_response ?? "",
+                evalResult?.verdict ?? "", evalResult?.score ?? "", evalResult?.ruleScore ?? "",
+                evalResult?.judgeScore ?? "", evalResult?.judgeCostUsd ?? "",
+                evalResult?.findings?.map((f) => `${f.evaluatorId}:${f.verdict}(${f.score})`).join(";") ?? "",
+                latest.id,
+                ...traceEnrichmentToRow(te),
+              ];
+            });
+            triggerCsvDownload(`golden-items-with-eval-${g.name.replace(/\s+/g, "_")}.csv`, buildCsv(headers, rows));
+          }}
+        >
+          Items + Eval Results CSV
+        </button>
+      </div>
       <div className="eo-table-wrap" style={{ maxHeight: 360, overflow: "auto" }}>
         <table className="eo-table">
           <thead>

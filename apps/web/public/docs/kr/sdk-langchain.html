@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LangChain 통합 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭</a><div class="docs-nav-group">SDK 통합</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link active">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">LangChain 통합</span></header>
+    <article class="docs-content">
+      <h1>LangChain 통합</h1>
+      <p class="docs-lede">내장 <code>EasyObsCallbackHandler</code>를 사용해 LangChain 애플리케이션을 별도 설정 없이 트레이싱할 수 있습니다.</p>
+
+      <h2>설치</h2>
+      <pre><code>pip install -e ".[langchain]"</code></pre>
+      <p>이 명령은 다음을 함께 설치합니다: <code>opentelemetry-api</code>, <code>opentelemetry-sdk</code>, <code>opentelemetry-exporter-otlp-proto-http</code>, <code>langchain-core</code>.</p>
+
+      <h2>옵션 A: 자동 모드 (권장)</h2>
+      <p><code>init()</code>에 <code>auto=True</code>만 지정하면, 명시적인 콜백 연결 없이도 LangChain의 모든 호출이 전역적으로 캡처됩니다.</p>
+      <pre><code>from easyobs_agent import init
+
+init(
+    "http://localhost:8787",
+    token="eobs_...",
+    service="my-langchain-app",
+    auto=True,              # auto_langchain + capture_io 동시 활성화
+    session_id="sess_123",  # 선택: 기본 세션
+    user_id="alice",        # 선택: 기본 사용자
+)
+
+# 끝입니다! 모든 llm.invoke(), chain.invoke(), retriever.invoke()가
+# 코드 변경 없이 자동으로 트레이싱됩니다.</code></pre>
+
+      <div class="docs-info">
+        <strong>동작 원리:</strong> <code>auto_langchain=True</code>는 <code>langchain_core.tracers.context.register_configure_hook</code>을 통해 프로세스 전역 콜백을 등록합니다. LangSmith가 사용하는 것과 동일한 메커니즘입니다.
+      </div>
+
+      <h2>옵션 B: 명시적 콜백</h2>
+      <p>좀 더 세밀하게 제어하려면 핸들러를 직접 전달합니다.</p>
+      <pre><code>from easyobs_agent import init
+from easyobs_agent.callbacks import EasyObsCallbackHandler
+
+init("http://localhost:8787", token="eobs_...", service="my-app")
+
+handler = EasyObsCallbackHandler(session_id="sess_123", user_id="alice")
+
+# 개별 호출에 콜백 전달
+result = llm.invoke("Hello", config={"callbacks": [handler]})
+result = chain.invoke({"query": "..."}, config={"callbacks": [handler]})</code></pre>
+
+      <h2>캡처되는 데이터</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>LangChain 컴포넌트</th><th>스팬 종류</th><th>캡처 데이터</th></tr></thead>
+        <tbody>
+          <tr><td>LLM / ChatModel</td><td><code>llm</code></td><td>모델, 프롬프트, 응답, 토큰, 비용</td></tr>
+          <tr><td>Chain / RunnableSequence</td><td><code>chain</code></td><td>체인 이름, 입력/출력</td></tr>
+          <tr><td>Retriever</td><td><code>retrieve</code></td><td>질의, 검색된 문서</td></tr>
+          <tr><td>Tool</td><td><code>tool</code></td><td>도구 이름, 입력, 출력</td></tr>
+          <tr><td>Agent</td><td><code>agent</code></td><td>에이전트 타입, 전체 대화 흐름</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>전체 예제</h2>
+      <pre><code>from easyobs_agent import init
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+# 한 번만 설정
+init("http://localhost:8787", token="eobs_...", service="rag-bot", auto=True)
+
+# 평소처럼 체인 구성 -- 트레이싱은 자동으로 동작
+llm = ChatOpenAI(model="gpt-4o-mini")
+prompt = ChatPromptTemplate.from_template("Answer: {question}")
+chain = prompt | llm | StrOutputParser()
+
+# 모든 invoke 호출이 자동으로 트레이싱됩니다
+answer = chain.invoke({"question": "What is EasyObs?"})</code></pre>
+
+      <div class="docs-next-grid">
+        <a href="sdk-python.html" class="docs-next-card"><strong>Python SDK</strong><span>@traced 기반 수동 계측</span></a>
+        <a href="eval-overview.html" class="docs-next-card"><strong>품질 평가</strong><span>LangChain 출력 품질 평가</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

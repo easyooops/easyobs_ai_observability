@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 저지 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭 &amp; 대시보드</a><div class="docs-nav-group">SDK 통합</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link active">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">LLM 저지 &mdash; 상세 매뉴얼</span></header>
+    <article class="docs-content">
+
+      <h1>LLM 저지 &mdash; 전체 기능 매뉴얼</h1>
+      <p class="docs-lede">LLM 저지(Judge)는 자동 평가자 역할을 하도록 EasyObs에 등록된 외부 언어 모델 엔드포인트입니다. LLM의 입력/출력을 분석해 verdict와 함께 근거(reasoning)를 산출합니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/eval-judges-page.png" alt="LLM Judges 페이지: name, provider, model, temperature, weight, cost, enabled 컬럼이 있는 Judge Models 탭, Register judge 버튼, Bedrock 등 provider 배지가 포함된 Edit judge 폼" loading="lazy" decoding="async" /></div>
+
+      <h2>개념</h2>
+      <p>LLM 저지는 다음과 같이 동작하도록 설정된 모델 엔드포인트입니다.</p>
+      <ol>
+        <li>구조화된 평가 프롬프트(트레이스 컨텍스트 + 평가 기준)를 입력으로 받는다.</li>
+        <li>verdict (PASS / WARN / FAIL), 0.0~1.0 점수, 근거 텍스트를 반환한다.</li>
+        <li>합의 정책을 통해 다른 저지와 결합되어 더 신뢰성 있는 결과를 만들 수 있다.</li>
+      </ol>
+
+      <h2>지원 Provider</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Provider</th><th>ID</th><th>Endpoint</th><th>Required Credentials</th></tr></thead>
+        <tbody>
+          <tr><td><strong>OpenAI</strong></td><td><code>openai</code></td><td>api.openai.com</td><td><code>OPENAI_API_KEY</code></td></tr>
+          <tr><td><strong>Anthropic</strong></td><td><code>anthropic</code></td><td>Claude API</td><td><code>ANTHROPIC_API_KEY</code></td></tr>
+          <tr><td><strong>Google Gemini</strong></td><td><code>google_gemini</code></td><td>Google AI Studio</td><td><code>GOOGLE_API_KEY</code></td></tr>
+          <tr><td><strong>Google Vertex</strong></td><td><code>google_vertex</code></td><td>GCP Vertex AI</td><td><code>GOOGLE_APPLICATION_CREDENTIALS</code>, project_id, location</td></tr>
+          <tr><td><strong>Azure OpenAI</strong></td><td><code>azure_openai</code></td><td>Azure endpoint</td><td><code>AZURE_OPENAI_API_KEY</code>, endpoint, deployment, api_version</td></tr>
+          <tr><td><strong>AWS Bedrock</strong></td><td><code>aws_bedrock</code></td><td>AWS Bedrock</td><td>aws_region, <code>AWS_PROFILE</code></td></tr>
+          <tr><td><strong>On-prem / Custom</strong></td><td><code>onprem_openai_compatible</code></td><td>OpenAI 호환 엔드포인트 (vLLM, LiteLLM 등)</td><td>base_url, api_key_env</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>저지 등록</h2>
+
+      <h3>등록 방법</h3>
+      <ol>
+        <li><strong>Quality &rarr; Judges</strong>로 이동</li>
+        <li><strong>"Register judge"</strong> 클릭 (PO/SA 권한 필요)</li>
+        <li>등록 폼 작성 (아래 필드 참조)</li>
+        <li><strong>Save</strong> 클릭</li>
+      </ol>
+
+      <h3>등록 폼 필드</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>필수</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Name</strong></td><td>Yes</td><td>사람이 읽기 쉬운 식별자 (예: "GPT-4o Judge", "Claude Sonnet Strict")</td></tr>
+          <tr><td><strong>Provider</strong></td><td>Yes</td><td>지원되는 7개 provider 중 선택 (이모지 아이콘이 포함된 드롭다운)</td></tr>
+          <tr><td><strong>Model</strong></td><td>Yes</td><td>모델 식별자 (예: "gpt-4o", "claude-sonnet-4-20250514", "gemini-1.5-pro")</td></tr>
+          <tr><td><strong>Temperature</strong></td><td>Yes</td><td>추론 temperature (0.0 ~ 2.0). 낮을수록 결정적인 verdict를 얻습니다. 기본값: 0</td></tr>
+          <tr><td><strong>Weight</strong></td><td>Yes</td><td>다중 저지 합의에서의 상대 가중치 (0.01 ~ 10.0). 기본값: 1.0</td></tr>
+          <tr><td><strong>Cost per 1k Input Tokens</strong></td><td>Yes</td><td>실행 예산 추정에 사용되는 USD 단가. 예: 0.0025</td></tr>
+          <tr><td><strong>Cost per 1k Output Tokens</strong></td><td>Yes</td><td>실행 예산 추정에 사용되는 USD 단가. 예: 0.0100</td></tr>
+          <tr><td><strong>Enabled</strong></td><td>Yes</td><td>비활성 저지는 실행에서 제외됩니다.</td></tr>
+          <tr><td><strong>Connection Config</strong></td><td>가변</td><td>provider별 추가 설정 (아래 표 참조)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Provider별 연결 설정</h3>
+
+      <h4>OpenAI</h4>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>기본값</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>OPENAI_API_KEY</td><td>API 키를 담고 있는 환경 변수 이름</td></tr>
+          <tr><td><code>base_url</code></td><td>(비어 있음)</td><td>커스텀 base URL (비워 두면 기본 api.openai.com 사용)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Anthropic</h4>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>기본값</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>ANTHROPIC_API_KEY</td><td>환경 변수 이름</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Google Gemini</h4>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>기본값</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>GOOGLE_API_KEY</td><td>Google AI Studio API 키 환경 변수</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Google Vertex</h4>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>기본값</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>GOOGLE_APPLICATION_CREDENTIALS</td><td>서비스 계정 JSON 경로</td></tr>
+          <tr><td><code>project_id</code></td><td>(필수)</td><td>GCP Project ID</td></tr>
+          <tr><td><code>location</code></td><td>us-central1</td><td>GCP region</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Azure OpenAI</h4>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>기본값</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_key_env</code></td><td>AZURE_OPENAI_API_KEY</td><td>Azure API 키 환경 변수</td></tr>
+          <tr><td><code>endpoint</code></td><td>(필수)</td><td>Azure 리소스 endpoint URL</td></tr>
+          <tr><td><code>deployment</code></td><td>(필수)</td><td>배포(deployment) 이름</td></tr>
+          <tr><td><code>api_version</code></td><td>2024-02-15-preview</td><td>Azure API 버전</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>AWS Bedrock</h4>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>기본값</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>aws_region</code></td><td>us-east-1</td><td>Bedrock이 배포된 AWS region</td></tr>
+          <tr><td><code>credential_env_hint</code></td><td>AWS_PROFILE</td><td>자격증명 해석 힌트</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>On-prem (OpenAI 호환)</h4>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>기본값</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>base_url</code></td><td>(필수)</td><td>전체 base URL (예: http://vllm-host:8000/v1)</td></tr>
+          <tr><td><code>api_key_env</code></td><td>OPENAI_API_KEY</td><td>API 키 환경 변수 (인증이 없는 엔드포인트라면 더미 값도 가능)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>저지 테이블</h2>
+      <p>Judges 페이지 메인 테이블은 등록된 모든 저지를 다음 컬럼으로 표시합니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>Name</td><td>저지 이름</td></tr>
+          <tr><td>Provider / Model</td><td>예: "openai / gpt-4o"</td></tr>
+          <tr><td>Temp</td><td>Temperature (소수점 2자리)</td></tr>
+          <tr><td>Weight</td><td>합의 가중치 (소수점 2자리)</td></tr>
+          <tr><td>$/1k in</td><td>입력 토큰 단가</td></tr>
+          <tr><td>$/1k out</td><td>출력 토큰 단가</td></tr>
+          <tr><td>Enabled</td><td>녹색/회색 점으로 표시</td></tr>
+          <tr><td>Created</td><td>상대 시각</td></tr>
+          <tr><td>Actions</td><td>삭제 버튼 (휴지통 아이콘, 확인 다이얼로그 포함)</td></tr>
+        </tbody>
+      </table></div>
+      <p>임의의 행을 클릭하면 현재 값이 채워진 편집 폼이 열립니다.</p>
+
+      <h2>다중 저지 합의</h2>
+      <p>평가 프로파일이 여러 저지를 사용할 경우, verdict는 프로파일별로 설정된 <strong>합의 정책</strong>에 따라 결합됩니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>정책</th><th>판정 로직</th><th>활용 예시</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Single</strong></td><td>첫 번째 저지의 verdict를 최종 결과로 사용</td><td>속도와 비용을 우선시하는 평가</td></tr>
+          <tr><td><strong>Majority</strong></td><td>저지의 50% 초과가 동의해야 verdict 확정</td><td>신뢰성과 비용의 균형</td></tr>
+          <tr><td><strong>Unanimous</strong></td><td>모두 동의해야 하며, 그렇지 않으면 WARN</td><td>의심이 있으면 무조건 플래그하는 고위험 의사결정</td></tr>
+          <tr><td><strong>Weighted</strong></td><td>각 저지의 <code>weight</code>로 가중 평균</td><td>전문 영역 저지에 가중치 3배 등 앙상블 운영</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>가중치 합의 예시</h2>
+      <p>예: 3개의 저지가 가중치 1.0, 1.0, 3.0 (합 = 5.0)을 가질 때</p>
+      <ul>
+        <li>Judge A (w=1.0): PASS &rarr; PASS에 1.0 기여</li>
+        <li>Judge B (w=1.0): FAIL &rarr; FAIL에 1.0 기여</li>
+        <li>Judge C (w=3.0): PASS &rarr; PASS에 3.0 기여</li>
+        <li>결과: PASS 점수 = 4.0/5.0 = 0.80 &rarr; verdict PASS</li>
+      </ul>
+
+      <h2>편집 &amp; 삭제</h2>
+      <ul>
+        <li><strong>Edit:</strong> 행 클릭 &rarr; 현재 값이 채워진 폼 &rarr; 수정 &rarr; Save</li>
+        <li><strong>Delete:</strong> 휴지통 아이콘 클릭 &rarr; 확인 다이얼로그 &rarr; 영구 삭제</li>
+        <li>이미 활성 프로파일이 참조 중인 저지를 삭제해도 기존 실행은 깨지지 않지만, 새 실행에서는 해당 저지를 사용할 수 없습니다.</li>
+      </ul>
+
+      <h2>권한</h2>
+      <ul>
+        <li><strong>SA / PO:</strong> 모든 CRUD 가능</li>
+        <li><strong>DV:</strong> Judges 테이블의 읽기 전용 조회</li>
+      </ul>
+
+      <h2>모범 사례</h2>
+      <ul>
+        <li>교차 검증을 위해 서로 다른 provider의 저지를 최소 2개 등록하세요.</li>
+        <li>최대한 재현 가능한 결과를 위해 <code>temperature: 0</code>을 사용하세요.</li>
+        <li>가격 값을 정확히 설정해야 Budget Guard 계산이 정확해집니다.</li>
+        <li>저지 이름은 의도가 드러나도록 작성하세요 (예: "GPT-4o Strict Safety" vs "Claude Helpfulness").</li>
+        <li>실험 중인 저지는 비활성화해 프로덕션 실행에서 제외하세요.</li>
+      </ul>
+
+      <h2>Evaluation Prompts (버전 관리되는 프롬프트)</h2>
+      <p>Judge Models 옆의 <strong>Evaluation Prompts</strong> 탭에서는, LLM-as-a-Judge가 평가 차원별로 사용하는 system 메시지와 user 메시지 프롬프트를 조직 단위로 커스터마이즈할 수 있습니다.</p>
+
+      <h3>개념</h3>
+      <p>각 평가 차원(Faithfulness, Answer Relevance, Coherence 등)은 다음 두 프롬프트 한 쌍을 가집니다.</p>
+      <ul>
+        <li><strong>System Prompt</strong> &mdash; 저지 LLM에게 평가 방식을 안내하는 지침</li>
+        <li><strong>User Message Template</strong> &mdash; <code>{rubric_id}</code>, <code>{rubric}</code>, <code>{context_json}</code> 같은 placeholder를 포함하는 구조화된 페이로드</li>
+      </ul>
+      <p>프롬프트는 버전 관리됩니다: v1(초기/기본) &rarr; v2 &rarr; v3 …. 편집할 때마다 새 버전이 생성되며, 평가 시점에는 <strong>active</strong> 버전만 사용됩니다. 이전 버전은 감사와 롤백을 위해 보존됩니다.</p>
+
+      <h3>지원 평가 차원</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>ID</th><th>이름</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>faithfulness</code></td><td>충실도</td><td>응답이 제공된 컨텍스트와 사실적으로 일치하며 환각 없이 작성되었는지 평가합니다.</td></tr>
+          <tr><td><code>answer_relevance</code></td><td>답변 관련성</td><td>응답이 사용자의 질문을 얼마나 직접적이고 완전하게 다루는지 평가합니다.</td></tr>
+          <tr><td><code>context_utilization</code></td><td>컨텍스트 활용도</td><td>모델이 검색된 컨텍스트를 답변 구성에 얼마나 효과적으로 활용했는지 평가합니다.</td></tr>
+          <tr><td><code>context_recall</code></td><td>컨텍스트 재현율</td><td>그라운드 트루스에 포함된 관련 정보가 검색된 컨텍스트에 모두 담겨 있는지 평가합니다.</td></tr>
+          <tr><td><code>context_precision</code></td><td>컨텍스트 정밀도</td><td>검색된 컨텍스트가 주제에 집중되어 있고 무관한 정보가 섞이지 않았는지 평가합니다.</td></tr>
+          <tr><td><code>answer_correctness</code></td><td>답변 정확성</td><td>응답의 사실 정확도를 알려진 그라운드 트루스 답변과 비교해 검증합니다.</td></tr>
+          <tr><td><code>harmfulness_safety</code></td><td>안전성 / 유해성</td><td>생성된 응답에 포함된 유해·악성·위험 콘텐츠를 탐지합니다.</td></tr>
+          <tr><td><code>noise_sensitivity</code></td><td>노이즈 민감도</td><td>입력 컨텍스트에 무관하거나 노이즈성 정보가 섞였을 때의 견고성을 평가합니다.</td></tr>
+          <tr><td><code>coherence</code></td><td>일관성</td><td>응답의 논리적 흐름, 일관성, 구조적 명료함을 평가합니다.</td></tr>
+          <tr><td><code>answer_conciseness</code></td><td>간결성</td><td>응답이 불필요한 장황함이나 반복 없이 간결하게 작성되었는지 평가합니다.</td></tr>
+          <tr><td><code>tool_use_quality</code></td><td>도구 사용 품질</td><td>tool / function 호출의 선택, 파라미터 사용, 결과 해석의 정확성을 평가합니다.</td></tr>
+        </tbody>
+      </table></div>
+
+
+      <h3>사용 방법</h3>
+      <ol>
+        <li><strong>Quality &rarr; Judges &rarr; Evaluation Prompts</strong> 탭으로 이동</li>
+        <li>좌측 패널에서 차원(dimension) 선택</li>
+        <li>기존 버전 확인 (커스텀 프롬프트가 없으면 "default"로 표시)</li>
+        <li><strong>"New version"</strong>을 클릭해 커스텀 프롬프트 생성</li>
+        <li>System Prompt 또는 User Message Template 편집</li>
+        <li><strong>"Save as new version"</strong> 클릭</li>
+      </ol>
+
+      <h3>버전 관리</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>액션</th><th>동작</th></tr></thead>
+        <tbody>
+          <tr><td>첫 프롬프트 생성</td><td>v1로 저장되며 자동으로 active로 설정됩니다.</td></tr>
+          <tr><td>편집 / 새 버전</td><td>이전 버전이 비활성화되고 새 버전이 active가 됩니다.</td></tr>
+          <tr><td>이전 버전 활성화</td><td>active 플래그를 전환합니다 (삭제 없이 롤백).</td></tr>
+          <tr><td>Clone &amp; Edit</td><td>기존 버전 내용을 채운 상태로 편집기를 엽니다.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>프롬프트가 평가에 적용되는 우선순위</h3>
+      <p>저지 LLM 호출 시 프롬프트 적용 우선순위는 다음과 같습니다.</p>
+      <ol>
+        <li><strong>프로파일 단위 오버라이드</strong> &mdash; 프로파일에 <code>judge_system_prompt</code> 또는 <code>judge_user_message_template</code>이 설정되어 있으면 가장 우선합니다.</li>
+        <li><strong>DB의 버전 관리되는 프롬프트(active)</strong> &mdash; 프로파일 오버라이드가 없으면 해당 차원의 active 버전이 사용됩니다.</li>
+        <li><strong>내장 기본값</strong> &mdash; 위 두 가지가 모두 없으면 하드코딩된 기본값으로 폴백됩니다.</li>
+      </ol>
+
+      <h3>Template Placeholders</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Placeholder</th><th>치환되는 값</th></tr></thead>
+        <tbody>
+          <tr><td><code>{rubric_id}</code></td><td>Profile ID 또는 평가 식별자</td></tr>
+          <tr><td><code>{rubric}</code></td><td>evaluator 설정으로부터 자동 생성된 rubric</td></tr>
+          <tr><td><code>{context_json}</code></td><td>query, response, model, token 등이 포함된 JSON 페이로드</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>권한</h3>
+      <ul>
+        <li><strong>SA / PO:</strong> 프롬프트 버전 생성, 활성화, 복제 가능</li>
+        <li><strong>DV:</strong> 모든 프롬프트 버전을 읽기 전용으로 조회</li>
+      </ul>
+
+      <h3>API 레퍼런스</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Method</th><th>Endpoint</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/evaluations/judge-prompts</code></td><td>버전 관리되는 프롬프트 목록 (선택 <code>?dimension_id=</code> 필터)</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/judge-prompts</code></td><td>새 버전 생성 (자동 증가, active로 설정됨)</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/judge-prompts/{id}:activate</code></td><td>특정 버전을 활성화 (해당 차원의 다른 버전은 비활성화)</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-next-grid">
+        <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>평가 기준 &amp; 합의 정책 구성</span></a>
+        <a href="eval-runs.html" class="docs-next-card"><strong>Runs</strong><span>등록된 저지로 평가 실행</span></a>
+        <a href="eval-golden.html" class="docs-next-card"><strong>Golden Sets</strong><span>저지 보정용 그라운드 트루스</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

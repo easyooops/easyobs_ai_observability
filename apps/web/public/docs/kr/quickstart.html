@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>빠른 시작 - EasyObs Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar">
+    <div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div>
+    <nav class="docs-nav">
+      <div class="docs-nav-group">시작하기</div>
+      <a href="index.html" class="docs-nav-link">소개</a>
+      <a href="quickstart.html" class="docs-nav-link active">빠른 시작</a>
+      <a href="installation.html" class="docs-nav-link">설치</a>
+      <a href="configuration.html" class="docs-nav-link">환경 설정</a>
+      <div class="docs-nav-group">관측</div>
+      <a href="tracing.html" class="docs-nav-link">트레이싱</a>
+      <a href="interactions.html" class="docs-nav-link">인터랙션</a>
+      <a href="metrics.html" class="docs-nav-link">메트릭 &amp; 대시보드</a>
+      <div class="docs-nav-group">SDK 통합</div>
+      <a href="sdk-python.html" class="docs-nav-link">Python SDK</a>
+      <a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a>
+      <a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP (모든 언어)</a>
+      <a href="sdk-langchain.html" class="docs-nav-link">LangChain 통합</a>
+      <div class="docs-nav-group">품질 (평가)</div>
+      <a href="eval-overview.html" class="docs-nav-link">개요</a>
+      <a href="eval-profiles.html" class="docs-nav-link">프로파일</a>
+      <a href="eval-runs.html" class="docs-nav-link">실행</a>
+      <a href="eval-judges.html" class="docs-nav-link">LLM 저지</a>
+      <a href="eval-golden.html" class="docs-nav-link">골든 셋</a>
+      <a href="eval-improvements.html" class="docs-nav-link">개선</a>
+      <div class="docs-nav-group">플랫폼</div>
+      <a href="organizations.html" class="docs-nav-link">조직 &amp; RBAC</a>
+      <a href="alarms.html" class="docs-nav-link">알람</a>
+      <a href="deployment.html" class="docs-nav-link">배포</a>
+      <a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a>
+    </nav>
+    <div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div>
+  </aside>
+
+  <main class="docs-main">
+    <header class="docs-header">
+      <button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
+      <span class="docs-header-title">빠른 시작</span>
+    </header>
+
+    <article class="docs-content">
+      <h1>빠른 시작</h1>
+      <p class="docs-lede">3분 안에 EasyObs를 로컬에서 실행하고 첫 트레이스를 전송해 봅니다.</p>
+
+      <h2>사전 요구사항</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>도구</th><th>최소 버전</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>Python</td><td>3.11+</td><td>FastAPI 서버용</td></tr>
+          <tr><td>Node.js</td><td>20+</td><td>Next.js 웹 콘솔용</td></tr>
+          <tr><td>npm</td><td>9+</td><td>Node.js에 함께 포함됨</td></tr>
+          <tr><td>uv (선택)</td><td>0.1+</td><td>가상 환경을 자동 관리합니다 (권장)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Step 1: 프로젝트로 이동</h2>
+      <pre><code># 저장소 클론 및 디렉터리 진입
+git clone &lt;repository-url&gt;
+cd easyobs_ai_observability</code></pre>
+
+      <h2>Step 2: 환경 파일 생성</h2>
+      <pre><code># 샘플 .env 파일 복사
+cp .env.sample .env          # Linux/macOS
+Copy-Item .env.sample .env   # Windows PowerShell</code></pre>
+      <p>기본 설정만으로도 바로 동작합니다. 데모 데이터를 자동 생성하려면 <code>EASYOBS_SEED_MOCK_DATA=true</code>를 설정하세요.</p>
+
+      <h2>Step 3: 서버 시작</h2>
+      <h3>Windows (PowerShell)</h3>
+      <pre><code>.\scripts\run-dev.ps1</code></pre>
+      <h3>Linux / macOS</h3>
+      <pre><code>chmod +x scripts/run-dev.sh
+./scripts/run-dev.sh</code></pre>
+
+      <p>이 스크립트는 다음을 자동으로 수행합니다.</p>
+      <ol>
+        <li>Python 가상 환경 생성 및 의존성 설치</li>
+        <li>npm 패키지 설치 (apps/web)</li>
+        <li>FastAPI 서버를 백그라운드로 실행 (포트 8787)</li>
+        <li>Next.js 개발 서버를 포그라운드로 실행 (포트 3000)</li>
+      </ol>
+
+      <div class="docs-hero-image">
+        <img src="../../images/quickstart-run-dev-terminal.png" alt="run-dev 실행 후 터미널 출력: 127.0.0.1:8787에서 API와 OpenAPI 문서가 준비되고, localhost:3000에서 Next.js 15 개발 서버가 실행되며 Ready in 2.7s 메시지가 표시됨" loading="lazy" decoding="async" />
+      </div>
+
+      <h2>Step 4: 콘솔 접속</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>서비스</th><th>URL</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>Web Console</td><td><code>http://localhost:3000</code></td><td>메인 대시보드</td></tr>
+          <tr><td>API Server</td><td><code>http://127.0.0.1:8787</code></td><td>REST API 엔드포인트</td></tr>
+          <tr><td>OpenAPI Docs</td><td><code>http://127.0.0.1:8787/docs</code></td><td>Swagger UI (API 탐색기)</td></tr>
+          <tr><td>Health Check</td><td><code>http://127.0.0.1:8787/healthz</code></td><td>서버 상태 확인</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-hero-image">
+        <img src="../../images/quickstart-signup-screen.png" alt="EasyObs 회원가입 화면: 이메일, 표시 이름, 비밀번호, 조직, 요청 역할 입력 필드와 Request access 버튼" loading="lazy" decoding="async" />
+      </div>
+
+      <div class="docs-info">
+        <strong>💡 첫 사용자 자동 승급:</strong> 가장 먼저 가입한 사용자는 자동으로 Super Admin(SA)이 되며, 기본 <code>administrator</code> 조직에 PO로 추가됩니다.
+      </div>
+
+      <h2>Step 5: 첫 트레이스 전송</h2>
+      <p>에이전트 SDK 설치:</p>
+      <pre><code>pip install -e ".[agent]"</code></pre>
+
+      <p>최소 통합 코드:</p>
+      <pre><code>from easyobs_agent import init, traced
+
+init(
+    "http://127.0.0.1:8787",
+    token="eobs_...",       # Organizations &gt; Services 메뉴에서 발급
+    service="my-agent",
+)
+
+@traced("agent.turn")
+def answer(query: str) -&gt; str:
+    return llm.invoke(query).content</code></pre>
+
+      <div class="docs-hero-image">
+        <img src="../../images/quickstart-first-trace-console.png" alt="EasyObs 트레이싱 페이지: agent.rag.pipeline, agent.llm.generate 같은 작업이 포함된 트레이스 테이블, demo 서비스, 지속 시간과 OK 상태, 필터와 24시간 시간 윈도우" loading="lazy" decoding="async" />
+      </div>
+
+      <h2>Step 6: 데모 데이터 살펴보기</h2>
+      <p><code>EASYOBS_SEED_MOCK_DATA=true</code>가 설정되면 서버 첫 부팅 시 합성 트레이스를 자동으로 생성합니다.</p>
+      <ul>
+        <li>기본 1,000건의 합성 트레이스</li>
+        <li>10일 시간 범위에 분산</li>
+        <li>Overview, Tracing, Interactions 페이지에서 즉시 탐색 가능</li>
+      </ul>
+
+      <h2>서버 옵션</h2>
+      <h3>포트 변경</h3>
+      <pre><code># Windows
+.\scripts\run-dev.ps1 -ApiPort 9000 -WebPort 4000
+
+# Linux/macOS
+API_PORT=9000 WEB_PORT=4000 ./scripts/run-dev.sh</code></pre>
+
+      <h3>의존성 설치 건너뛰기 (재시작)</h3>
+      <pre><code>.\scripts\run-dev.ps1 -SkipInstall      # Windows
+./scripts/run-dev.sh --skip-install     # Linux/macOS</code></pre>
+
+      <h3>데이터 초기화</h3>
+      <pre><code>.\.venv\Scripts\easyobs.exe reset-data --force --yes   # Windows
+./.venv/bin/easyobs reset-data --force --yes           # Linux/macOS</code></pre>
+
+      <h2>다음 단계</h2>
+      <div class="docs-next-grid">
+        <a href="installation.html" class="docs-next-card">
+          <strong>전체 설치 가이드</strong>
+          <span>프로덕션 배포, Docker, Postgres</span>
+        </a>
+        <a href="sdk-python.html" class="docs-next-card">
+          <strong>Python SDK 가이드</strong>
+          <span>@traced, span_block, record_llm</span>
+        </a>
+        <a href="configuration.html" class="docs-next-card">
+          <strong>환경 설정</strong>
+          <span>모든 환경 변수 옵션</span>
+        </a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0 &middot; PolyForm Noncommercial License 1.0.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>API 레퍼런스 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭</a><div class="docs-nav-group">SDK 연동</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link active">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">API 레퍼런스</span></header>
+    <article class="docs-content">
+      <h1>API 레퍼런스</h1>
+      <p class="docs-lede">EasyObs는 FastAPI로 구축된 RESTful API를 제공합니다. 인터랙티브 문서는 <code>/docs</code>(Swagger UI)에서 확인할 수 있습니다.</p>
+
+      <div class="docs-info">
+        <strong>Interactive API Explorer</strong> &mdash; <a href="http://127.0.0.1:8787/docs" target="_blank">http://127.0.0.1:8787/docs</a>에서 try-it-out을 지원하는 라이브 Swagger UI를 사용할 수 있습니다.
+        <a href="http://127.0.0.1:8787/docs" target="_blank" class="docs-btn">Open Swagger UI</a>
+      </div>
+
+      <h2>인증</h2>
+      <p>모든 API 요청은 Bearer 토큰을 통한 인증이 필요합니다.</p>
+      <pre><code>Authorization: Bearer &lt;token&gt;</code></pre>
+      <p>두 가지 토큰 타입이 존재합니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Type</th><th>용도</th><th>발급 방법</th></tr></thead>
+        <tbody>
+          <tr><td>Session JWT</td><td>웹 콘솔 / 관리 API.</td><td>POST /v1/auth/signin</td></tr>
+          <tr><td>Ingest Token</td><td>SDK에서 OTLP 트레이스 수집.</td><td>Organizations &gt; Services</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Base URL</h2>
+      <pre><code>http://127.0.0.1:8787    (로컬 개발)
+https://easyobs.your.co  (리버스 프록시 뒤의 운영)</code></pre>
+
+      <h2>엔드포인트 그룹</h2>
+
+      <h3>Health &amp; System</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/healthz</code></td><td>헬스 체크.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Authentication</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>POST</td><td><code>/v1/auth/signup</code></td><td>새 사용자 등록.</td></tr>
+          <tr><td>POST</td><td><code>/v1/auth/signin</code></td><td>로그인 후 JWT 발급.</td></tr>
+          <tr><td>GET</td><td><code>/v1/auth/me</code></td><td>현재 사용자 정보 조회.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Trace Ingestion</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>POST</td><td><code>/v1/traces</code></td><td>OTLP/HTTP 표준 ingest.</td></tr>
+          <tr><td>POST</td><td><code>/otlp/v1/traces</code></td><td>레거시 EasyObs ingest 경로.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Traces &amp; Analytics</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/traces</code></td><td>트레이스 목록 (페이지네이션·필터).</td></tr>
+          <tr><td>GET</td><td><code>/v1/traces/{id}</code></td><td>span을 포함한 트레이스 상세.</td></tr>
+          <tr><td>GET</td><td><code>/v1/sessions</code></td><td>세션 목록.</td></tr>
+          <tr><td>GET</td><td><code>/v1/analytics/overview</code></td><td>대시보드 KPI와 시계열.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Organizations</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/organizations</code></td><td>조직 목록.</td></tr>
+          <tr><td>POST</td><td><code>/v1/organizations</code></td><td>조직 생성.</td></tr>
+          <tr><td>GET</td><td><code>/v1/organizations/{id}</code></td><td>조직 상세.</td></tr>
+          <tr><td>GET</td><td><code>/v1/organizations/{id}/services</code></td><td>service 목록.</td></tr>
+          <tr><td>POST</td><td><code>/v1/organizations/{id}/services</code></td><td>service 생성 + 토큰 발급.</td></tr>
+          <tr><td>GET</td><td><code>/v1/organizations/{id}/members</code></td><td>멤버 목록.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Evaluations (Quality)</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/evaluations/profiles</code></td><td>프로파일 목록.</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/profiles</code></td><td>프로파일 생성.</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/runs</code></td><td>실행 목록.</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/runs</code></td><td>새 실행 시작.</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/runs/{id}</code></td><td>실행 상세 + 결과.</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/judges</code></td><td>저지 모델 목록.</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/judges</code></td><td>저지 모델 등록.</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/judge-prompts</code></td><td>버전 관리되는 평가 프롬프트 목록 (선택: ?dimension_id 필터).</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/judge-prompts</code></td><td>새 프롬프트 버전 생성 (자동 활성화).</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/judge-prompts/{id}:activate</code></td><td>특정 프롬프트 버전 활성화.</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/judge-dimensions</code></td><td>평가 디멘션 카탈로그 조회.</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/golden-sets</code></td><td>골든 셋 목록.</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/golden-sets</code></td><td>골든 셋 생성.</td></tr>
+          <tr><td>POST</td><td><code>/v1/evaluations/golden-sets/{id}/upload</code></td><td>항목 업로드 (CSV/JSONL/xlsx).</td></tr>
+          <tr><td>GET</td><td><code>/v1/evaluations/improvements</code></td><td>improvement 제안 목록.</td></tr>
+          <tr><td>PATCH</td><td><code>/v1/evaluations/improvements/{id}</code></td><td>상태 업데이트 (triage/apply/reject).</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Alarms</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Method</th><th>Path</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/v1/organizations/{id}/alarms</code></td><td>알람 룰 목록.</td></tr>
+          <tr><td>POST</td><td><code>/v1/organizations/{id}/alarms</code></td><td>알람 룰 생성.</td></tr>
+          <tr><td>PATCH</td><td><code>/v1/organizations/{id}/alarms/{alarmId}</code></td><td>알람 업데이트.</td></tr>
+          <tr><td>DELETE</td><td><code>/v1/organizations/{id}/alarms/{alarmId}</code></td><td>알람 삭제.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>공통 응답 코드</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Code</th><th>의미</th></tr></thead>
+        <tbody>
+          <tr><td>200</td><td>성공.</td></tr>
+          <tr><td>201</td><td>생성됨.</td></tr>
+          <tr><td>400</td><td>유효성 검사 오류 (요청 바디를 확인).</td></tr>
+          <tr><td>401</td><td>토큰 누락 또는 잘못됨.</td></tr>
+          <tr><td>403</td><td>권한 부족.</td></tr>
+          <tr><td>404</td><td>리소스 없음.</td></tr>
+          <tr><td>429</td><td>rate limit 도달.</td></tr>
+          <tr><td>500</td><td>내부 서버 오류.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Rate Limiting</h2>
+      <p>ingest 토큰 기준 기본 한도:</p>
+      <ul>
+        <li>트레이스 ingest: 1000 spans/second</li>
+        <li>관리 API: 100 requests/minute</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="sdk-python.html" class="docs-next-card"><strong>Python SDK</strong><span>API용 클라이언트 라이브러리</span></a>
+        <a href="deployment.html" class="docs-next-card"><strong>Deployment</strong><span>운영 셋업</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>52 메트릭 카탈로그 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+
+<body>
+
+<div class="docs-layout">
+
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭</a><div class="docs-nav-group">SDK</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-metrics-catalog.html" class="docs-nav-link active">52 Metrics</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav></aside>
+
+  <main class="docs-main">
+
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">52 메트릭 카탈로그</span></header>
+
+    <article class="docs-content">
+
+      <h1>52개 평가 메트릭 — 전체 카탈로그</h1>
+
+      <p class="docs-lede">EasyObs는 Query → Retrieval → Context → Response → Agent/Tool → Operations → Human Feedback에 이르는 파이프라인 전 단계에 정렬된 메트릭 프레임워크로 에이전트 품질을 평가합니다. 각 메트릭은 "무엇이 잘못되었는가?"라는 구체적인 질문에 답하며, 실행 가능한 개선 카테고리와 매핑됩니다.</p>
+
+      <h2>이 카탈로그를 읽는 방법</h2>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+
+        <thead><tr><th>컬럼</th><th>의미</th></tr></thead>
+
+        <tbody>
+
+          <tr><td><strong>Code</strong></td><td>짧은 식별자 (예: A1, B3, D4)</td></tr>
+
+          <tr><td><strong>Mode</strong></td><td><strong>R</strong> = Rule (결정적, 무료), <strong>J</strong> = LLM Judge (토큰 단위 과금), <strong>H</strong> = Human label</td></tr>
+
+          <tr><td><strong>GT</strong></td><td>필요한 골든 셋 layer: L1(intent), L2(retrieval docs), L3(expected output). — 는 필요 없음</td></tr>
+
+          <tr><td><strong>Cause Code</strong></td><td>finding에 부착되어 Improvement Pack을 구동하는 구조화된 실패 코드</td></tr>
+
+        </tbody>
+
+      </table></div>
+
+      <div class="docs-info"><strong>왜 52개인가?</strong> 에이전트는 파이프라인 단계마다 서로 다른 이유로 실패합니다. 단일한 "품질 점수"만으로는 <em>무엇을 고쳐야 하는지</em> 알 수 없습니다. EasyObs는 품질을 7개 그룹의 52개 메트릭으로 분해하여 정확히 어떤 단계에서 실패했는지 짚어내고, Improvement Pack을 통해 구체적인 개선 액션과 연결합니다.</div>
+
+      <hr>
+
+      <h2>Group A — Query Understanding (5개 메트릭)</h2>
+
+      <p><strong>목적:</strong> 처리가 시작되기 전에 에이전트가 사용자 의도를 정확히 이해했는지 평가합니다. 이 단계의 실패는 모든 후속 단계에 그대로 전이됩니다.</p>
+
+      <p><strong>얻을 수 있는 인사이트:</strong> 의도를 잘못 분류하거나 질의 재작성이 어긋나거나 다국어/모호한 입력을 다루지 못한다면, 검색·생성을 튜닝하기 전에 이 영역부터 고쳐야 합니다.</p>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+
+        <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>설명 &amp; 의의</th></tr></thead>
+
+        <tbody>
+
+          <tr><td>A1</td><td>Intent classification accuracy</td><td>R/J</td><td>L1</td><td><code>query.intent_mismatch</code></td><td>에이전트가 올바른 intent(예: "주문 상태" vs "반품")를 식별하는가? 분류 오류는 질의가 잘못된 워크플로로 라우팅되어 전체 실패로 이어집니다.</td></tr>
+
+          <tr><td>A2</td><td>Query rewrite semantic preservation</td><td>J</td><td>—</td><td><code>query.rewrite_drift</code></td><td>검색용으로 질의를 재작성/확장할 때 원래 의미가 보존되는가? drift가 발생하면 무관한 검색 결과로 이어집니다.</td></tr>
+
+          <tr><td>A3</td><td>Ambiguity detection rate</td><td>J</td><td>—</td><td><code>query.ambiguous</code></td><td>질의가 너무 모호해 추가 확인이 필요한 경우를 인지하는가? 놓치면 환각·임의 답변을 유발합니다.</td></tr>
+
+          <tr><td>A5</td><td>Language detection accuracy</td><td>R</td><td>—</td><td><code>query.lang_mismatch</code></td><td>사용자가 사용한 언어로 응답하는가? 언어 불일치는 사용자 경험을 크게 해칩니다.</td></tr>
+
+          <tr><td>A6</td><td>Query complexity score</td><td>R</td><td>—</td><td><code>query.complexity_high</code></td><td>에이전트의 처리 한계를 넘는 질의를 표시합니다. 휴먼 에이전트나 특화 모델로 라우팅할 근거로 활용됩니다.</td></tr>
+
+        </tbody>
+
+      </table></div>
+
+      <hr>
+
+      <h2>Group B — Retrieval Quality (10개 메트릭)</h2>
+
+      <p><strong>목적:</strong> RAG 검색 단계에서 적절한 문서를 좋은 순위로 가져오는지 평가합니다. RAG 시스템에서 가장 자주 실패하는 영역이라 메트릭 수가 가장 많습니다.</p>
+
+      <p><strong>얻을 수 있는 인사이트:</strong> 임베딩 모델, 청크 전략, reranker, 인덱스 커버리지, 지연 시간 중 정확히 어디를 개선해야 하는지 알 수 있습니다.</p>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+
+        <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>설명 &amp; 의의</th></tr></thead>
+
+        <tbody>
+
+          <tr><td>B1</td><td>Recall@K</td><td>R</td><td>L2</td><td><code>retrieval.recall_low</code></td><td>관련 문서 중 상위 K개 안에 들어온 비율. recall이 낮으면 답변에 들어가야 할 핵심 정보가 빠집니다.</td></tr>
+
+          <tr><td>B2</td><td>Precision@K</td><td>R</td><td>L2</td><td><code>retrieval.noise_high</code></td><td>상위 K개 중 실제로 관련된 문서 비율. precision이 낮으면 컨텍스트가 노이즈로 오염되어 LLM이 혼란스러워집니다.</td></tr>
+
+          <tr><td>B3</td><td>MRR (Mean Reciprocal Rank)</td><td>R</td><td>L2</td><td><code>retrieval.first_hit_late</code></td><td>첫 번째 관련 문서가 얼마나 일찍 등장하는가? MRR이 낮으면 모델이 깊은 컨텍스트를 훑어야 유용한 정보를 찾게 됩니다.</td></tr>
+
+          <tr><td>B4</td><td>HitRate@K</td><td>R</td><td>L2</td><td><code>retrieval.miss</code></td><td>이진 지표: 상위 K개 안에 관련 문서가 하나라도 있는가? "miss"이면 관련 컨텍스트가 전혀 없어 사실상 답이 망가집니다.</td></tr>
+
+          <tr><td>B5</td><td>nDCG@K</td><td>R</td><td>L2</td><td><code>retrieval.rank_quality</code></td><td>Normalized Discounted Cumulative Gain — 위치 가중치를 적용한 랭킹 품질. 관련 문서가 뒤로 밀릴수록 점수가 낮아집니다.</td></tr>
+
+          <tr><td>B6</td><td>MAP (Mean Average Precision)</td><td>R</td><td>L2</td><td><code>retrieval.precision_low</code></td><td>모든 관련 문서에 대한 평균 precision. 관련 문서가 상단에 모이지 않고 흩어져 있으면 페널티가 부과됩니다.</td></tr>
+
+          <tr><td>B7</td><td>Context precision (judge)</td><td>J</td><td>—</td><td><code>retrieval.chunk_irrelevant</code></td><td>LLM 저지가 평가: 검색된 청크가 정말 답변에 유용한가? 키워드 메트릭이 놓치는 의미적 무관성을 잡아냅니다.</td></tr>
+
+          <tr><td>B8</td><td>Context recall (judge)</td><td>J</td><td>L3</td><td><code>retrieval.coverage_low</code></td><td>LLM 저지가 평가: 검색된 컨텍스트가 기대 답변을 만들기에 충분한 정보를 담고 있는가? 지식 누락을 탐지합니다.</td></tr>
+
+          <tr><td>B10</td><td>Reranker gain</td><td>R</td><td>L2</td><td><code>retrieval.rerank_no_gain</code></td><td>reranker가 원시 검색 대비 랭킹을 개선하는가? gain이 0이면 reranker가 지연만 늘리고 효용이 없으므로 제거를 검토하세요.</td></tr>
+
+          <tr><td>B11</td><td>Retrieval diversity</td><td>R</td><td>—</td><td><code>retrieval.dup_high</code></td><td>검색된 청크가 서로 너무 비슷한가? 중복이 많으면 컨텍스트 윈도우를 낭비합니다.</td></tr>
+
+          <tr><td>B12</td><td>Retrieval latency budget</td><td>R</td><td>—</td><td><code>retrieval.latency_over</code></td><td>검색이 시간 예산 안에 끝나는가? 검색이 느리면 전체 응답이 지연되고 사용자 경험이 나빠집니다.</td></tr>
+
+        </tbody>
+
+      </table></div>
+
+      <hr>
+
+      <h2>Group C — Context Quality (6개 메트릭)</h2>
+
+      <p><strong>목적:</strong> 검색은 끝났지만 생성이 시작되기 전 단계에서, 청크 분할·정렬·중복 제거 같은 컨텍스트 조립 품질을 평가합니다. 좋은 문서를 가져왔어도 조립이 나쁘면 LLM 출력이 떨어집니다.</p>
+
+      <p><strong>얻을 수 있는 인사이트:</strong> 청크 크기, 정렬 전략, 중복 제거, 의미 유사도 필터링 등 컨텍스트 조립 파이프라인 중 어디를 개선해야 하는지 알 수 있습니다.</p>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+
+        <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>설명 &amp; 의의</th></tr></thead>
+
+        <tbody>
+
+          <tr><td>C1</td><td>Chunk noise ratio</td><td>R/J</td><td>—</td><td><code>context.noise</code></td><td>컨텍스트 토큰 중 질의와 무관한 비율. 노이즈가 많으면 신호가 희석되어 LLM이 핵심을 놓치거나 환각을 일으킵니다.</td></tr>
+
+          <tr><td>C2</td><td>Duplicate chunk ratio</td><td>R</td><td>—</td><td><code>context.dup</code></td><td>거의 중복인 청크 비율. 중복은 컨텍스트 윈도우를 낭비하면서 새로운 정보를 더해주지 않습니다.</td></tr>
+
+          <tr><td>C3</td><td>Context token waste</td><td>R</td><td>—</td><td><code>context.token_waste</code></td><td>답에 기여하지 않는 컨텍스트가 소비하는 토큰 수. 비용 낭비와 혼란을 동시에 유발합니다.</td></tr>
+
+          <tr><td>C4</td><td>Evidence sufficiency</td><td>J</td><td>L3</td><td><code>context.insufficient</code></td><td>조립된 컨텍스트가 완전한 정답을 만들기에 충분한 근거를 담고 있는가? 부족하면 응답이 불완전·부정확해집니다.</td></tr>
+
+          <tr><td>C5</td><td>Context ordering quality</td><td>J</td><td>—</td><td><code>context.order_bad</code></td><td>청크가 논리적으로(가장 관련 있는 것이 먼저, 일관된 흐름으로) 정렬되어 있는가? 순서가 나쁘면 LLM이 정신적으로 재정렬해야 하므로 정확도가 떨어집니다.</td></tr>
+
+          <tr><td>C7</td><td>Chunk semantic similarity</td><td>R</td><td>—</td><td><code>context.sim_low</code></td><td>청크가 원 질의와 얼마나 의미적으로 유사한가? 유사도가 낮다면 검색이 사용자 의도와 맞지 않는 청크를 통과시킨 것입니다.</td></tr>
+
+        </tbody>
+
+      </table></div>
+
+      <hr>
+
+      <h2>Group D — Response Quality (12개 메트릭)</h2>
+
+      <p><strong>목적:</strong> 가장 큰 그룹입니다. 최종 생성된 응답을 관련성·정확성·근거성·형식·톤·안전성 등 여러 차원에서 평가합니다. 사용자가 직접 체감하는 영역입니다.</p>
+
+      <p><strong>얻을 수 있는 인사이트:</strong> 답변에서 정확히 무엇이 잘못되었는지(환각? 불완전? 형식 오류? 안전성 위반?)를 짚어내며, 각 메트릭은 서로 다른 개선 전략과 연결됩니다.</p>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+
+        <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>설명 &amp; 의의</th></tr></thead>
+
+        <tbody>
+
+          <tr><td>D1</td><td>Answer relevance</td><td>J</td><td>—</td><td><code>gen.relevance_low</code></td><td>답변이 사용자가 실제로 물은 것을 다루는가? 사실이 맞아도 무관한 답변은 사용자를 실망시킵니다.</td></tr>
+
+          <tr><td>D2</td><td>Correctness</td><td>J/H</td><td>L3</td><td><code>gen.incorrect</code></td><td>그라운드 트루스 대비 사실 내용이 정확한가? 가장 핵심적인 품질 차원입니다.</td></tr>
+
+          <tr><td>D3</td><td>Faithfulness / groundedness</td><td>J</td><td>—</td><td><code>gen.unfaithful</code></td><td>답변이 제공된 컨텍스트에 의해 뒷받침되는 주장만 포함하는가? 충실하지 않은 답변은 모델이 "지어낸" 정보를 끼워 넣습니다.</td></tr>
+
+          <tr><td>D4</td><td>Hallucination rate</td><td>J</td><td>—</td><td><code>gen.hallucination</code></td><td>답변 안의 주장 중 컨텍스트나 사실에 근거가 없는 비율. 5%만 되어도 사용자 신뢰가 무너질 수 있습니다.</td></tr>
+
+          <tr><td>D5</td><td>Completeness</td><td>J</td><td>L3</td><td><code>gen.incomplete</code></td><td>사용자가 물어본 모든 측면을 다루는가? 부분 답변은 추가 질문과 불만으로 이어집니다.</td></tr>
+
+          <tr><td>D6</td><td>Conciseness</td><td>R/J</td><td>—</td><td><code>gen.verbose</code></td><td>불필요한 군더더기 없이 적절히 간결한가? 장황한 답변은 사용자 시간과 토큰 비용을 동시에 낭비합니다.</td></tr>
+
+          <tr><td>D7</td><td>Tone consistency</td><td>J</td><td>—</td><td><code>gen.tone_off</code></td><td>기대되는 톤(전문적·친근·기술적 등)이 일관되는가? 톤 불일치는 사용자에게 부자연스럽게 느껴집니다.</td></tr>
+
+          <tr><td>D8</td><td>Policy compliance</td><td>R/J</td><td>—</td><td><code>gen.policy_violation</code></td><td>조직 정책(PII 금지, 경쟁사 언급 금지, 브랜드 가이드 등)을 준수하는가? 위반은 법적·브랜드 리스크로 이어집니다.</td></tr>
+
+          <tr><td>D9</td><td>Citation accuracy</td><td>R</td><td>L3</td><td><code>gen.citation_wrong</code></td><td>출처를 인용할 때 실제로 정확한가? 잘못된 인용은 사용자를 호도하고 신뢰를 떨어뜨립니다.</td></tr>
+
+          <tr><td>D10</td><td>Structured format validity</td><td>R</td><td>—</td><td><code>gen.format_invalid</code></td><td>JSON/XML 등 구조화 출력이 기대된다면 유효한가? 형식이 깨지면 출력을 파싱하는 후속 시스템이 실패합니다.</td></tr>
+
+          <tr><td>D11</td><td>Language quality</td><td>J</td><td>—</td><td><code>gen.grammar</code></td><td>응답이 문법적으로 맞고 잘 쓰인가? 언어 품질이 낮으면 모델 역량 부족이나 프롬프트 문제일 가능성이 큽니다.</td></tr>
+
+          <tr><td>D12</td><td>Refusal appropriateness</td><td>J</td><td>—</td><td><code>gen.refusal_bad</code></td><td>거절이 정당한가? 거짓 거절은 사용자를 좌절시키고, 거절 누락은 안전 리스크를 만듭니다.</td></tr>
+
+        </tbody>
+
+      </table></div>
+
+      <hr>
+
+      <h2>Group E — Agent &amp; Tool Quality (8개 메트릭)</h2>
+
+      <p><strong>목적:</strong> 에이전트의 오케스트레이션 계층 — 도구 선택, 인자 형식, 계획 수립, 멀티스텝 추론 — 을 평가합니다. RAG가 아닌 에이전트형 워크로드에서 특히 중요합니다.</p>
+
+      <p><strong>얻을 수 있는 인사이트:</strong> 단순 파라미터 튜닝이 아니라 에이전트 아키텍처, 도구 설명, 계획 로직을 재설계해야 하는지 판단할 수 있습니다.</p>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+
+        <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>설명 &amp; 의의</th></tr></thead>
+
+        <tbody>
+
+          <tr><td>E1</td><td>Tool selection accuracy</td><td>R/J</td><td>L1</td><td><code>tool.wrong</code></td><td>에이전트가 작업에 맞는 도구를 골랐는가? 도구 선택이 잘못되면 다른 요인이 아무리 좋아도 작업이 성공할 수 없습니다.</td></tr>
+
+          <tr><td>E2</td><td>Tool argument validity</td><td>R</td><td>—</td><td><code>tool.arg_invalid</code></td><td>도구에 전달된 인자가 올바른 형식인가? 잘못된 인자는 도구 실행 실패와 재시도를 유발합니다.</td></tr>
+
+          <tr><td>E3</td><td>Tool call success rate</td><td>R</td><td>—</td><td><code>tool.fail</code></td><td>도구 호출 중 성공한 비율. 낮으면 인증·스키마·가용성 등 시스템적 문제일 가능성이 큽니다.</td></tr>
+
+          <tr><td>E4</td><td>Tool retry count</td><td>R</td><td>—</td><td><code>tool.retry_high</code></td><td>성공 전 재시도 횟수. 과도한 재시도는 지연과 비용을 증가시키며 보통 에러 처리가 부실하다는 신호입니다.</td></tr>
+
+          <tr><td>E5</td><td>Unnecessary tool call ratio</td><td>J</td><td>—</td><td><code>tool.over_call</code></td><td>필요 없는 도구를 호출했는가? 불필요한 호출은 시간과 비용을 낭비하고 부수 효과를 초래할 수 있습니다.</td></tr>
+
+          <tr><td>E6</td><td>Multi-step plan correctness</td><td>J</td><td>L1</td><td><code>agent.plan_wrong</code></td><td>멀티스텝 작업에서 에이전트가 유효한 계획을 만들었는가? 잘못된 계획은 단계 전반에 걸친 연쇄 실패로 이어집니다.</td></tr>
+
+          <tr><td>E7</td><td>Reasoning path length</td><td>R</td><td>—</td><td><code>agent.path_long</code></td><td>에이전트가 거친 단계 수. 과도한 단계는 계획 루프나 결정 지연을 의미하며 토큰과 시간을 낭비합니다.</td></tr>
+
+          <tr><td>E8</td><td>Final synthesis quality</td><td>J</td><td>—</td><td><code>agent.synthesis_low</code></td><td>여러 도구에서 정보를 모은 후 일관된 최종 답변을 만들었는가? 합성 품질이 낮으면 좋은 도구 결과도 헛수고가 됩니다.</td></tr>
+
+        </tbody>
+
+      </table></div>
+
+      <hr>
+
+      <h2>Group F — Performance &amp; Cost (5개 메트릭)</h2>
+
+      <p><strong>목적:</strong> 운영 건강 지표 — 지연 시간, 비용, 토큰 사용량, 신뢰성. 정확도가 완벽해도 너무 느리거나 비싸면 실패한 에이전트입니다.</p>
+
+      <p><strong>얻을 수 있는 인사이트:</strong> 성능 이슈가 검색·생성·도구 호출·아키텍처 중 어디에 있는지 알 수 있고, 비용 거버넌스 의사결정에 직접 활용할 수 있습니다.</p>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+
+        <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>설명 &amp; 의의</th></tr></thead>
+
+        <tbody>
+
+          <tr><td>F1</td><td>End-to-end latency</td><td>R</td><td>—</td><td><code>ops.latency_over</code></td><td>사용자 질의에서 최종 응답까지의 총 시간. 사용자는 3~5초가 지나면 이탈하므로 만족도에 직접 영향을 줍니다.</td></tr>
+
+          <tr><td>F2</td><td>Model inference latency</td><td>R</td><td>—</td><td><code>ops.gen_slow</code></td><td>LLM 추론에만 사용된 시간. 모델 자체가 느린지, 다른 파이프라인 단계가 느린지 분리해서 볼 수 있습니다.</td></tr>
+
+          <tr><td>F3</td><td>Cost per trace</td><td>R</td><td>—</td><td><code>ops.cost_over</code></td><td>한 번의 에이전트 호출당 USD 비용. 예산 준수 여부와 비용 비효율적인 트레이스를 식별합니다.</td></tr>
+
+          <tr><td>F4</td><td>Token consumption</td><td>R</td><td>—</td><td><code>ops.token_over</code></td><td>사용된 입력 + 출력 토큰 합계. 과도하다면 보통 장황한 프롬프트나 불필요한 컨텍스트 채움이 원인입니다.</td></tr>
+
+          <tr><td>F5</td><td>Failure / timeout rate</td><td>R</td><td>—</td><td><code>ops.failure</code></td><td>에러 또는 timeout으로 끝난 트레이스 비율. 가장 기본적인 SLA 지표로서 신뢰성을 직접적으로 보여줍니다.</td></tr>
+
+        </tbody>
+
+      </table></div>
+
+      <hr>
+
+      <h2>Group G — Human Outcomes (5개 메트릭)</h2>
+
+      <p><strong>목적:</strong> 자동 메트릭이 완전히 대체할 수 없는 실제 사용자 만족 신호를 포착합니다. 주관적 품질에서는 여전히 사람의 판단이 황금 기준입니다.</p>
+
+      <p><strong>얻을 수 있는 인사이트:</strong> A~F의 자동 메트릭이 실제 사용자 만족과 얼마나 상관관계가 있는지 확인하고, 평가 프레임워크의 사각지대를 찾을 수 있습니다.</p>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+
+        <thead><tr><th>Code</th><th>Metric</th><th>Mode</th><th>GT</th><th>Cause Code</th><th>설명 &amp; 의의</th></tr></thead>
+
+        <tbody>
+
+          <tr><td>G1</td><td>User thumbs up ratio</td><td>H</td><td>—</td><td><code>human.dislike</code></td><td>사용자의 명시적 긍정 피드백 비율. 가장 단순한 만족 신호로, 비율이 낮다면 사용자가 만족하지 않는다는 뜻입니다.</td></tr>
+
+          <tr><td>G2</td><td>User dissatisfaction rate</td><td>H</td><td>—</td><td><code>human.complaint</code></td><td>명시적 부정 신호(불만, 에스컬레이션) 비율. 적극적인 불만을 보여주므로 thumbs-up보다 액셔너블합니다.</td></tr>
+
+          <tr><td>G3</td><td>Reviewer correctness label</td><td>H</td><td>L3</td><td><code>human.incorrect</code></td><td>전문가 리뷰어가 정답/오답으로 라벨링. 가장 신뢰할 수 있는 품질 신호이지만 수집 비용이 크고 시간도 오래 걸립니다.</td></tr>
+
+          <tr><td>G4</td><td>Reviewer failure taxonomy</td><td>H</td><td>—</td><td><code>human.taxonomy</code></td><td>전문가가 실패 유형을 분류. 자동 시스템이 학습할 수 있는 구조화된 root cause 데이터를 만듭니다.</td></tr>
+
+          <tr><td>G5</td><td>CSAT / NPS-style score</td><td>H</td><td>—</td><td><code>human.csat_low</code></td><td>표준화된 만족도 설문 점수. 업계 벤치마크와 비교하고 시간에 따른 추세를 추적할 수 있습니다.</td></tr>
+
+        </tbody>
+
+      </table></div>
+
+      <hr>
+
+      <h2>Mode 분포 요약</h2>
+
+      <div class="docs-table-wrap"><table class="docs-table">
+
+        <thead><tr><th>Mode</th><th>개수</th><th>비용</th><th>속도</th><th>사용 시점</th></tr></thead>
+
+        <tbody>
+
+          <tr><td><strong>R (Rule)</strong></td><td>23</td><td>무료</td><td>&lt; 50ms</td><td>항상 켜두는 baseline. 모든 트레이스 수집 시 자동 실행.</td></tr>
+
+          <tr><td><strong>J (Judge)</strong></td><td>17</td><td>$0.001~$0.05/eval</td><td>1~10초</td><td>더 깊은 의미 분석. 온디맨드 또는 스케줄링 실행.</td></tr>
+
+          <tr><td><strong>R or J</strong></td><td>7</td><td>무료~토큰 단위</td><td>빠름~느림</td><td>Rule이 1차 스크리닝, Judge가 예외 케이스에 대해 정밀 평가.</td></tr>
+
+          <tr><td><strong>H (Human)</strong></td><td>5</td><td>인력 시간</td><td>분 단위 이상</td><td>그라운드 트루스 검증, 주관적 품질, CSAT.</td></tr>
+
+        </tbody>
+
+      </table></div>
+
+      <h2>파이프라인 단계 흐름</h2>
+
+            <p class="docs-pipeline-caption">기본 경로: <strong>A &rarr; B &rarr; C &rarr; D</strong>. <strong>E</strong>(에이전트 &amp; 도구)는 보통 <em>B~D와 병렬</em>로 진행됩니다. <strong>F</strong>는 모든 단계에 걸쳐 측정되고, <strong>G</strong>는 응답 이후에 수집됩니다.</p>
+
+      <div class="docs-pipeline-diagram" role="img" aria-label="파이프라인 다이어그램: 사용자 질의 → A 질의 이해 → B 검색 → C 컨텍스트 → D 응답. E 에이전트와 도구는 B~D와 병렬로 진행. F 성능과 비용은 모든 단계를 가로지르고, G 휴먼 결과는 응답 이후에 수집됨.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 520" preserveAspectRatio="xMidYMid meet">
+          <title>Metric groups A through G along the agent pipeline</title>
+          <desc>Vertical flow A through D, parallel E, then F and G.</desc>
+          <defs>
+            <marker id="evalPlArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/>
+            </marker>
+            <linearGradient id="evalPlCard" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#21262d"/>
+              <stop offset="100%" stop-color="#1a1f26"/>
+            </linearGradient>
+            <filter id="evalPlSh" x="-8%" y="-8%" width="116%" height="116%">
+              <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.35"/>
+            </filter>
+          </defs>
+          <rect width="680" height="520" fill="#0d1117" rx="10"/>
+          <text x="340" y="30" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">How the 52 metrics map onto runtime</text>
+
+          <rect x="178" y="48" width="324" height="40" rx="20" fill="#1c2128" stroke="#22c07a" stroke-width="1.2" filter="url(#evalPlSh)"/>
+          <text x="340" y="73" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">User query</text>
+
+          <line x1="340" y1="88" x2="340" y2="102" stroke="#22c07a" stroke-width="2.2" marker-end="url(#evalPlArr)"/>
+
+          <g id="mainCol">
+            <rect x="48" y="108" width="304" height="48" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+            <text x="68" y="138" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">A</text>
+            <text x="96" y="130" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Query understanding</text>
+            <text x="96" y="148" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Intent, rewrite, language</text>
+
+            <line x1="200" y1="156" x2="200" y2="170" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+            <rect x="48" y="176" width="304" height="48" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+            <text x="68" y="206" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">B</text>
+            <text x="96" y="198" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Retrieval</text>
+            <text x="96" y="216" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Recall, ranking, chunk quality</text>
+
+            <line x1="200" y1="224" x2="200" y2="238" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+            <rect x="48" y="244" width="304" height="48" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+            <text x="68" y="274" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">C</text>
+            <text x="96" y="266" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Context assembly</text>
+            <text x="96" y="284" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Noise, ordering, evidence</text>
+
+            <line x1="200" y1="292" x2="200" y2="306" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+            <rect x="48" y="312" width="304" height="48" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+            <text x="68" y="342" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">D</text>
+            <text x="96" y="334" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Response generation</text>
+            <text x="96" y="352" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Groundedness, safety, format</text>
+          </g>
+
+          <rect x="400" y="168" width="232" height="188" rx="10" fill="#0d1117" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="7 5" filter="url(#evalPlSh)"/>
+          <text x="516" y="194" text-anchor="middle" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="12" font-weight="700">E &middot; Parallel track</text>
+          <text x="516" y="214" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Agent &amp; tool quality</text>
+          <text x="516" y="236" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Planning, tool choice, args</text>
+          <text x="516" y="268" text-anchor="middle" fill="#6e7681" font-family="system-ui,sans-serif" font-size="10">Overlaps B&ndash;D in most traces</text>
+          <line x1="516" y1="278" x2="516" y2="286" stroke="#30363d"/>
+          <text x="516" y="308" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="10">Dashed links = concurrent work,</text>
+          <text x="516" y="324" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="10">not a fourth sequential hop</text>
+
+          <path d="M 352 200 C 380 200, 392 210, 400 220" fill="none" stroke="#58a6ff" stroke-width="1.3" stroke-dasharray="5 4" opacity="0.9"/>
+          <path d="M 352 268 C 385 268, 395 250, 400 238" fill="none" stroke="#58a6ff" stroke-width="1.3" stroke-dasharray="5 4" opacity="0.9"/>
+          <path d="M 352 336 C 388 320, 398 280, 410 265" fill="none" stroke="#58a6ff" stroke-width="1.3" stroke-dasharray="5 4" opacity="0.9"/>
+
+          <line x1="200" y1="360" x2="200" y2="374" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+          <rect x="48" y="380" width="584" height="44" rx="8" fill="url(#evalPlCard)" stroke="#22c07a" stroke-width="1" stroke-opacity="0.45" filter="url(#evalPlSh)"/>
+          <text x="68" y="407" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">F</text>
+          <text x="96" y="400" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Performance &amp; cost</text>
+          <text x="96" y="416" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Latency, tokens, failures &mdash; measured across <tspan font-weight="600" fill="#8b949e">all</tspan> stages</text>
+
+          <line x1="340" y1="424" x2="340" y2="438" stroke="#22c07a" stroke-width="2" marker-end="url(#evalPlArr)"/>
+
+          <rect x="48" y="444" width="584" height="44" rx="8" fill="url(#evalPlCard)" stroke="#30363d" stroke-width="1.2" filter="url(#evalPlSh)"/>
+          <text x="68" y="471" fill="#22c07a" font-family="system-ui,sans-serif" font-size="13" font-weight="700">G</text>
+          <text x="96" y="464" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Human outcomes</text>
+          <text x="96" y="480" fill="#8b949e" font-family="system-ui,sans-serif" font-size="11">Thumbs, CSAT, reviewer labels &mdash; <tspan font-weight="600" fill="#8b949e">after</tspan> the response</text>
+        </svg>
+      </div>
+
+
+      <h2>메트릭이 Improvement Pack과 연결되는 방식</h2>
+
+      <p>메트릭이 임계값 아래로 떨어지면 시스템은 다음 절차를 수행합니다.</p>
+
+      <ol>
+
+        <li><strong>cause code</strong>를 기록합니다 (예: <code>retrieval.recall_low</code>).</li>
+
+        <li>cause code를 <strong>주 개선 카테고리</strong>(예: "Retrieval tuning")에 매핑합니다.</li>
+
+        <li>구체적 액션을 담은 <strong>Improvement Pack 제안</strong>을 생성합니다.</li>
+
+        <li>카테고리에 따라 <strong>노력 수준</strong>(Low/Medium/High)을 부여합니다.</li>
+
+      </ol>
+
+      <p>이 폐쇄 루프 구조 덕분에, 모든 실패 메트릭이 구체적이고 우선순위가 매겨진 액션으로 자연스럽게 이어집니다.</p>
+
+      <div class="docs-next-grid">
+
+        <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>메트릭을 평가 프로파일에 결합</span></a>
+
+        <a href="eval-improvements.html" class="docs-next-card"><strong>Improvements</strong><span>메트릭 실패에 대한 액션</span></a>
+
+        <a href="eval-golden.html" class="docs-next-card"><strong>Golden Sets</strong><span>메트릭을 위한 그라운드 트루스</span></a>
+
+      </div>
+
+    </article>
+
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+
+  </main>
+
+</div>
+
+<script src="docs.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>골든 셋 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭 &amp; 대시보드</a><div class="docs-nav-group">SDK 연동</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link active">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">골든 셋 &mdash; 상세 매뉴얼</span></header>
+    <article class="docs-content">
+
+      <h1>골든 셋 &mdash; 전체 기능 매뉴얼</h1>
+      <p class="docs-lede">골든 셋은 회귀 테스트와 저지 캘리브레이션에 사용되는 큐레이션된 그라운드 트루스 데이터셋입니다. 사람이 검증한 입력/출력 쌍과 기대 verdict를 포함하여 재현 가능한 품질 벤치마크를 가능하게 합니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/eval-golden-sets.png" alt="Golden Sets 페이지와 상세 드로어: 모드와 셋 개수가 표시된 셋 목록, 선택된 셋의 trust와 usage 카드, 항목 추가 섹션, layer/source/status/review/trace/payload 컬럼 행" loading="lazy" decoding="async" /></div>
+
+      <h2>개념</h2>
+      <p>골든 셋이 답하는 질문: <em>"이 정확한 입력에 대해 올바른 기대 동작은 무엇인가?"</em></p>
+      <ul>
+        <li>프롬프트, 모델, 아키텍처가 변경될 때 품질 회귀를 탐지합니다.</li>
+        <li>LLM 저지의 정확도를 보정하기 위한 그라운드 트루스로 활용됩니다.</li>
+        <li>CI/CD 품질 게이트를 가능하게 합니다 (golden set 실행 &rarr; 모두 pass &rarr; 배포).</li>
+      </ul>
+
+      <h2>골든 셋을 만드는 3가지 진입점</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>#</th><th>방법</th><th>출처</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Manual Upload</strong></td><td>CSV / JSON 파일</td><td>기대 출력과 verdict가 미리 준비된 테스트 케이스를 업로드합니다.</td></tr>
+          <tr><td>2</td><td><strong>Auto-Synthesized</strong></td><td>LLM 생성</td><td>기존 트레이스 패턴으로부터 LLM이 테스트 케이스를 자동으로 생성합니다.</td></tr>
+          <tr><td>3</td><td><strong>Trace Labeling</strong></td><td>실시간 트레이스</td><td>실제 운영 트레이스를 사람이 그라운드 트루스로 라벨링합니다.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>진입점 1: Manual Upload</h2>
+
+      <h3>CSV 형식</h3>
+      <pre><code>input,expected_output,verdict,notes
+"What is Python?","Python is a programming language...","pass","Basic knowledge"
+"Write harmful content","I cannot help with that.","pass","Safety check"
+"2+2=?","5","fail","Math accuracy &mdash; wrong answer"</code></pre>
+
+      <h3>JSON 형식</h3>
+      <pre><code>[
+  {
+    "input": "What is Python?",
+    "expected_output": "Python is a programming language...",
+    "verdict": "pass",
+    "dimensions": {
+      "accuracy": 1.0,
+      "helpfulness": 0.9
+    },
+    "notes": "Basic knowledge"
+  }
+]</code></pre>
+
+      <h3>업로드 절차</h3>
+      <ol>
+        <li><strong>Quality &rarr; Golden Sets</strong>로 이동합니다.</li>
+        <li><strong>"Create Golden Set"</strong>을 클릭합니다.</li>
+        <li>이름과 설명을 입력합니다.</li>
+        <li>"Upload File"을 선택합니다.</li>
+        <li>CSV/JSON 파일을 드래그하거나 선택합니다.</li>
+        <li>미리보기 표에서 파싱된 항목을 확인합니다.</li>
+        <li><strong>Save</strong>를 클릭합니다.</li>
+      </ol>
+
+      <h2>진입점 2: Auto-Synthesized</h2>
+      <p>합성기는 기존 트레이스 패턴을 분석하여 테스트 케이스를 생성합니다.</p>
+      <ol>
+        <li>기존 서비스와 시간 윈도우를 선택합니다.</li>
+        <li>시스템이 대표 트레이스를 샘플링합니다.</li>
+        <li>LLM이 변형 케이스(엣지 케이스, adversarial 입력, 경계 조건)를 생성합니다.</li>
+        <li>생성된 각 케이스에는 기대 출력과 verdict가 포함됩니다.</li>
+        <li>사람이 검토하고 항목을 승인 또는 거절합니다.</li>
+      </ol>
+
+      <div class="docs-info"><strong>참고:</strong> 자동 합성은 등록된 저지 모델을 사용하므로 API 비용이 발생합니다. 확정 전에 비용 예측치를 확인하세요.</div>
+
+      <h2>진입점 3: Trace Labeling</h2>
+      <p>실제 운영 트레이스를 골든 셋 항목으로 변환합니다.</p>
+      <ol>
+        <li><strong>Tracing</strong> 페이지에서 임의의 트레이스에 있는 <strong>"+ Label"</strong>을 클릭합니다.</li>
+        <li>해당 트레이스의 입력/출력이 캡처됩니다.</li>
+        <li>리뷰어가 verdict(Pass / Warn / Fail)를 부여합니다.</li>
+        <li>필요 시 디멘션 점수와 notes를 추가합니다.</li>
+        <li>라벨링된 트레이스는 <strong>Human Labels</strong> 풀에 누적됩니다.</li>
+        <li>선택한 휴먼 라벨로부터 골든 셋을 생성합니다.</li>
+      </ol>
+
+      <h2>골든 셋 구조</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><strong>ID</strong></td><td>자동 생성되는 고유 식별자.</td></tr>
+          <tr><td><strong>Name</strong></td><td>사람이 읽기 쉬운 이름 (예: "Safety Regression v3").</td></tr>
+          <tr><td><strong>Description</strong></td><td>셋의 목적과 컨텍스트.</td></tr>
+          <tr><td><strong>Entries</strong></td><td>테스트 케이스 배열 (아래 항목 구조 참고).</td></tr>
+          <tr><td><strong>Source</strong></td><td>생성 방식 (manual / synthesized / labeled).</td></tr>
+          <tr><td><strong>Created</strong></td><td>생성 timestamp.</td></tr>
+          <tr><td><strong>Last Run</strong></td><td>이 셋이 회귀 실행에 가장 최근에 사용된 시각.</td></tr>
+          <tr><td><strong>Last Pass Rate</strong></td><td>가장 최근 실행의 결과.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>항목 구조</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>필드</th><th>필수 여부</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>input</code></td><td>Yes</td><td>테스트할 사용자 입력 / 질의.</td></tr>
+          <tr><td><code>expected_output</code></td><td>No</td><td>비교 기준이 되는 "정답" 출력.</td></tr>
+          <tr><td><code>verdict</code></td><td>Yes</td><td>기대 verdict: pass / warn / fail.</td></tr>
+          <tr><td><code>dimensions</code></td><td>No</td><td>디멘션별 기대 점수 (0.0~1.0).</td></tr>
+          <tr><td><code>notes</code></td><td>No</td><td>해당 verdict가 기대되는 이유에 대한 컨텍스트.</td></tr>
+          <tr><td><code>trace_id</code></td><td>No</td><td>(라벨링으로 만든 경우) 원본 트레이스 ID.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>골든 셋 상세 &mdash; 사이드 드로어</h2>
+      <p><strong>Quality &rarr; Golden Sets</strong>에서 표의 임의 행을 클릭하면 우측 <strong>드로어(모달 패널)</strong>가 열립니다. 어두워진 배경을 클릭하거나 <strong>Escape</strong>를 누르면 닫힙니다. 셋을 선택하면 내부 탭은 <strong>Items</strong>로 초기화됩니다.</p>
+
+      <h3>헤더 스트립 &mdash; 3개 패널 요약</h3>
+      <p>드로어 상단의 요약 카드는 셋 이름, <strong>mode</strong>(regression / cohort / synthesized), <strong>layer</strong>(L1 / L2 / L3), 항목 개수, revision 개수, <strong>Agent</strong> 엔드포인트 설정 여부, 생성 시각을 표시합니다. 그 아래 3개 컬럼이 다음을 요약합니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>패널</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Data</strong></td><td>layer별(L1 / L2 / L3) 항목 개수, 항목 <em>source</em>(manual, upload, trace label, auto-gen 등) 분포, <em>review</em> 상태(unreviewed / reviewed / disputed).</td></tr>
+          <tr><td><strong>Trust</strong></td><td>평가 실행 후 inter-rater 메트릭(예: Cohen &kappa;, Fleiss &kappa;, Krippendorff &alpha;, multi-judge agreement, human-judge &kappa;)과 임계값 대비 pass/fail 색상, rater / judge / disputed 카운트.</td></tr>
+          <tr><td><strong>Usage</strong></td><td>이 셋과 연결된 평가 실행, 마지막 pass rate, 최근 실행들의 단순 pass rate 추세.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>내부 탭 (6개)</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>탭</th><th>목적</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Items</strong></td><td>골든 항목을 탐색·관리합니다. 추가 방법: <strong>Manual</strong>(JSON payload), <strong>From trace</strong>(trace id를 붙여 query/response 스냅샷), <strong>Auto-discover</strong>(셋이 서비스에 연결된 경우 해당 서비스의 최근 트레이스 샘플링). 권한 범위 내에서 review 상태 수정, 항목 삭제 등을 수행할 수 있습니다.</td></tr>
+          <tr><td><strong>Regression Run</strong></td><td>평가 프로파일과 옵션 revision을 선택해 저장된 Agent 엔드포인트로 <strong>Golden Regression Run</strong>을 시작합니다. Agent 연결이 필요합니다. SSE로 phase/progress가 실시간 업데이트되며, 진행 중 run id는 session storage에 저장되어 페이지가 다시 연결할 수 있습니다. 권한이 있으면 진행 중인 실행을 취소할 수 있습니다.</td></tr>
+          <tr><td><strong>+ Auto-generate</strong></td><td>LLM 기반 합성기로 이 셋의 새 항목을 제안합니다. API 호출 비용이 발생하며, 항목으로 승격하기 전에 결과를 검토해야 합니다.</td></tr>
+          <tr><td><strong>+ Upload</strong></td><td>이 셋으로 CSV/JSON 대량 임포트하며, 미리보기/검증을 제공합니다.</td></tr>
+          <tr><td><strong>Agent connection</strong></td><td>POST 엔드포인트 URL, JSON 요청 템플릿, Vault auth ref, timeout, max concurrency를 설정합니다. <code>{{query_text}}</code>, <code>{{run_id}}</code>, <code>{{item_id}}</code> 플레이스홀더는 실행 시 치환됩니다. <strong>Test connection</strong>으로 저장 없이 검증하고, <strong>Save</strong>로 설정을 영속화합니다. 유효한 엔드포인트가 저장되어야 회귀 실행을 시작할 수 있습니다.</td></tr>
+          <tr><td><strong>Revisions / Trust</strong></td><td>좌측: revision 목록 (revision 번호, immutable vs mutable, 항목 수, 생성 시각). 우측: 선택된 revision에 대한 상세 <strong>Trust</strong> 메트릭 (Cohen/Fleiss/Krippendorff, multi-judge, human-judge, rater/judge/disputed 카운트). 평가 활동 이후에 채워집니다.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>리스트 컬럼 (드로어 열기 전)</h3>
+      <p>메인 표는 <strong>Name</strong>(설명 포함), <strong>Mode</strong>, <strong>Layer</strong>, <strong>Agent</strong> 설정 여부, <strong>Service</strong>, <strong>Items</strong> 개수, <strong>Created</strong>, <strong>Delete</strong>(권한이 있을 때) 컬럼을 표시합니다. <strong>New golden set</strong>으로 이름, mode(regression / cohort / synthesized), 설명, 자동 추천 또는 직접 지정한 layer, 옵션 service 스코프를 지정해 셋을 생성합니다.</p>
+
+      <h3>Human Labels 서브 페이지</h3>
+      <p>세그먼트 컨트롤로 <code>?tab=labels</code>로 전환하면 (트레이스 어노테이션의) 휴먼 라벨 풀을 볼 수 있습니다. 셋별 드로어와는 분리되어 있지만 동일한 Golden Sets 영역 아래에 있습니다.</p>
+
+      <hr>
+
+      <h2>회귀 테스트 실행</h2>
+      <p>골든 셋으로 에이전트가 여전히 허용 가능한 출력을 만드는지 확인합니다.</p>
+      <ol>
+        <li><strong>Quality &rarr; Runs</strong>로 이동합니다.</li>
+        <li>"golden_judge" 또는 "golden_gt" 모드의 프로파일을 선택합니다.</li>
+        <li>데이터 소스로 골든 셋을 선택합니다.</li>
+        <li>실행을 시작합니다.</li>
+        <li>시스템은 각 항목을 실시간 에이전트로 다시 실행하고, 결과를 기대 verdict와 비교합니다.</li>
+        <li>결과: 항목별 pass/fail과 diff 하이라이트.</li>
+      </ol>
+
+      <h2>휴먼 라벨 어노테이션</h2>
+      <p>Human Labels 섹션(Quality &rarr; Golden Sets &rarr; Labels 탭)은 모든 트레이스 어노테이션을 보여줍니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>Trace ID</td><td>원본 트레이스 (클릭 가능).</td></tr>
+          <tr><td>Verdict</td><td>사람이 부여: Pass / Warn / Fail.</td></tr>
+          <tr><td>Annotator</td><td>라벨러의 사용자명.</td></tr>
+          <tr><td>Created</td><td>생성 timestamp.</td></tr>
+          <tr><td>Notes</td><td>자유 텍스트 컨텍스트.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Best Practices</h2>
+      <ul>
+        <li>통계적 유의성을 위해 골든 셋당 최소 50~100개 항목을 유지합니다.</li>
+        <li>엣지 케이스(빈 입력, 매우 긴 입력, adversarial 프롬프트)를 포함합니다.</li>
+        <li>골든 셋은 버전 관리합니다(v1, v2). 기존 버전을 수정하지 말고 새 버전을 만드세요.</li>
+        <li>운영 배포 전마다 회귀 테스트를 실행합니다.</li>
+        <li>에이전트의 기대 동작이 진화함에 따라 항목을 주기적으로 검토하고 업데이트합니다.</li>
+        <li>합성기를 사용해 미처 고려하지 못한 엣지 케이스를 발굴합니다.</li>
+      </ul>
+
+      <h2>권한</h2>
+      <ul>
+        <li><strong>SA / PO:</strong> 골든 셋 생성·업로드·수정·삭제 및 휴먼 라벨 추가</li>
+        <li><strong>DV:</strong> 골든 셋 조회 및 본인 서비스 트레이스에 대한 휴먼 라벨 추가</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="eval-runs.html" class="docs-next-card"><strong>Runs</strong><span>회귀 실행에서 골든 셋 사용</span></a>
+        <a href="eval-judges.html" class="docs-next-card"><strong>Judges</strong><span>골든 셋으로 저지 보정</span></a>
+        <a href="eval-improvements.html" class="docs-next-card"><strong>Improvements</strong><span>회귀 실패에 대한 후속 액션</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

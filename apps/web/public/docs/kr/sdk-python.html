@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Python SDK - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭 &amp; 대시보드</a><div class="docs-nav-group">SDK 통합</div><a href="sdk-python.html" class="docs-nav-link active">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Python SDK</span></header>
+    <article class="docs-content">
+
+      <h1>Python SDK &mdash; <code>easyobs_agent</code></h1>
+      <p class="docs-lede">에이전트 서비스의 모든 호출을 OpenTelemetry로 자동 트레이싱해 주는 경량 Python 클라이언트(약 15KB)입니다.</p>
+
+      <h2>설치</h2>
+      <pre><code># EasyObs 프로젝트 안에서
+pip install -e ".[agent]"
+
+# 또는 wheel로 설치 (폐쇄망 환경)
+pip install --no-index --find-links ./deps ./easyobs_agent-0.1.0-py3-none-any.whl</code></pre>
+
+      <h2>초기화 (<code>init</code>)</h2>
+      <p>애플리케이션 시작 시 한 번만 호출하면 됩니다.</p>
+      <pre><code>from easyobs_agent import init, traced
+
+init(
+    "http://&lt;easyobs-server&gt;:8787",
+    token="eobs_...",           # Setup &gt; Organizations &gt; Services에서 발급
+    service="my-agent",         # service.name 리소스 속성
+    auto=True,                  # capture_io + auto_langchain을 동시에 활성화
+)</code></pre>
+
+      <h3><code>init()</code> 매개변수</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>매개변수</th><th>타입</th><th>기본값</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>base_url</code></td><td>str</td><td>필수</td><td>EasyObs 서버 URL (끝에 슬래시 없이)</td></tr>
+          <tr><td><code>token</code></td><td>str</td><td>필수</td><td>서비스 수집 토큰 (<code>eobs_...</code>)</td></tr>
+          <tr><td><code>service</code></td><td>str</td><td><code>"agent"</code></td><td>서비스 이름 (resource 속성)</td></tr>
+          <tr><td><code>auto</code></td><td>bool</td><td><code>False</code></td><td>capture_io와 auto_langchain을 동시에 활성화</td></tr>
+          <tr><td><code>capture_io</code></td><td>bool</td><td><code>None</code></td><td>@traced가 함수 인자/반환값을 자동 캡처</td></tr>
+          <tr><td><code>capture_io_limit</code></td><td>int</td><td><code>2048</code></td><td>캡처할 문자열 최대 길이</td></tr>
+          <tr><td><code>auto_langchain</code></td><td>bool</td><td><code>None</code></td><td>전역 LangChain 콜백 핸들러를 자동 등록</td></tr>
+          <tr><td><code>session_id</code></td><td>str</td><td><code>None</code></td><td>기본 세션 ID (auto_langchain에서 사용)</td></tr>
+          <tr><td><code>user_id</code></td><td>str</td><td><code>None</code></td><td>기본 사용자 ID</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2><code>@traced</code> 데코레이터</h2>
+      <p>함수를 OpenTelemetry Span으로 자동 래핑해 줍니다.</p>
+      <pre><code>from easyobs_agent import traced
+
+@traced                             # 스팬 이름 = 함수 이름
+def step_a(q: str) -&gt; str:
+    return ...
+
+@traced("rag.retrieve")             # 고정된 스팬 이름
+def step_b(q: str) -&gt; list[str]:
+    return ...
+
+@traced("safe.path", capture=False) # 인자/반환값 캡처 비활성화
+def step_c(secret: str) -&gt; None:
+    ...
+
+@traced("force.io", capture=True)   # init() 설정과 무관하게 캡처 강제
+def step_d(q: str) -&gt; str:
+    return ...
+
+@traced("async.turn")               # async 함수도 지원
+async def step_e(q: str) -&gt; str:
+    return await llm.ainvoke(q)</code></pre>
+
+      <h2><code>span_block</code> (컨텍스트 매니저)</h2>
+      <p>데코레이터 대신 <code>with</code> 블록으로 스팬을 만들 수 있습니다.</p>
+      <pre><code>from easyobs_agent import span_block, record_llm, record_retrieval, record_tool
+
+with span_block("retrieve", kind="retrieve", step="vector.lookup"):
+    docs = vector.search(q)
+    record_retrieval(query=q, docs=docs)
+
+with span_block("generate", kind="llm"):
+    reply = my_local_llm(prompt)
+    record_llm(
+        model="local-llm-7b",
+        query=prompt,
+        response=reply,
+        tokens_in=128,
+        tokens_out=256,
+    )
+
+with span_block("postprocess", kind="tool"):
+    out = format_markdown(reply)
+    record_tool(name="format.markdown", inp=reply, out=out)</code></pre>
+
+      <h2><code>span_tag</code> (속성 태깅)</h2>
+      <p>현재 활성화된 스팬에 <code>o.*</code> 네임스페이스 속성을 추가합니다.</p>
+      <pre><code>from easyobs_agent import traced, span_tag, SpanTag
+
+@traced("agent.turn")
+def answer(q: str, session_id: str) -&gt; str:
+    span_tag(SpanTag.SESSION, session_id)
+    span_tag(SpanTag.USER, "alice")
+    span_tag(SpanTag.QUERY, q)
+
+    with span_block("retrieve", kind="retrieve"):
+        span_tag(SpanTag.TARGET, "faq-index")
+        docs = vector.search(q)
+
+    reply = compose(docs)
+
+    span_tag(SpanTag.MODEL, "gpt-4o-mini")
+    span_tag(SpanTag.TOKENS_IN, 128)
+    span_tag(SpanTag.TOKENS_OUT, 256)
+    span_tag(SpanTag.RESPONSE, reply)
+    return reply</code></pre>
+
+      <h3>SpanTag 상수</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>SpanTag</th><th>속성 키</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>SpanTag.SESSION</code></td><td><code>o.sess</code></td><td>세션 ID</td></tr>
+          <tr><td><code>SpanTag.USER</code></td><td><code>o.user</code></td><td>사용자 식별자</td></tr>
+          <tr><td><code>SpanTag.QUERY</code></td><td><code>o.q</code></td><td>입력 프롬프트 / 질의</td></tr>
+          <tr><td><code>SpanTag.RESPONSE</code></td><td><code>o.r</code></td><td>최종 응답</td></tr>
+          <tr><td><code>SpanTag.MODEL</code></td><td><code>o.model</code></td><td>사용된 LLM 모델 이름</td></tr>
+          <tr><td><code>SpanTag.TOKENS_IN</code></td><td><code>o.tok.in</code></td><td>입력 토큰 수</td></tr>
+          <tr><td><code>SpanTag.TOKENS_OUT</code></td><td><code>o.tok.out</code></td><td>출력 토큰 수</td></tr>
+          <tr><td><code>SpanTag.TARGET</code></td><td><code>o.target</code></td><td>대상 리소스 (인덱스 이름 등)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>헬퍼 함수</h2>
+
+      <h3><code>record_llm()</code></h3>
+      <p>현재 스팬에 LLM 호출 정보를 구조화된 형태로 기록합니다.</p>
+      <pre><code>record_llm(
+    model="gpt-4o-mini",
+    query=prompt,
+    response=reply,
+    tokens_in=128,
+    tokens_out=256,
+)</code></pre>
+
+      <h3><code>record_retrieval()</code></h3>
+      <p>검색/조회 작업을 기록합니다.</p>
+      <pre><code>record_retrieval(query=q, docs=docs)</code></pre>
+
+      <h3><code>record_tool()</code></h3>
+      <p>도구/함수 호출을 기록합니다.</p>
+      <pre><code>record_tool(name="calculator", inp="2+2", out="4")</code></pre>
+
+      <h3><code>record_session()</code></h3>
+      <p>멀티턴 추적을 위한 세션 ID를 설정합니다.</p>
+      <pre><code>record_session(session_id="sess_abc123")</code></pre>
+
+      <h2>전체 예제</h2>
+      <pre><code>from easyobs_agent import init, traced, span_block, record_llm
+
+init("http://localhost:8787", token="eobs_demo_token", service="rag-agent", auto=True)
+
+@traced("agent.turn")
+def answer(query: str) -&gt; str:
+    with span_block("retrieve", kind="retrieve"):
+        docs = search_vector_db(query)
+
+    with span_block("generate", kind="llm"):
+        prompt = build_prompt(query, docs)
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        reply = response.choices[0].message.content
+        record_llm(
+            model="gpt-4o-mini",
+            query=prompt,
+            response=reply,
+            tokens_in=response.usage.prompt_tokens,
+            tokens_out=response.usage.completion_tokens,
+        )
+
+    return reply</code></pre>
+
+      <hr>
+
+      <h2 id="air-gapped-otel">폐쇄망: OpenTelemetry 직접 설정</h2>
+      <div class="docs-info">
+        <strong>적용 대상:</strong> PyPI에 접근할 수 없는 폐쇄망 환경에서, <code>easyobs_agent</code> 없이 순수 OpenTelemetry 패키지만으로 트레이스를 수집하려는 경우.
+      </div>
+
+      <h3>필요 패키지 (3개의 wheel)</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>패키지</th><th>역할</th></tr></thead>
+        <tbody>
+          <tr><td><code>opentelemetry-api</code></td><td>Tracer / Span API</td></tr>
+          <tr><td><code>opentelemetry-sdk</code></td><td>TracerProvider + BatchSpanProcessor</td></tr>
+          <tr><td><code>opentelemetry-exporter-otlp-proto-http</code></td><td>OTLP/HTTP protobuf 익스포터</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>오프라인 설치</h3>
+      <pre><code># wheel 다운로드 (인터넷이 가능한 머신)
+pip download -d ./wheels/ \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp-proto-http
+
+# 폐쇄망에서 설치
+pip install --no-index --find-links ./wheels/ \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp-proto-http</code></pre>
+
+      <h3>순수 OTel 코드 예시</h3>
+      <pre><code>from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+# 1. Resource 정의
+resource = Resource.create({"service.name": "my-agent"})
+
+# 2. TracerProvider + OTLP Exporter
+provider = TracerProvider(resource=resource)
+exporter = OTLPSpanExporter(
+    endpoint="http://&lt;easyobs-server&gt;:8787/v1/traces",
+    headers={"Authorization": "Bearer eobs_..."},
+)
+provider.add_span_processor(BatchSpanProcessor(exporter))
+trace.set_tracer_provider(provider)
+
+# 3. tracer 가져오기
+tracer = trace.get_tracer("my-agent", "0.1.0")
+
+# 4. o.* 속성과 함께 스팬 생성
+with tracer.start_as_current_span("agent.turn") as span:
+    span.set_attribute("o.kind", "agent")
+    span.set_attribute("o.q", user_query)
+
+    with tracer.start_as_current_span("retrieve") as child:
+        child.set_attribute("o.kind", "retrieve")
+        docs = vector.search(user_query)
+
+    with tracer.start_as_current_span("generate") as child:
+        child.set_attribute("o.kind", "llm")
+        child.set_attribute("o.model", "gpt-4o-mini")
+        reply = llm.invoke(user_query)
+        child.set_attribute("o.tok.in", 128)
+        child.set_attribute("o.tok.out", 256)
+
+    span.set_attribute("o.r", reply)</code></pre>
+
+      <h3>EasyObs <code>o.*</code> 속성 매핑</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>키</th><th>의미</th><th>예시</th></tr></thead>
+        <tbody>
+          <tr><td><code>o.kind</code></td><td>스팬 역할</td><td><code>"agent"</code> | <code>"llm"</code> | <code>"retrieve"</code> | <code>"tool"</code></td></tr>
+          <tr><td><code>o.q</code></td><td>사용자 입력</td><td><code>"Summarise yesterday"</code></td></tr>
+          <tr><td><code>o.r</code></td><td>최종 응답</td><td><code>"Here is..."</code></td></tr>
+          <tr><td><code>o.model</code></td><td>모델 이름</td><td><code>"gpt-4o-mini"</code></td></tr>
+          <tr><td><code>o.tok.in</code></td><td>입력 토큰</td><td><code>128</code></td></tr>
+          <tr><td><code>o.tok.out</code></td><td>출력 토큰</td><td><code>256</code></td></tr>
+          <tr><td><code>o.sess</code></td><td>세션 ID</td><td><code>"sess_abc123"</code></td></tr>
+          <tr><td><code>o.user</code></td><td>사용자 ID</td><td><code>"alice"</code></td></tr>
+        </tbody>
+      </table></div>
+      <div class="docs-info">
+        <strong>Tip:</strong> <code>o.*</code> 속성만 올바르게 설정하면 대시보드, 메트릭, 알람이 easyobs_agent를 사용할 때와 동일하게 동작합니다.
+      </div>
+
+      <hr>
+
+      <h2 id="air-gapped-source">폐쇄망: easyobs_agent 소스 직접 사용</h2>
+      <div class="docs-info">
+        <strong>적용 대상:</strong> 폐쇄망에서 pip install 없이 easyobs_agent의 전체 API(<code>@traced</code>, <code>span_block</code>, <code>record_llm</code> 등)를 사용하려는 경우 &mdash; 소스 코드를 프로젝트에 직접 복사합니다.
+      </div>
+
+      <h3>패키지 가져오기 방법</h3>
+      <pre><code># 방법 1: 저장소를 클론한 뒤 easyobs_agent만 복사
+git clone https://github.com/your-org/easyobs_ai_observability.git
+cp -r easyobs_ai_observability/src/easyobs_agent/ ./my_project/easyobs_agent/
+
+# 방법 2: git archive (필요한 디렉터리만 추출)
+git archive --remote=&lt;repo-url&gt; HEAD src/easyobs_agent/ | tar -x --strip-components=1
+mv easyobs_agent/ ./my_project/easyobs_agent/
+
+# 방법 3: 이미 배포된 EasyObs 서버에서 복사
+cp -r /opt/easyobs/src/easyobs_agent/ ./my_project/easyobs_agent/</code></pre>
+
+      <h3>OTel 의존성 wheel</h3>
+      <pre><code># wheel 다운로드 (인터넷이 가능한 머신)
+pip download -d ./wheels/ \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp-proto-http
+
+# 폐쇄망에서 설치
+pip install --no-index --find-links ./wheels/ \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp-proto-http</code></pre>
+
+      <h3>패키지 파일</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>파일</th><th>역할</th><th>필수 여부</th></tr></thead>
+        <tbody>
+          <tr><td><code>__init__.py</code></td><td>공개 API (init, traced, span_tag, ...)</td><td>필수</td></tr>
+          <tr><td><code>boot.py</code></td><td>init() &mdash; TracerProvider + exporter 설정</td><td>필수</td></tr>
+          <tr><td><code>traced.py</code></td><td>@traced 데코레이터 (sync &amp; async)</td><td>필수</td></tr>
+          <tr><td><code>tags.py</code></td><td>SpanTag 상수 + record_llm/retrieval/tool</td><td>필수</td></tr>
+          <tr><td><code>span_scope.py</code></td><td>span_block 컨텍스트 매니저</td><td>필수</td></tr>
+          <tr><td><code>callbacks/__init__.py</code></td><td>콜백 모듈</td><td>선택</td></tr>
+          <tr><td><code>callbacks/langchain.py</code></td><td>LangChain 자동 콜백</td><td>선택 (langchain-core 필요)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>설치 단계 요약</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>단계</th><th>명령어</th></tr></thead>
+        <tbody>
+          <tr><td>1. OTel wheel 다운로드 (인터넷)</td><td><code>pip download -d ./wheels/ opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp-proto-http</code></td></tr>
+          <tr><td>2. easyobs_agent 소스 복사</td><td><code>cp -r /path/to/easyobs/src/easyobs_agent/ ./my_project/easyobs_agent/</code></td></tr>
+          <tr><td>3. 폐쇄망에서 OTel 설치</td><td><code>pip install --no-index --find-links ./wheels/ opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp-proto-http</code></td></tr>
+          <tr><td>4. 코드에서 import</td><td><code>from easyobs_agent import init, traced</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-info">
+        <strong>Tip:</strong> LangChain 콜백이 필요 없다면 <code>callbacks/</code> 디렉터리는 생략해도 됩니다. 핵심 5개 파일(<code>__init__.py</code>, <code>boot.py</code>, <code>traced.py</code>, <code>tags.py</code>, <code>span_scope.py</code>)만 있으면 충분합니다.
+      </div>
+
+      <div class="docs-next-grid">
+        <a href="sdk-typescript.html" class="docs-next-card"><strong>TypeScript / JS</strong><span>OpenTelemetry JS SDK 통합</span></a>
+        <a href="sdk-langchain.html" class="docs-next-card"><strong>LangChain 통합</strong><span>자동 콜백 핸들러 설정</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>TypeScript / JS - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link active">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">TypeScript / JS SDK</span></header>
+    <article class="docs-content">
+      <h1>TypeScript / JavaScript Integration</h1>
+      <p class="docs-lede">Use the official OpenTelemetry JS SDK to send traces from Node.js applications to EasyObs.</p>
+
+      <h2>Install Dependencies</h2>
+      <pre><code>npm install \
+  @opentelemetry/api \
+  @opentelemetry/sdk-node \
+  @opentelemetry/exporter-trace-otlp-proto \
+  @opentelemetry/resources \
+  @opentelemetry/semantic-conventions</code></pre>
+
+      <h2>Initialize Tracing</h2>
+      <pre><code>// tracing.ts ??import this first in your entry file
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
+import { Resource } from "@opentelemetry/resources";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+
+export const sdk = new NodeSDK({
+  resource: new Resource({
+    [SemanticResourceAttributes.SERVICE_NAME]: "my-agent",
+  }),
+  traceExporter: new OTLPTraceExporter({
+    url: "http://localhost:8787/v1/traces",
+    headers: {
+      Authorization: "Bearer eobs_your_token_here",
+    },
+  }),
+});
+
+sdk.start();
+process.on("SIGTERM", () => sdk.shutdown().catch(() => {}));</code></pre>
+
+      <h2>Creating Spans</h2>
+      <pre><code>import { trace, SpanStatusCode } from "@opentelemetry/api";
+
+const tracer = trace.getTracer("my-agent");
+
+export function traced&lt;T&gt;(name: string, fn: () => Promise&lt;T&gt;): Promise&lt;T&gt; {
+  return tracer.startActiveSpan(name, async (span) => {
+    try {
+      const out = await fn();
+      span.setStatus({ code: SpanStatusCode.OK });
+      return out;
+    } catch (err) {
+      span.recordException(err as Error);
+      span.setStatus({ code: SpanStatusCode.ERROR });
+      throw err;
+    } finally {
+      span.end();
+    }
+  });
+}
+
+// Usage
+export async function answer(q: string) {
+  return traced("agent.turn", async () => {
+    const span = trace.getActiveSpan()!;
+    span.setAttribute("o.q", q);
+    span.setAttribute("o.user", "alice");
+    const reply = await llm.invoke(q);
+    span.setAttribute("o.r", reply);
+    return reply;
+  });
+}</code></pre>
+
+      <h2>Nested Spans</h2>
+      <pre><code>export async function ragTurn(q: string) {
+  return tracer.startActiveSpan("agent.turn", async (root) => {
+    root.setAttribute("o.kind", "agent");
+    root.setAttribute("o.q", q);
+
+    const docs = await tracer.startActiveSpan("retrieve", async (sp) => {
+      sp.setAttribute("o.kind", "retrieve");
+      sp.setAttribute("o.target", "faq-index");
+      try { return await vector.search(q); }
+      finally { sp.end(); }
+    });
+
+    const reply = await tracer.startActiveSpan("generate", async (sp) => {
+      sp.setAttribute("o.kind", "llm");
+      sp.setAttribute("o.model", "gpt-4o-mini");
+      try {
+        const out = await llm.invoke({ q, docs });
+        sp.setAttribute("o.tok.in", out.usage.input);
+        sp.setAttribute("o.tok.out", out.usage.output);
+        return out.text;
+      } finally { sp.end(); }
+    });
+
+    root.setAttribute("o.r", reply);
+    root.end();
+    return reply;
+  });
+}</code></pre>
+
+      <h2>EasyObs Attribute Namespace</h2>
+      <p>Use the <code>o.*</code> prefix for EasyObs-specific attributes:</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Attribute</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>o.kind</code></td><td>Span kind: agent, llm, retrieve, tool</td></tr>
+          <tr><td><code>o.q</code></td><td>Input query/prompt</td></tr>
+          <tr><td><code>o.r</code></td><td>Output response</td></tr>
+          <tr><td><code>o.model</code></td><td>LLM model name</td></tr>
+          <tr><td><code>o.tok.in</code> / <code>o.tok.out</code></td><td>Token counts</td></tr>
+          <tr><td><code>o.sess</code></td><td>Session ID</td></tr>
+          <tr><td><code>o.user</code></td><td>User identifier</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-next-grid">
+        <a href="sdk-otlp.html" class="docs-next-card"><strong>OTLP/HTTP</strong><span>Raw HTTP integration for any language</span></a>
+        <a href="sdk-python.html" class="docs-next-card"><strong>Python SDK</strong><span>Native Python client</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

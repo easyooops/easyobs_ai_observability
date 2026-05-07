@@ -7,6 +7,7 @@ import { fetchSessions, fetchTraces, fetchUsers } from "@/lib/api";
 import { rangeKey, resolveRange, useWorkspace } from "@/lib/context";
 import { fmtInt, fmtMs, fmtPrice, fmtRel, fmtTime, fmtTokens, truncate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/context";
+import { buildCsv, triggerCsvDownload } from "@/lib/csv-export";
 
 type Tab = "sessions" | "users";
 
@@ -150,6 +151,31 @@ function SessionsTab({
           <span className="eo-tag">
             {tsub("pages.interactions.sessionCount", { n: fmtInt(rows.length) })}
           </span>
+          <button
+            type="button"
+            className="eo-btn"
+            disabled={rows.length === 0}
+            onClick={() => {
+              const headers = ["session_id", "service", "user", "trace_count", "error_count", "tokens_in", "tokens_out", "tokens_total", "cost", "models", "first_seen_at", "last_seen_at"];
+              const csvRows = rows.map((s) => [
+                s.sessionId,
+                s.serviceName,
+                s.user ?? "",
+                s.traceCount,
+                s.errorCount,
+                s.tokensIn,
+                s.tokensOut,
+                s.tokensTotal,
+                s.price,
+                s.models.join("; "),
+                s.firstSeenAt,
+                s.lastSeenAt,
+              ]);
+              triggerCsvDownload("sessions.csv", buildCsv(headers, csvRows));
+            }}
+          >
+            CSV
+          </button>
         </div>
         <div className="eo-table-wrap">
           <table className="eo-table">
@@ -464,6 +490,31 @@ function UsersTab({
           <span className="eo-tag">
             {tsub("pages.interactions.userCount", { n: fmtInt(rows.length) })}
           </span>
+          <button
+            type="button"
+            className="eo-btn"
+            disabled={rows.length === 0}
+            onClick={() => {
+              const headers = ["user_id", "service", "session_count", "trace_count", "error_count", "tokens_in", "tokens_out", "tokens_total", "cost", "models", "first_seen_at", "last_seen_at"];
+              const csvRows = rows.map((u) => [
+                u.userId,
+                u.serviceName,
+                u.sessionCount,
+                u.traceCount,
+                u.errorCount,
+                u.tokensIn,
+                u.tokensOut,
+                u.tokensTotal,
+                u.price,
+                u.models.join("; "),
+                u.firstSeenAt,
+                u.lastSeenAt,
+              ]);
+              triggerCsvDownload("users.csv", buildCsv(headers, csvRows));
+            }}
+          >
+            CSV
+          </button>
         </div>
         <div className="eo-table-wrap">
           <table className="eo-table">

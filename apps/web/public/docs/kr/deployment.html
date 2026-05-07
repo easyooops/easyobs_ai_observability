@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>배포 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭</a><div class="docs-nav-group">SDK 연동</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link active">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">배포</span></header>
+    <article class="docs-content">
+      <h1>배포 가이드</h1>
+      <p class="docs-lede">PostgreSQL, 리버스 프록시, 영속 스토리지를 활용해 EasyObs를 운영 환경에 배포합니다.</p>
+
+      <h2>아키텍처 (운영)</h2>
+      <p class="docs-pipeline-caption">UI/UX 관점: 단일 공개 entrypoint가 브라우저 트래픽을 Web Console로, API 경로는 backend로 라우팅합니다. API는 메타데이터와 blob 데이터를 각각의 전용 저장소에 영속화합니다.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="상단에 Load Balancer, 가운데 Web Console과 API Server, API 아래에 PostgreSQL과 Blob Store가 배치된 운영 아키텍처 다이어그램.">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 430" preserveAspectRatio="xMidYMid meet">
+          <title>EasyObs Production Architecture</title>
+          <desc>Load balancer routes web and API traffic. API writes to PostgreSQL catalog and blob storage.</desc>
+          <defs>
+            <marker id="depArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="depCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="depSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="430" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Production runtime topology</text>
+
+          <rect x="210" y="48" width="300" height="68" rx="10" fill="url(#depCard)" stroke="#22c07a" stroke-width="1.3" filter="url(#depSh)"/>
+          <text x="360" y="75" text-anchor="middle" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">PUBLIC ENTRYPOINT</text>
+          <text x="360" y="93" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Load Balancer / Reverse Proxy</text>
+          <text x="360" y="109" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Nginx, ALB, Traefik</text>
+
+          <line x1="360" y1="116" x2="230" y2="160" stroke="#22c07a" stroke-width="2" marker-end="url(#depArr)"/>
+          <line x1="360" y1="116" x2="490" y2="160" stroke="#22c07a" stroke-width="2" marker-end="url(#depArr)"/>
+          <text x="252" y="141" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">/ and static assets</text>
+          <text x="432" y="141" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">/v1, /otlp, /healthz</text>
+
+          <rect x="58" y="164" width="260" height="88" rx="10" fill="url(#depCard)" stroke="#30363d" stroke-width="1.2" filter="url(#depSh)"/>
+          <text x="78" y="192" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">WEB TIER</text>
+          <text x="78" y="212" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Web Console (Next.js)</text>
+          <text x="78" y="230" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">default :3000, stateless and horizontally scalable</text>
+
+          <rect x="402" y="164" width="260" height="88" rx="10" fill="url(#depCard)" stroke="#22c07a" stroke-opacity="0.7" stroke-width="1.2" filter="url(#depSh)"/>
+          <text x="422" y="192" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">API TIER</text>
+          <text x="422" y="212" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">API Server (FastAPI/Uvicorn)</text>
+          <text x="422" y="230" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">default :8787, auth + ingest + query endpoints</text>
+
+          <line x1="532" y1="252" x2="532" y2="286" stroke="#22c07a" stroke-width="2" marker-end="url(#depArr)"/>
+          <line x1="532" y1="252" x2="300" y2="286" stroke="#22c07a" stroke-width="2" marker-end="url(#depArr)"/>
+
+          <rect x="178" y="290" width="244" height="82" rx="10" fill="url(#depCard)" stroke="#30363d" stroke-width="1.2" filter="url(#depSh)"/>
+          <text x="198" y="316" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">CATALOG STORE</text>
+          <text x="198" y="336" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">PostgreSQL</text>
+          <text x="198" y="352" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">users, orgs, services, run metadata</text>
+
+          <rect x="452" y="290" width="244" height="82" rx="10" fill="url(#depCard)" stroke="#30363d" stroke-width="1.2" filter="url(#depSh)"/>
+          <text x="472" y="316" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">BLOB STORE</text>
+          <text x="472" y="336" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">S3 / Local / Cloud Blob</text>
+          <text x="472" y="352" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">raw traces and large payloads</text>
+
+          <text x="360" y="402" text-anchor="middle" fill="#6e7681" font-family="system-ui,sans-serif" font-size="10">권장: private DB network, TLS at LB, object storage lifecycle + backups.</text>
+        </svg>
+      </div>
+
+      <h2>환경 변수 (운영)</h2>
+      <pre><code># Database
+EASYOBS_DATABASE_URL=postgresql+asyncpg://user:password@db-host:5432/easyobs
+
+# Server
+EASYOBS_API_HOST=0.0.0.0
+EASYOBS_API_PORT=8787
+EASYOBS_CORS_ORIGINS=https://easyobs.yourcompany.com
+
+# Security
+EASYOBS_JWT_SECRET=your-strong-random-secret-here
+
+# Logging
+EASYOBS_LOG_FORMAT=json
+EASYOBS_LOG_LEVEL=INFO
+
+# Disable demo data
+EASYOBS_SEED_MOCK_DATA=false</code></pre>
+
+      <h2>리버스 프록시 (Nginx 예시)</h2>
+      <pre><code>server {
+    listen 443 ssl;
+    server_name easyobs.yourcompany.com;
+
+    # API
+    location /v1/ {
+        proxy_pass http://api:8787;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /otlp/ {
+        proxy_pass http://api:8787;
+        proxy_set_header Host $host;
+    }
+
+    location /healthz {
+        proxy_pass http://api:8787;
+    }
+
+    # Web Console
+    location / {
+        proxy_pass http://web:3000;
+        proxy_set_header Host $host;
+    }
+}</code></pre>
+
+      <h2>데이터 영속화</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>구성요소</th><th>저장소</th><th>권장</th></tr></thead>
+        <tbody>
+          <tr><td>Catalog (metadata)</td><td>PostgreSQL</td><td>백업이 가능한 매니지드 RDS/CloudSQL.</td></tr>
+          <tr><td>Trace blobs</td><td>Local FS / S3 / Azure Blob / GCS</td><td>확장성을 위해 오브젝트 스토리지 사용.</td></tr>
+          <tr><td>JWT secret</td><td>환경 변수 또는 secrets manager</td><td>운영 환경의 <code>.env</code>에는 절대 저장하지 않음.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>스케일링</h2>
+      <ul>
+        <li><strong>API Server</strong> &mdash; Uvicorn worker를 여러 개 실행: <code>--workers 4</code> 또는 프로세스 매니저 사용.</li>
+        <li><strong>Web Console</strong> &mdash; 무상태이며 로드밸런서 뒤에서 수평 확장 가능.</li>
+        <li><strong>Database</strong> &mdash; 커넥션 풀링 권장 (PgBouncer 또는 매니지드 풀).</li>
+      </ul>
+
+      <h2>헬스 체크</h2>
+      <pre><code># API health
+GET /healthz &rarr; {"status": "ok"}
+
+# 사용 예: 로드밸런서 헬스 체크, Kubernetes readiness/liveness probe</code></pre>
+
+      <h2>보안 체크리스트</h2>
+      <ul>
+        <li>강력한 <code>EASYOBS_JWT_SECRET</code>을 설정합니다 (<code>openssl rand -hex 32</code>).</li>
+        <li>HTTPS를 사용합니다 (프록시에서 TLS 종단).</li>
+        <li><code>EASYOBS_CORS_ORIGINS</code>를 자사 도메인으로 제한합니다.</li>
+        <li><code>EASYOBS_LOG_REQUEST_BODY</code>를 비활성화합니다 (PII 위험).</li>
+        <li>ingest 토큰을 주기적으로 회전합니다.</li>
+        <li>데이터베이스를 네트워크적으로 격리합니다.</li>
+      </ul>
+
+      <div class="docs-next-grid">
+        <a href="configuration.html" class="docs-next-card"><strong>Configuration</strong><span>모든 환경 변수</span></a>
+        <a href="api-reference.html" class="docs-next-card"><strong>API Reference</strong><span>전체 엔드포인트 문서</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

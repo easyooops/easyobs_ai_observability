@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Installation - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link active">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics &amp; Dashboard</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP (Any Language)</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain Integration</a><div class="docs-nav-group">Quality (Evaluation)</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations &amp; RBAC</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">Installation</span></header>
+    <article class="docs-content">
+      <h1>Installation Guide</h1>
+      <p class="docs-lede">Install the EasyObs server across various environments — local development, production, and air-gapped networks.</p>
+
+      <h2>System Requirements</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Component</th><th>Minimum</th><th>Recommended</th></tr></thead>
+        <tbody>
+          <tr><td>Python</td><td>3.11</td><td>3.12</td></tr>
+          <tr><td>Node.js</td><td>20.x</td><td>20.x LTS</td></tr>
+          <tr><td>RAM</td><td>512 MB</td><td>2 GB+</td></tr>
+          <tr><td>Disk</td><td>1 GB</td><td>10 GB+ (depends on trace volume)</td></tr>
+          <tr><td>OS</td><td colspan="2">Windows 10+, macOS 12+, Ubuntu 22.04+</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Local Development Setup</h2>
+      <h3>1. Clone the Repository</h3>
+      <pre><code>git clone &lt;repository-url&gt;
+cd easyobs_ai_observability</code></pre>
+
+      <h3>2. Create Environment File</h3>
+      <pre><code>cp .env.sample .env</code></pre>
+
+      <h3>3. Python Virtual Environment &amp; Dependencies</h3>
+      <pre><code># Using uv (recommended)
+uv venv
+uv pip install -e ".[dev,judges,pricing]"
+
+# Or using pip
+python -m venv .venv
+source .venv/bin/activate        # Linux/macOS
+.\.venv\Scripts\Activate.ps1     # Windows
+pip install -e ".[dev,judges,pricing]"</code></pre>
+
+      <h3>4. Web Console Dependencies</h3>
+      <pre><code>cd apps/web
+npm install
+cd ../..</code></pre>
+
+      <h3>5. Start Development Servers</h3>
+      <pre><code># Unified script (starts both API + Web)
+./scripts/run-dev.sh             # Linux/macOS
+.\scripts\run-dev.ps1            # Windows</code></pre>
+
+      <h2>Production Deployment</h2>
+      <h3>PostgreSQL Backend</h3>
+      <p>For production use PostgreSQL instead of SQLite:</p>
+      <pre><code># .env
+EASYOBS_DATABASE_URL=postgresql+asyncpg://user:password@host:5432/easyobs</code></pre>
+      <div class="docs-warning"><strong>⚠️ Warning:</strong> SQLite is intended for development/demo only. Use PostgreSQL for production workloads with concurrent access.</div>
+
+      <h3>API Server (Production)</h3>
+      <pre><code># Direct execution
+uvicorn easyobs.http_app:app --host 0.0.0.0 --port 8787 --workers 4
+
+# Or via environment variables
+EASYOBS_API_HOST=0.0.0.0 EASYOBS_API_PORT=8787 easyobs serve</code></pre>
+
+      <h3>Web Console Build (Production)</h3>
+      <pre><code>cd apps/web
+npm run build
+npm start</code></pre>
+
+      <h2>Air-Gapped / Offline Installation</h2>
+      <p>For environments without PyPI access:</p>
+      <h3>1. Build Wheels (internet-connected machine)</h3>
+      <pre><code>.\scripts\build-agent-sdk.ps1 -IncludeDeps</code></pre>
+
+      <h3>2. Output Structure</h3>
+      <div class="docs-filetree" role="tree" aria-label="Build output structure">
+        <ul>
+          <li>
+            <span class="ft-folder"><span class="ft-name">dist/agent/</span></span>
+            <ul>
+              <li>
+                <span class="ft-file"><span class="ft-name">easyobs_agent-0.1.0-py3-none-any.whl</span></span>
+                <span class="ft-comment">SDK (~15 KB)</span>
+              </li>
+              <li>
+                <span class="ft-folder"><span class="ft-name">deps/</span></span>
+                <span class="ft-comment">Dependencies</span>
+                <ul>
+                  <li><span class="ft-file"><span class="ft-name">opentelemetry_api-*.whl</span></span></li>
+                  <li><span class="ft-file"><span class="ft-name">opentelemetry_sdk-*.whl</span></span></li>
+                  <li><span class="ft-file"><span class="ft-name">opentelemetry_exporter_otlp_proto_http-*.whl</span></span></li>
+                  <li><span class="ft-file"><span class="ft-name">... (transitive dependencies)</span></span></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+
+      <h3>3. Install on Target</h3>
+      <pre><code>pip install --no-index --find-links ./deps ./easyobs_agent-0.1.0-py3-none-any.whl</code></pre>
+
+      <h2>Optional Dependencies</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Extra</th><th>Command</th><th>Included Packages</th></tr></thead>
+        <tbody>
+          <tr><td><code>agent</code></td><td><code>pip install -e ".[agent]"</code></td><td>OpenTelemetry SDK, OTLP exporter</td></tr>
+          <tr><td><code>langchain</code></td><td><code>pip install -e ".[langchain]"</code></td><td>agent + langchain-core</td></tr>
+          <tr><td><code>judges</code></td><td><code>pip install -e ".[judges]"</code></td><td>OpenAI, Anthropic, Google GenAI, Bedrock</td></tr>
+          <tr><td><code>pricing</code></td><td><code>pip install -e ".[pricing]"</code></td><td>tokencost (LLM pricing tables)</td></tr>
+          <tr><td><code>dev</code></td><td><code>pip install -e ".[dev]"</code></td><td>pytest, pytest-asyncio, ruff</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Verify Installation</h2>
+      <pre><code># API health check
+curl http://127.0.0.1:8787/healthz
+# Expected: {"status": "ok"}
+
+# Backend tests
+pytest -q
+
+# Frontend build verification
+cd apps/web && npm run build</code></pre>
+
+      <div class="docs-next-grid">
+        <a href="configuration.html" class="docs-next-card"><strong>Configuration</strong><span>All environment variable options</span></a>
+        <a href="deployment.html" class="docs-next-card"><strong>Deployment</strong><span>Docker, Kubernetes, cloud deployment</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0 &middot; PolyForm Noncommercial License 1.0.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

@@ -28,6 +28,7 @@ import { useAuth } from "@/lib/auth";
 import { fmtPct, fmtPrice, fmtRel, truncate } from "@/lib/format";
 import { canMutateQuality, QualityGuard, ScopeBanner, WriteHint } from "../guard";
 import { useI18n } from "@/lib/i18n/context";
+import { buildCsv, triggerCsvDownload } from "@/lib/csv-export";
 import { RunStatusHub } from "./status-hub";
 import { WorkbenchRunDetail } from "./run-detail";
 import {
@@ -1054,6 +1055,29 @@ function RunList({
         <span className="eo-card-sub">
           {tsub("pages.runs.runListSub", { count: String(runs.length) })}
         </span>
+        <button
+          type="button"
+          className="eo-btn"
+          style={{ marginLeft: "auto" }}
+          disabled={runs.length === 0}
+          onClick={() => {
+            const headers = [
+              "run_id", "status", "run_mode", "trigger_lane", "subject_count",
+              "completed_count", "failed_count", "pass_rate", "avg_score",
+              "cost_estimate_usd", "cost_actual_usd", "profile_id", "project_id",
+              "golden_set_id", "notes", "started_at", "finished_at",
+            ];
+            const rows = runs.map((r) => [
+              r.id, r.status, r.runMode ?? "", r.triggerLane, r.subjectCount,
+              r.completedCount, r.failedCount, r.passRate, r.avgScore,
+              r.costEstimateUsd, r.costActualUsd, r.profileId ?? "", r.projectId ?? "",
+              r.goldenSetId ?? "", r.notes, r.startedAt, r.finishedAt ?? "",
+            ]);
+            triggerCsvDownload("eval-runs.csv", buildCsv(headers, rows));
+          }}
+        >
+          CSV
+        </button>
       </div>
       <div className="eo-table-wrap" style={{ maxHeight: 480, overflow: "auto" }}>
         <table className="eo-table">

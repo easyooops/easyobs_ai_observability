@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>품질 평가 개요 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭</a><div class="docs-nav-group">SDK 통합</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link active">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">품질 평가</span></header>
+    <article class="docs-content">
+      <h1>품질 평가 시스템</h1>
+      <p class="docs-lede">Rule 기반, LLM-as-a-Judge, 휴먼 라벨링을 하나의 플랫폼에 통합한 3-Way 평가 프레임워크입니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/eval-quality-overview.png" alt="품질 및 평가 개요: 활성 프로파일, 평균 점수, 미해결 개선, 저지 비용 KPI 카드, 프로파일별 Recent Runs 테이블, 저지 토큰과 룰 평가의 Cost composition, 그리고 하단의 프로파일·저지·골든 셋·예산 카드" loading="lazy" decoding="async" /></div>
+
+      <h2>3-Way 평가</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>방식</th><th>속도</th><th>비용</th><th>적합한 용도</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Rule 기반</strong></td><td>즉시 (수집 시점)</td><td>무료</td><td>형식 검사, 길이 제한, 키워드 탐지, 정규식 패턴 등</td></tr>
+          <tr><td><strong>LLM-as-a-Judge</strong></td><td>초 단위</td><td>토큰 단위 과금</td><td>의미적 품질, 일관성, 관련성, 안전성 등</td></tr>
+          <tr><td><strong>휴먼 라벨링</strong></td><td>시간 단위</td><td>인력 비용</td><td>그라운드 트루스, 예외 케이스, 주관적 품질 평가</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>주요 차별점</h2>
+      <ul>
+        <li><strong>다중 저지 합의</strong> &mdash; 동일 평가 항목에 여러 LLM을 배정합니다. 합의 정책은 <code>single</code>, <code>majority</code>, <code>unanimous</code>, <code>weighted</code> 중에서 선택할 수 있습니다.</li>
+        <li><strong>비용 거버넌스</strong> &mdash; 실행별·대상별·월별 예산 상한을 두고 <code>block</code>, <code>downgrade</code>, <code>notify</code> 정책을 적용할 수 있습니다.</li>
+        <li><strong>수집 시점 자동 룰 평가</strong> &mdash; 트레이스가 도착하면 룰 평가가 자동으로 실행됩니다(fire-and-forget 방식이므로 수집을 절대 막지 않습니다).</li>
+        <li><strong>개선 팩(Improvement Packs)</strong> &mdash; 점수가 낮은 평가 결과로부터 도출된 실행 가능한 제안 목록입니다. 52개 메트릭 × 58개 카테고리 매핑을 사용합니다.</li>
+        <li><strong>골든 셋 회귀 테스트</strong> &mdash; 큐레이션된 그라운드 트루스 데이터셋에 대해 자동 회귀 테스트를 수행합니다.</li>
+      </ul>
+
+      <h2>아키텍처</h2>
+      <p class="docs-pipeline-caption">UI/UX 관점: 운영자는 트레이스 수집 직후 자동 룰 평가 결과를 즉시 확인하고, 필요할 때 저지/합의 흐름을 위한 Run을 실행하며, 마지막으로 Improvements에서 결과를 트리아지합니다.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="트레이스 수집과 수동 트리거에서 시작하여 룰/저지 파이프라인을 거쳐 Run과 Improvements 워크플로로 이어지는 품질 아키텍처 다이어그램">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 430" preserveAspectRatio="xMidYMid meet">
+          <title>Quality Evaluation Architecture</title>
+          <desc>Dual-path architecture: auto rule on ingest and judge runs on trigger, converging into runs and improvement workflow.</desc>
+          <defs>
+            <marker id="qArchArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="qArchCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="qArchSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="430" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Operator-facing quality flow</text>
+
+          <rect x="34" y="62" width="184" height="68" rx="9" fill="url(#qArchCard)" stroke="#22c07a" stroke-width="1.2" filter="url(#qArchSh)"/>
+          <text x="52" y="87" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">ENTRY A</text>
+          <text x="52" y="106" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Trace ingest</text>
+          <text x="52" y="122" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">real-time telemetry arrival</text>
+
+          <line x1="218" y1="96" x2="250" y2="96" stroke="#22c07a" stroke-width="2" marker-end="url(#qArchArr)"/>
+
+          <rect x="250" y="62" width="214" height="68" rx="9" fill="url(#qArchCard)" stroke="#30363d" stroke-width="1.2" filter="url(#qArchSh)"/>
+          <text x="268" y="87" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">AUTO PATH</text>
+          <text x="268" y="106" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Auto-Rule Evaluation</text>
+          <text x="268" y="122" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">fire-and-forget, no ingest blocking</text>
+
+          <line x1="464" y1="96" x2="496" y2="96" stroke="#22c07a" stroke-width="2" marker-end="url(#qArchArr)"/>
+
+          <rect x="496" y="62" width="192" height="68" rx="9" fill="url(#qArchCard)" stroke="#30363d" stroke-width="1.2" filter="url(#qArchSh)"/>
+          <text x="514" y="87" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Rule DSL Engine</text>
+          <text x="514" y="104" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">17 built-in rules</text>
+          <text x="514" y="120" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">format, policy, threshold checks</text>
+
+          <rect x="34" y="176" width="184" height="68" rx="9" fill="url(#qArchCard)" stroke="#22c07a" stroke-width="1.2" filter="url(#qArchSh)"/>
+          <text x="52" y="201" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">ENTRY B</text>
+          <text x="52" y="220" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Manual / scheduled trigger</text>
+          <text x="52" y="236" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">operator launches run</text>
+
+          <line x1="218" y1="210" x2="250" y2="210" stroke="#22c07a" stroke-width="2" marker-end="url(#qArchArr)"/>
+
+          <rect x="250" y="176" width="214" height="68" rx="9" fill="url(#qArchCard)" stroke="#30363d" stroke-width="1.2" filter="url(#qArchSh)"/>
+          <text x="268" y="201" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">JUDGE PATH</text>
+          <text x="268" y="220" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">LLM Judge Runner</text>
+          <text x="268" y="236" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">OpenAI / Anthropic / Gemini / Bedrock</text>
+
+          <line x1="464" y1="210" x2="496" y2="210" stroke="#22c07a" stroke-width="2" marker-end="url(#qArchArr)"/>
+
+          <rect x="496" y="176" width="192" height="68" rx="9" fill="url(#qArchCard)" stroke="#30363d" stroke-width="1.2" filter="url(#qArchSh)"/>
+          <text x="514" y="201" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Consensus + Cost Guard</text>
+          <text x="514" y="218" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">single/majority/unanimous/weighted</text>
+          <text x="514" y="234" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">budget enforcement</text>
+
+          <line x1="592" y1="130" x2="592" y2="160" stroke="#22c07a" stroke-width="1.8" marker-end="url(#qArchArr)"/>
+          <line x1="592" y1="244" x2="592" y2="278" stroke="#22c07a" stroke-width="2" marker-end="url(#qArchArr)"/>
+
+          <rect x="226" y="286" width="370" height="62" rx="9" fill="url(#qArchCard)" stroke="#22c07a" stroke-opacity="0.55" stroke-width="1.2" filter="url(#qArchSh)"/>
+          <text x="244" y="311" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">CONVERGED OUTPUT</text>
+          <text x="244" y="330" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Results -&gt; Runs</text>
+          <text x="244" y="344" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">pass/warn/fail, score, cost, judge agreement</text>
+
+          <line x1="410" y1="348" x2="410" y2="374" stroke="#22c07a" stroke-width="2" marker-end="url(#qArchArr)"/>
+          <text x="426" y="368" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">triage loop</text>
+
+          <rect x="226" y="378" width="370" height="36" rx="8" fill="url(#qArchCard)" stroke="#30363d" stroke-width="1"/>
+          <text x="244" y="401" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Improvements -&gt; Applied / Rejected</text>
+        </svg>
+      </div>
+
+      <h2>모듈 구성</h2>
+      <div class="docs-feature-grid">
+        <a href="eval-profiles.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>Profiles</h3>
+          <p>무엇을 평가할지, 어떤 평가자(evaluator)를 사용할지, 결과를 어떻게 결합할지를 정의합니다.</p>
+        </a>
+        <a href="eval-runs.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>Runs</h3>
+          <p>트레이스를 대상으로 평가를 실행하고 pass/warn/fail 결과를 확인합니다.</p>
+        </a>
+        <a href="eval-judges.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>LLM Judges</h3>
+          <p>여러 provider의 LLM 저지 모델을 가중치·temperature와 함께 구성합니다. 차원별로 버전 관리되는 평가 프롬프트를 관리할 수 있습니다.</p>
+        </a>
+        <a href="eval-golden.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>Golden Sets</h3>
+          <p>회귀 테스트와 벤치마크를 위한 그라운드 트루스 데이터셋을 큐레이션합니다.</p>
+        </a>
+        <a href="eval-improvements.html" class="docs-feature-card" style="text-decoration:none;color:inherit">
+          <h3>Improvements</h3>
+          <p>평가 결과를 바탕으로 에이전트 품질을 높일 수 있는 실행 가능한 개선 제안을 제공합니다.</p>
+        </a>
+      </div>
+
+      <h2>활성화 / 비활성화</h2>
+      <pre><code># .env
+EASYOBS_EVAL_ENABLED=true               # 마스터 스위치
+EASYOBS_EVAL_AUTO_RULE_ON_INGEST=true   # 트레이스 도착 시 자동 평가</code></pre>
+      <p>비활성화 상태에서는 Quality 메뉴에 안내 페이지만 노출되며, 평가 관련 엔드포인트가 등록되지 않습니다.</p>
+
+      <div class="docs-next-grid">
+        <a href="eval-profiles.html" class="docs-next-card"><strong>Profiles</strong><span>첫 번째 평가 프로파일 만들기</span></a>
+        <a href="eval-judges.html" class="docs-next-card"><strong>LLM Judges</strong><span>저지 모델 구성</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

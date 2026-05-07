@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>인터랙션 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link">트레이싱</a><a href="interactions.html" class="docs-nav-link active">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭 &amp; 대시보드</a><div class="docs-nav-group">SDK 통합</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">인터랙션</span></header>
+    <article class="docs-content">
+
+      <h1>인터랙션</h1>
+      <p class="docs-lede"><strong>인터랙션</strong> 페이지는 세션 단위 관찰과 사용자 단위 관찰을 하나의 탭 화면에 통합한 뷰입니다. 대화가 여러 턴에 걸쳐 어떻게 이어지는지(Sessions 탭)와, 개별 사용자가 LLM 에이전트와 어떻게 상호작용하는지(Users 탭)를 함께 살펴볼 수 있습니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/interactions-sessions-users.png" alt="인터랙션 페이지: Sessions 탭 선택 상태, 좌측에 세션 ID 필터와 o.sess SDK 안내, 가운데에 service / user / turns / 시각 / Tracing 열기 액션이 포함된 세션 테이블, 우측에 Users 탭이 보임" loading="lazy" decoding="async" /></div>
+
+      <h2>개요</h2>
+      <p>인터랙션은 에이전트와의 상호작용을 두 가지 관점으로 통합해 보여줍니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>탭</th><th>그룹 기준</th><th>속성</th><th>활용 예시</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Sessions</strong></td><td>대화 / 세션 ID</td><td><code>o.sess</code></td><td>멀티턴 대화 분석, 턴 단위 리플레이</td></tr>
+          <tr><td><strong>Users</strong></td><td>사용자 ID</td><td><code>o.user</code></td><td>사용자별 활동 요약, 비용 추적, 참여 패턴 분석</td></tr>
+        </tbody>
+      </table></div>
+
+      <hr>
+
+      <h2>Sessions 탭</h2>
+      <p><strong>세션</strong>은 동일한 <code>o.sess</code> 속성을 공유하는 트레이스들을 묶은 단위로, 보통 여러 턴에 걸친 하나의 대화에 해당합니다. 계층 구조는 <code>session &gt; traces &gt; spans</code>입니다.</p>
+
+      <h3>세션은 어떻게 만들어지나요?</h3>
+      <p>같은 세션 ID를 공유하는 트레이스가 들어오면 세션이 자동으로 형성됩니다. 에이전트 코드에서 세션 속성만 설정하면 됩니다.</p>
+
+      <h4>Python SDK</h4>
+      <pre><code>from easyobs_agent import init, traced, span_tag, SpanTag
+
+init("http://127.0.0.1:8787", token="eobs_...", service="my-agent")
+
+@traced("agent.turn")
+def handle_turn(user_msg: str):
+    span_tag(SpanTag.SESSION, "conv-abc-123")
+    span_tag(SpanTag.USER, "user-456")
+    ...</code></pre>
+
+      <h4>TypeScript / JS (OTLP)</h4>
+      <pre><code>span.setAttribute("o.sess", "conv-abc-123");
+span.setAttribute("o.user", "user-456");</code></pre>
+
+      <h4>LangChain Callback</h4>
+      <pre><code>from easyobs_agent import init
+init(session="conv-abc-123", user="user-456", auto_langchain=True)</code></pre>
+
+      <h3>Sessions 목록 컬럼</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Session</strong></td><td><code>o.sess</code> 값 (클릭 시 인스펙터 열림)</td></tr>
+          <tr><td><strong>Service</strong></td><td>가장 최근 서비스 이름</td></tr>
+          <tr><td><strong>User</strong></td><td>연결된 <code>o.user</code> 값(있을 경우)</td></tr>
+          <tr><td><strong>Turns</strong></td><td>세션 내 트레이스 수</td></tr>
+          <tr><td><strong>First seen</strong></td><td>가장 빠른 트레이스의 시각</td></tr>
+          <tr><td><strong>Last seen</strong></td><td>가장 최근 트레이스의 시각</td></tr>
+          <tr><td><strong>Actions</strong></td><td>해당 세션 트레이스를 트레이싱 페이지에서 열기</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>세션 인스펙터 (Drawer)</h3>
+      <p>세션 행을 클릭하면 인스펙터 패널이 열리며 다음을 보여줍니다.</p>
+      <ul>
+        <li>세션 메타데이터 (ID, 서비스, 사용자, 트레이스 수)</li>
+        <li>모든 턴에 걸친 토큰/비용 합계</li>
+        <li>에러 발생 수와 사용된 모델</li>
+        <li>턴 시간 순 목록과 개별 트레이스 상세 페이지로의 링크</li>
+      </ul>
+
+      <hr>
+
+      <h2>Users 탭</h2>
+      <p><strong>Users</strong> 탭은 사용자 식별자별로 활동을 집계합니다. <code>o.user</code> 속성이 부여된 모든 트레이스가 해당 사용자의 활동에 합산됩니다.</p>
+
+      <h3>사용자는 어떻게 추적되나요?</h3>
+      <p>사용자는 <code>o.user</code> 스팬 속성으로 식별됩니다. 세션과 함께 다음처럼 설정하세요.</p>
+      <pre><code># Python
+span_tag(SpanTag.USER, "user-456")
+
+# TypeScript / JS
+span.setAttribute("o.user", "user-456");</code></pre>
+
+      <h3>Users 목록 컬럼</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><strong>User</strong></td><td><code>o.user</code> 값 (클릭 시 인스펙터 열림)</td></tr>
+          <tr><td><strong>Service</strong></td><td>가장 최근 서비스 이름</td></tr>
+          <tr><td><strong>Sessions</strong></td><td>해당 사용자에게 연결된 고유 세션 수</td></tr>
+          <tr><td><strong>Traces</strong></td><td>총 트레이스 수</td></tr>
+          <tr><td><strong>Tokens</strong></td><td>입력 + 출력 토큰 합계</td></tr>
+          <tr><td><strong>Cost</strong></td><td>누적 USD 비용</td></tr>
+          <tr><td><strong>Last seen</strong></td><td>가장 최근 활동 시각</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>사용자 인스펙터 (Drawer)</h3>
+      <p>사용자 행을 클릭하면 인스펙터 패널이 열리며 다음을 보여줍니다.</p>
+      <ul>
+        <li>사용자 식별자, 서비스, 세션/트레이스 수</li>
+        <li>토큰/비용 집계</li>
+        <li>에러 수와 사용 모델</li>
+        <li>최근 트레이스 목록 (최신순, 최대 30건)</li>
+      </ul>
+
+      <hr>
+
+      <h2>필터 &amp; 검색</h2>
+      <ul>
+        <li><strong>시간 윈도우:</strong> 두 탭 모두 상단의 전역 시간 윈도우를 따릅니다.</li>
+        <li><strong>전역 검색:</strong> 세션 ID / 사용자 ID / 서비스를 부분 일치로 필터링합니다.</li>
+        <li><strong>좌측 사이드바 필터:</strong> 탭별 정확 일치 필터(Session ID 또는 User ID)</li>
+      </ul>
+
+      <h2>필요한 속성</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>속성</th><th>용도</th><th>필요한 탭/기능</th><th>예시</th></tr></thead>
+        <tbody>
+          <tr><td><code>o.sess</code></td><td>세션 ID</td><td>Sessions 탭</td><td>"conv-abc-123"</td></tr>
+          <tr><td><code>o.user</code></td><td>사용자 식별자</td><td>Users 탭</td><td>"user-456"</td></tr>
+          <tr><td><code>o.q</code></td><td>사용자 질의 텍스트</td><td>대화 리플레이</td><td>"What's the weather?"</td></tr>
+          <tr><td><code>o.r</code></td><td>에이전트 응답 텍스트</td><td>대화 리플레이</td><td>"It's 72°F and sunny."</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>모범 사례</h2>
+      <ul>
+        <li>일관성 있고 고유한 세션 ID를 사용하세요(UUID 권장).</li>
+        <li>가시성 확보를 위해 <code>o.sess</code>와 <code>o.user</code>를 항상 함께 설정하세요.</li>
+        <li>재연결 시에도 세션 ID가 유지되도록, 애플리케이션의 영구 대화 ID를 사용하세요.</li>
+        <li>사용자 ID는 애플리케이션의 사용자 모델(email, UUID 등)과 일치시키세요.</li>
+        <li>A/B 테스트에서는 세션 ID에 prefix를 붙여 필터링을 쉽게 하세요. 예: <code>exp-v2-{uuid}</code></li>
+      </ul>
+
+      <h2>API 엔드포인트</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>엔드포인트</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET /v1/analytics/sessions</code></td><td>세션 목록과 집계</td></tr>
+          <tr><td><code>GET /v1/analytics/users</code></td><td>사용자 목록과 활동 요약</td></tr>
+          <tr><td><code>GET /v1/traces?session_id=…</code></td><td>특정 세션의 트레이스</td></tr>
+          <tr><td><code>GET /v1/traces?user_id=…</code></td><td>특정 사용자의 트레이스</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-next-grid">
+        <a href="tracing.html" class="docs-next-card"><strong>트레이싱</strong><span>개별 트레이스 심층 분석</span></a>
+        <a href="metrics.html" class="docs-next-card"><strong>메트릭</strong><span>전체 성능 대시보드</span></a>
+        <a href="eval-runs.html" class="docs-next-card"><strong>평가 실행</strong><span>세션 품질 평가</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

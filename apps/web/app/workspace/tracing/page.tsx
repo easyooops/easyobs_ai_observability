@@ -8,6 +8,7 @@ import { fetchSpans, fetchTraceDetail, fetchTraces, type SpanListRow, type Trace
 import { TraceLlmSummaryCard } from "@/components/llm-view";
 import { rangeKey, resolveRange, useWorkspace } from "@/lib/context";
 import { fmtInt, fmtMs, fmtPrice, fmtRel, fmtTime, fmtTokens, truncate } from "@/lib/format";
+import { buildCsv, triggerCsvDownload, fetchTraceEnrichments, TRACE_ENRICHMENT_HEADERS, traceEnrichmentToRow } from "@/lib/csv-export";
 import { useI18n } from "@/lib/i18n/context";
 import { buildTree, SpanFlowGraph } from "./detail/inner";
 
@@ -220,6 +221,47 @@ export default function TracingPage() {
           <Link href="/workspace/interactions/" className="eo-btn">
             Sessions view
           </Link>
+          <button
+            type="button"
+            className="eo-btn"
+            disabled={traceRows.length === 0}
+            onClick={async () => {
+              if (tab === "traces") {
+                const traceIds = traceRows.map((t) => t.traceId);
+                const enrichments = await fetchTraceEnrichments(traceIds);
+                const headers = [
+                  "trace_id", "started_at", "ended_at", "operation", "service", "status",
+                  "span_count", "duration_ms", "session", "user", "tokens_in", "tokens_out",
+                  "tokens_total", "cost", "model", "models",
+                  ...TRACE_ENRICHMENT_HEADERS.filter((h) => !["trace_operation","trace_service","trace_status","trace_started_at","trace_ended_at","trace_duration_ms","trace_span_count","trace_session","trace_user","trace_tokens_in","trace_tokens_out","trace_tokens_total","trace_price","trace_models"].includes(h)),
+                ];
+                const rows = traceRows.map((t) => {
+                  const e = enrichments.get(t.traceId);
+                  return [
+                    t.traceId, t.startedAt, t.endedAt ?? "", t.rootName, t.serviceName, t.status,
+                    t.spanCount, durationMsFromItem(t), t.session ?? "", t.user ?? "",
+                    t.tokensIn ?? "", t.tokensOut ?? "", t.tokensTotal ?? "", t.price ?? "",
+                    t.model ?? "", t.models?.join("; ") ?? "",
+                    e?.query ?? "", e?.response ?? "", e?.request ?? "",
+                    e?.vendors ?? "", e?.llmCalls ?? "", e?.retrieveCalls ?? "",
+                    e?.toolCalls ?? "", e?.docsCount ?? "", e?.verdicts ?? "",
+                    e?.spanNames ?? "", e?.errorSpans ?? "", e?.attributes ?? "", e?.events ?? "",
+                  ];
+                });
+                triggerCsvDownload("traces.csv", buildCsv(headers, rows));
+              } else {
+                const headers = ["trace_id", "span_id", "parent_span_id", "name", "kind", "step", "service", "status", "duration_ms", "start_time", "end_time", "model", "tokens_total", "cost"];
+                const rows = spanRows.map((s) => [
+                  s.traceId, s.spanId, s.parentSpanId ?? "", s.name, s.kind ?? "", s.step ?? "",
+                  s.serviceName, s.status, s.durationMs, s.startTimeUnixNano ?? "", s.endTimeUnixNano ?? "",
+                  s.model ?? "", s.tokensTotal ?? "", s.price ?? "",
+                ]);
+                triggerCsvDownload("spans.csv", buildCsv(headers, rows));
+              }
+            }}
+          >
+            CSV
+          </button>
         </div>
       </div>
 

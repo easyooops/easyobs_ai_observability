@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LangChain Integration - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">Getting Started</div><a href="index.html" class="docs-nav-link">Introduction</a><a href="quickstart.html" class="docs-nav-link">Quickstart</a><a href="installation.html" class="docs-nav-link">Installation</a><a href="configuration.html" class="docs-nav-link">Configuration</a><div class="docs-nav-group">Observability</div><a href="tracing.html" class="docs-nav-link">Tracing</a><a href="interactions.html" class="docs-nav-link">Interactions</a><a href="metrics.html" class="docs-nav-link">Metrics</a><div class="docs-nav-group">SDK Integration</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link active">LangChain</a><div class="docs-nav-group">Quality</div><a href="eval-overview.html" class="docs-nav-link">Overview</a><a href="eval-profiles.html" class="docs-nav-link">Profiles</a><a href="eval-runs.html" class="docs-nav-link">Runs</a><a href="eval-judges.html" class="docs-nav-link">LLM Judges</a><a href="eval-golden.html" class="docs-nav-link">Golden Sets</a><a href="eval-improvements.html" class="docs-nav-link">Improvements</a><div class="docs-nav-group">Platform</div><a href="organizations.html" class="docs-nav-link">Organizations</a><a href="alarms.html" class="docs-nav-link">Alarms</a><a href="deployment.html" class="docs-nav-link">Deployment</a><a href="api-reference.html" class="docs-nav-link">API Reference</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; Back to Console</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">LangChain Integration</span></header>
+    <article class="docs-content">
+      <h1>LangChain Integration</h1>
+      <p class="docs-lede">Zero-config tracing for LangChain applications using the built-in <code>EasyObsCallbackHandler</code>.</p>
+
+      <h2>Installation</h2>
+      <pre><code>pip install -e ".[langchain]"</code></pre>
+      <p>This installs: <code>opentelemetry-api</code>, <code>opentelemetry-sdk</code>, <code>opentelemetry-exporter-otlp-proto-http</code>, and <code>langchain-core</code>.</p>
+
+      <h2>Option A: Auto Mode (Recommended)</h2>
+      <p>Simply set <code>auto=True</code> in <code>init()</code> &mdash; all LangChain invocations are captured globally without explicit callback wiring:</p>
+      <pre><code>from easyobs_agent import init
+
+init(
+    "http://localhost:8787",
+    token="eobs_...",
+    service="my-langchain-app",
+    auto=True,              # enables auto_langchain + capture_io
+    session_id="sess_123",  # optional default session
+    user_id="alice",        # optional default user
+)
+
+# That's it! Every llm.invoke(), chain.invoke(), retriever.invoke()
+# is now automatically traced without any code changes.</code></pre>
+
+      <div class="docs-info">
+        <strong>How it works:</strong> <code>auto_langchain=True</code> registers a process-global callback via <code>langchain_core.tracers.context.register_configure_hook</code> &mdash; the same mechanism LangSmith uses.
+      </div>
+
+      <h2>Option B: Explicit Callback</h2>
+      <p>For more control, pass the handler explicitly:</p>
+      <pre><code>from easyobs_agent import init
+from easyobs_agent.callbacks import EasyObsCallbackHandler
+
+init("http://localhost:8787", token="eobs_...", service="my-app")
+
+handler = EasyObsCallbackHandler(session_id="sess_123", user_id="alice")
+
+# Pass to individual invocations
+result = llm.invoke("Hello", config={"callbacks": [handler]})
+result = chain.invoke({"query": "..."}, config={"callbacks": [handler]})</code></pre>
+
+      <h2>What Gets Captured</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>LangChain Component</th><th>Span Kind</th><th>Captured Data</th></tr></thead>
+        <tbody>
+          <tr><td>LLM / ChatModel</td><td><code>llm</code></td><td>model, prompt, completion, tokens, cost</td></tr>
+          <tr><td>Chain / RunnableSequence</td><td><code>chain</code></td><td>chain name, input/output</td></tr>
+          <tr><td>Retriever</td><td><code>retrieve</code></td><td>query, retrieved documents</td></tr>
+          <tr><td>Tool</td><td><code>tool</code></td><td>tool name, input, output</td></tr>
+          <tr><td>Agent</td><td><code>agent</code></td><td>agent type, full conversation flow</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>Full Example</h2>
+      <pre><code>from easyobs_agent import init
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+# One-time setup
+init("http://localhost:8787", token="eobs_...", service="rag-bot", auto=True)
+
+# Build your chain normally -- tracing is automatic
+llm = ChatOpenAI(model="gpt-4o-mini")
+prompt = ChatPromptTemplate.from_template("Answer: {question}")
+chain = prompt | llm | StrOutputParser()
+
+# Every invoke is automatically traced
+answer = chain.invoke({"question": "What is EasyObs?"})</code></pre>
+
+      <div class="docs-next-grid">
+        <a href="sdk-python.html" class="docs-next-card"><strong>Python SDK</strong><span>Manual instrumentation with @traced</span></a>
+        <a href="eval-overview.html" class="docs-next-card"><strong>Quality Evaluation</strong><span>Evaluate your LangChain outputs</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>트레이싱 - EasyObs Docs</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar"><div class="docs-brand"><span class="docs-brand-mark"></span><div><div class="docs-brand-name">EasyObs</div><div class="docs-brand-sub">Documentation</div></div></div><nav class="docs-nav"><div class="docs-nav-group">시작하기</div><a href="index.html" class="docs-nav-link">소개</a><a href="quickstart.html" class="docs-nav-link">빠른 시작</a><a href="installation.html" class="docs-nav-link">설치</a><a href="configuration.html" class="docs-nav-link">환경 설정</a><div class="docs-nav-group">관측</div><a href="tracing.html" class="docs-nav-link active">트레이싱</a><a href="interactions.html" class="docs-nav-link">인터랙션</a><a href="metrics.html" class="docs-nav-link">메트릭 &amp; 대시보드</a><div class="docs-nav-group">SDK 통합</div><a href="sdk-python.html" class="docs-nav-link">Python SDK</a><a href="sdk-typescript.html" class="docs-nav-link">TypeScript / JS</a><a href="sdk-otlp.html" class="docs-nav-link">OTLP/HTTP</a><a href="sdk-langchain.html" class="docs-nav-link">LangChain</a><div class="docs-nav-group">품질</div><a href="eval-overview.html" class="docs-nav-link">개요</a><a href="eval-profiles.html" class="docs-nav-link">프로파일</a><a href="eval-runs.html" class="docs-nav-link">실행</a><a href="eval-judges.html" class="docs-nav-link">LLM 저지</a><a href="eval-golden.html" class="docs-nav-link">골든 셋</a><a href="eval-improvements.html" class="docs-nav-link">개선</a><div class="docs-nav-group">플랫폼</div><a href="organizations.html" class="docs-nav-link">조직</a><a href="alarms.html" class="docs-nav-link">알람</a><a href="deployment.html" class="docs-nav-link">배포</a><a href="api-reference.html" class="docs-nav-link">API 레퍼런스</a></nav><div class="docs-sidebar-foot"><a href="/workspace/" class="docs-back-link">&larr; 콘솔로 돌아가기</a></div></aside>
+  <main class="docs-main">
+    <header class="docs-header"><button class="docs-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button><span class="docs-header-title">트레이싱 &mdash; 상세 매뉴얼</span></header>
+    <article class="docs-content">
+      <h1>트레이싱 &mdash; 전체 기능 매뉴얼</h1>
+      <p class="docs-lede">트레이싱 페이지는 EasyObs가 수집한 모든 에이전트 호출을 탐색하는 핵심 화면입니다. Traces / Spans 두 개의 뷰, 풍부한 필터, 컬럼 토글, 슬라이드 인스펙터 드로어, 그리고 그래프 기반 플로우 시각화를 제공합니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/tracing-full-layout.png" alt="트레이싱 페이지: 좌측 필터(상태, 세션, 서비스, 컬럼), 중앙 트레이스 테이블 500건, 우측 인스펙터 드로어가 agent.rag.pipeline의 Summary 탭과 스팬 미리보기를 표시" loading="lazy" decoding="async" /></div>
+
+      <h2>페이지 레이아웃</h2>
+      <p>트레이싱 페이지는 세 영역으로 구성됩니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>영역</th><th>위치</th><th>역할</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Filter Panel</strong></td><td>좌측 사이드바</td><td>Status, Session, Service, 컬럼 토글 필터</td></tr>
+          <tr><td><strong>Data Table</strong></td><td>중앙</td><td>Trace 또는 Span 목록을 페이지네이션과 정렬 가능한 컬럼으로 제공</td></tr>
+          <tr><td><strong>Inspector Drawer</strong></td><td>우측 패널 (행 클릭 시)</td><td>선택한 트레이스의 상세 뷰. 4개의 서브 탭으로 구성됨</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>탭: Traces vs. Spans</h2>
+      <p>상단 세그먼트 컨트롤로 두 가지 관점을 전환할 수 있습니다.</p>
+
+      <h3>Traces 탭 (기본)</h3>
+      <p>완료된 에이전트 호출 단위로 한 행씩 표시합니다(루트 스팬 + 모든 자식 스팬). 각 행이 보여주는 항목은 다음과 같습니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>컬럼</th><th>기본 표시</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>Started</code></td><td>Yes</td><td>시작 시각 (절대 시각 + "3분 전" 형식의 상대 시각)</td></tr>
+          <tr><td><code>Operation</code></td><td>Yes</td><td>루트 스팬 이름 (예: "agent.turn")</td></tr>
+          <tr><td><code>Service</code></td><td>Yes</td><td><code>service.name</code> 리소스 속성에서 가져온 서비스 이름</td></tr>
+          <tr><td><code>Duration</code></td><td>Yes</td><td>End-to-end 지연 시간 (최대 2초 스케일의 비례 미니바 포함)</td></tr>
+          <tr><td><code>Spans</code></td><td>Yes</td><td>해당 트레이스 내 전체 스팬 수</td></tr>
+          <tr><td><code>Status</code></td><td>Yes</td><td>OK (녹색) / ERROR (빨간색) / UNSET (회색)</td></tr>
+          <tr><td><code>Tokens</code></td><td>No (LLM 모드)</td><td>모든 LLM 스팬의 <code>o.tok.in</code> + <code>o.tok.out</code> 합계</td></tr>
+          <tr><td><code>Cost</code></td><td>No (LLM 모드)</td><td><code>o.price</code> 기반 USD 비용 ($0.0012 형식)</td></tr>
+          <tr><td><code>Model</code></td><td>No (LLM 모드)</td><td>해당 트레이스에서 주로 사용된 LLM 모델 이름</td></tr>
+          <tr><td><code>Session</code></td><td>No (LLM 모드)</td><td>멀티턴 그룹핑용 세션 ID (<code>o.sess</code>)</td></tr>
+          <tr><td><code>Trace ID</code></td><td>No</td><td>32자리 hex 트레이스 식별자 전체</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-info">
+        <strong>LLM 컬럼 자동 전환:</strong> Sessions 페이지에서 <code>?session=...</code> 파라미터로 진입하면 Tokens/Cost/Model/Session 컬럼이 자동으로 켜져 LLM 관련 데이터를 즉시 확인할 수 있습니다.
+      </div>
+
+      <h3>Spans 탭</h3>
+      <p>개별 스팬을 한 행씩 평탄화해서 보여줍니다(스팬 단위 뷰).</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>Name</td><td>스팬 작업명</td></tr>
+          <tr><td>Kind</td><td><code>o.kind</code> 속성 배지: agent / llm / retrieve / tool / chain</td></tr>
+          <tr><td>Model</td><td>LLM 모델 이름 (kind=llm 인 경우)</td></tr>
+          <tr><td>Service</td><td>서비스 이름</td></tr>
+          <tr><td>Duration</td><td>스팬 단위 지연 시간 (미니바 포함)</td></tr>
+          <tr><td>Tokens</td><td>스팬별 토큰 수</td></tr>
+          <tr><td>Cost</td><td>스팬별 USD 비용</td></tr>
+          <tr><td>Status</td><td>OK / ERROR / UNSET</td></tr>
+          <tr><td>Trace</td><td>부모 트레이스 ID (단축 표시, 클릭 시 상세 페이지로 이동)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>필터 패널 (좌측 사이드바)</h2>
+
+      <h3>Status 필터</h3>
+      <p>OK, ERROR, UNSET을 다중 선택할 수 있는 체크박스입니다. 각 항목 옆에는 매칭되는 트레이스 개수가 표시됩니다. "reset"을 클릭하면 초기화됩니다.</p>
+
+      <h3>Session 필터</h3>
+      <p><code>o.sess</code> 값을 정확히 일치 검색하는 입력 필드입니다. 값이 설정되면 해당 세션 ID가 태깅된 트레이스만 표시되며, 페이지 헤더에 활성 필터 칩이 나타나고 &times; 버튼으로 해제할 수 있습니다.</p>
+
+      <h3>Service 필터</h3>
+      <p>트레이스 수가 많은 순으로 최대 10개의 서비스를 다중 선택 체크박스로 표시합니다. 각 서비스 옆에는 트레이스 개수가 함께 노출됩니다.</p>
+
+      <h3>컬럼 토글</h3>
+      <p>11개 컬럼을 각각 켜고 끌 수 있습니다. "reset"을 클릭하면 기본 6개 컬럼만 보이는 상태로 돌아갑니다.</p>
+
+      <h2>페이지네이션</h2>
+      <ul>
+        <li><strong>페이지당 행 수:</strong> 25 / 50 / 100 / 200 중 선택</li>
+        <li><strong>페이지 이동:</strong> &larr; 이전 / 현재/총 페이지 / 다음 &rarr;</li>
+        <li>필터나 시간 범위가 바뀌면 페이지가 1로 초기화됩니다.</li>
+      </ul>
+
+      <h2>전역 검색 연동</h2>
+      <p>상단 검색 입력(<code>/</code> 키로 포커스)을 통해 루트 이름, 트레이스 ID, 서비스 이름을 대소문자 무시 부분 일치로 실시간 필터링합니다.</p>
+
+      <h2>시간 범위 연동</h2>
+      <p>상단 시간 윈도우(1h / 6h / 24h / 7d / Custom)에 따라 가져올 트레이스 범위가 결정됩니다. <strong>Live 모드</strong>가 켜져 있으면 5초마다 테이블이 자동으로 새로고침됩니다.</p>
+
+      <h2>트레이스 인스펙터 드로어</h2>
+      <p>임의의 행을 클릭하면 우측 인스펙터 드로어가 열립니다. 헤더 액션 버튼과 4개의 서브 탭으로 구성되어 있습니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/tracing-inspector-summary.png" alt="트레이스 인스펙터 드로어: Summary 탭(상태, 지연, 토큰, 비용, 모델, 트레이스 ID 등의 KV 필드), First spans 텍스트 미리보기, agent.rag.plan 트리(retrieve, llm.call, post.process)를 보여주는 Span Flow Graph 모달" loading="lazy" decoding="async" /></div>
+
+      <h3>드로어 헤더 액션</h3>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>버튼</th><th>동작</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Evaluate &rarr;</strong></td><td>해당 트레이스를 미리 채운 상태로 Quality &gt; Runs 페이지로 이동</td></tr>
+          <tr><td><strong>+ Label</strong></td><td>Trace ID를 미리 채운 상태로 Golden Sets &gt; Human Labels로 이동</td></tr>
+          <tr><td><strong>Full view &rarr;</strong></td><td><strong>Full View</strong> 열기: LLM 요약, 스팬 트리, 플로우 DAG, 타임라인 워터폴, 스팬별 인스펙터를 한 페이지에서 볼 수 있는 전체 화면</td></tr>
+          <tr><td><strong>&times;</strong></td><td>드로어 닫기</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>탭: Summary</h3>
+      <p>트레이스의 핵심 정보를 키-값 형태로 보여줍니다.</p>
+      <ul>
+        <li><strong>Operation</strong> &rarr; 루트 스팬 이름</li>
+        <li><strong>Service</strong> &rarr; 서비스 이름</li>
+        <li><strong>Status</strong> &rarr; 색상 배지</li>
+        <li><strong>Duration</strong> &rarr; End-to-end 지연 시간</li>
+        <li><strong>Spans</strong> &rarr; 전체 스팬 수 (에러 N건)</li>
+        <li><strong>Session</strong> &rarr; 세션 ID (있을 경우)</li>
+        <li><strong>Tokens</strong> &rarr; 입력/출력 토큰 분리 표기</li>
+        <li><strong>Cost</strong> &rarr; 총 USD 비용</li>
+        <li><strong>Models</strong> &rarr; 사용된 모든 LLM 모델 (칩 형태)</li>
+        <li><strong>Started</strong> &rarr; 절대 시각</li>
+        <li><strong>Trace ID</strong> &rarr; 식별자 전체</li>
+      </ul>
+      <p>KV 목록 아래에는 두 가지 액션이 있습니다.</p>
+      <ul>
+        <li><strong>View Span Flow</strong> &rarr; 트레이스 전체를 방향성 그래프로 보여주는 중앙 모달을 엽니다(스팬당 노드 1개, 부모-자식 엣지, 지연 시간 라벨, 스팬 종류별 색상 &mdash; <a href="#supported-span-kinds">지원되는 스팬 종류</a> 참조). 위 인스펙터 스크린샷에 이 모달이 함께 포함되어 있어 별도 그림은 생략합니다.</li>
+        <li><strong>First spans</strong> &rarr; 첫 몇 개 스팬을 들여쓰기 + 이름 + 지연 시간 형식으로 텍스트 미리보기 합니다.</li>
+      </ul>
+
+      <h3>탭: LLM</h3>
+      <p>LLM 호출 요약 카드를 정돈된 형식으로 보여줍니다.</p>
+      <ul>
+        <li>모델 이름과 provider</li>
+        <li>입력 프롬프트 (포맷팅, 스크롤 가능)</li>
+        <li>출력 결과</li>
+        <li>토큰 수 (in/out)</li>
+        <li>비용 분해</li>
+        <li>지연 시간</li>
+      </ul>
+
+      <h3>탭: Attributes</h3>
+      <p>루트 스팬에 기록된 모든 OpenTelemetry 속성을 키-값 목록으로 보여줍니다. 표준 속성과 EasyObs <code>o.*</code> 네임스페이스 속성을 모두 포함합니다.</p>
+
+      <h3>탭: Events</h3>
+      <p>해당 트레이스 내 모든 스팬의 이벤트를 한 화면에 모아 보여줍니다. 각 이벤트는 이름과 소속 스팬을 함께 표시합니다. 실행 중 발생한 예외, 로그 메시지, 사용자 정의 이벤트를 확인할 때 유용합니다.</p>
+
+      <h2 id="full-view">Full View (트레이스 상세 페이지)</h2>
+      <p><strong>Full View</strong>는 단일 트레이스를 전체 화면으로 깊이 탐색하는 전용 페이지입니다. 인스펙터 드로어의 <strong>Full view &rarr;</strong> 버튼으로 열거나, <code>/workspace/tracing/detail/?id=&lt;traceId&gt;</code>로 직접 접근할 수 있습니다. 리스트 뷰와 동일한 NDJSON 스팬 페이로드를 사용하지만, 헤더, LLM 중심 요약 밴드, 그리고 4개 컬럼의 작업 영역으로 분석 화면을 재구성합니다.</p>
+
+      <div class="docs-hero-image"><img src="../../images/tracing-full-view.png" alt="agent.rag.plan의 Full View: 헤더(트레이스 ID와 지연 시간), LLM 요약(세션, 사용자, 토큰, 비용, 사용자 질의 vs 최종 응답), 그리고 Span tree, Flow DAG, Timeline waterfall, LLM 탭이 활성화된 Inspector의 4개 패널" loading="lazy" decoding="async" /></div>
+
+      <h3>헤더 영역</h3>
+      <ul>
+        <li><strong>Operation</strong> &mdash; 루트 스팬 이름 (예: <code>agent.rag.plan</code>)과 <strong>OK</strong>/error 배지</li>
+        <li><strong>컨텍스트 줄</strong> &mdash; 저장된 스팬에서 도출한 워터폴 뷰임을 알려주는 짧은 안내</li>
+        <li><strong>Trace ID</strong> &mdash; 식별자 (UI에서 단축 표기되며, 복사/인스펙터에서 전체 값을 확인 가능)</li>
+        <li><strong>Environment / service</strong> &mdash; <code>demo</code> 등의 서비스/환경 라벨</li>
+        <li><strong>Total duration</strong> &mdash; 트레이스 전체의 End-to-end 지연 시간</li>
+        <li><strong>Evaluate</strong> &mdash; 이 트레이스를 컨텍스트로 가지고 Quality 워크플로로 이동</li>
+        <li><strong>+ Human label</strong> &mdash; 휴먼 라벨링/골든 셋 워크플로로 이동</li>
+      </ul>
+
+      <h3>LLM 요약 밴드</h3>
+      <p>스팬을 깊이 들여다보기 전에 LLM 에이전트 트레이스에서 가장 중요한 정보를 한눈에 보여줍니다.</p>
+      <ul>
+        <li><strong>세션 &amp; 식별 정보</strong> &mdash; Session ID, 사용자(존재 시), 요청 ID</li>
+        <li><strong>작업 구성</strong> &mdash; 트레이스 내 LLM, retrieve, tool 스팬 개수</li>
+        <li><strong>사용량 &amp; 비용</strong> &mdash; 토큰 합계(in/out), 추정 USD 비용, 주 모델 이름</li>
+        <li><strong>대화 미리보기</strong> &mdash; 빠른 점검을 위한 첫 사용자 입력과 마지막 어시스턴트 응답</li>
+      </ul>
+
+      <h3>4개 패널 작업 영역</h3>
+      <p>아래 4개 패널은 서로 동기화되어, 한 패널에서 스팬을 선택하면 다른 패널에도 반영됩니다.</p>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>패널</th><th>역할</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Span tree</strong></td><td>모든 스팬(루트와 자식)을 지연 시간과 함께 계층 목록으로 보여줍니다. 빠른 탐색과 호출 구조 파악에 유용합니다.</td></tr>
+          <tr><td><strong>Flow</strong></td><td>방향성 DAG 시각화. 부모 노드가 위에 있고 자식 노드가 아래로 이어지며, 호출 구조를 엣지로 표현합니다(모달 그래프와 동일한 트리, 상세 페이지용 레이아웃).</td></tr>
+          <tr><td><strong>Timeline</strong></td><td>트레이스 시간축에 따른 워터폴/Gantt 차트. 막대 길이는 지연 시간, 세로 적층은 중첩을 나타내 동시성과 순서를 한눈에 볼 수 있습니다.</td></tr>
+          <tr><td><strong>Inspector</strong></td><td><em>선택된</em> 스팬의 상세 정보. <strong>LLM</strong>(해당 시 프롬프트/응답), <strong>Attributes</strong>, <strong>Events</strong>(개수 포함), <strong>Raw</strong> 탭을 제공합니다. 스팬 ID, 시작 시각 등 디버깅에 필요한 필드도 함께 표시됩니다.</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>드로어가 좁다고 느껴질 때 <strong>Full View</strong>를 사용하세요. 긴 프롬프트, 깊은 트리, 타임라인-그래프 비교, 워터폴을 띄워둔 채 스팬 단위로 디버깅할 때 특히 유용합니다.</p>
+
+      <h2 id="supported-span-kinds">지원되는 스팬 종류 &amp; 속성</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Kind (<code>o.kind</code>)</th><th>배지 색상</th><th>주요 속성</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>agent</code></td><td>Blue</td><td><code>o.q</code>, <code>o.r</code>, <code>o.sess</code>, <code>o.user</code></td><td>루트 에이전트 턴 &mdash; 전체 오케스트레이션</td></tr>
+          <tr><td><code>llm</code></td><td>Purple</td><td><code>o.model</code>, <code>o.tok.in</code>, <code>o.tok.out</code>, <code>o.price</code></td><td>LLM API 호출(추론)</td></tr>
+          <tr><td><code>retrieve</code></td><td>Green</td><td><code>o.target</code>, <code>o.q</code></td><td>벡터 검색 / 문서 검색</td></tr>
+          <tr><td><code>tool</code></td><td>Orange</td><td><code>o.tool</code>, 입력/출력</td><td>외부 도구 호출</td></tr>
+          <tr><td><code>chain</code></td><td>Teal</td><td>(LangChain 콜백을 통해 자동 캡처)</td><td>LangChain 체인/워크플로 단계</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>비용 &amp; 토큰 추적</h2>
+      <p>가격 책정 파이프라인은 다음과 같이 동작합니다.</p>
+      <ol>
+        <li>에이전트 SDK가 각 LLM 스팬에 <code>o.tok.in</code>, <code>o.tok.out</code>을 기록합니다.</li>
+        <li>수집 시 서버가 <code>o.price</code> = 토큰 수 &times; 토큰당 단가로 보강합니다.</li>
+        <li>가격 소스 우선순위: <code>tokencost</code> &rarr; <code>litellm</code> &rarr; 내장 fallback 테이블</li>
+        <li><code>EASYOBS_PRICING_SOURCE</code>로 설정 가능합니다.</li>
+        <li>트레이스 단위 총비용은 모든 LLM 스팬 비용의 합으로 계산됩니다.</li>
+      </ol>
+
+      <h2>데이터 흐름</h2>
+      <p class="docs-pipeline-caption">UI/UX 관점에서 운영자가 체감하는 "거의 실시간 트레이스 가시성"은, 사실 SDK 내보내기에서 시작해 파싱·보강·질의 가능한 행으로 변환되는 수집 파이프라인의 결과입니다.</p>
+      <div class="docs-pipeline-diagram" role="img" aria-label="계측된 에이전트 서비스에서 OTLP export, API 수집, 파싱, 보강, 영속화, 선택적 자동 룰 평가, 그리고 SDK로의 200 OK 응답까지 이어지는 트레이싱 데이터 흐름">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450" preserveAspectRatio="xMidYMid meet">
+          <title>Tracing Data Flow (runtime to UI)</title>
+          <desc>Agent spans are exported over OTLP HTTP, ingested by API, enriched, persisted, optionally evaluated, then available to the tracing UI.</desc>
+          <defs>
+            <marker id="trDfArr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+            <linearGradient id="trDfCard" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+            <filter id="trDfSh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+          </defs>
+          <rect width="720" height="450" fill="#0d1117" rx="10"/>
+          <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Ingest path behind the Tracing table and inspector</text>
+
+          <rect x="24" y="64" width="200" height="76" rx="9" fill="url(#trDfCard)" stroke="#22c07a" stroke-width="1.2" filter="url(#trDfSh)"/>
+          <text x="44" y="89" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">INSTRUMENTED APP</text>
+          <text x="44" y="108" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">Agent service</text>
+          <text x="44" y="126" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">@traced / span_block creates spans</text>
+
+          <rect x="260" y="64" width="220" height="76" rx="9" fill="url(#trDfCard)" stroke="#30363d" stroke-width="1.2" filter="url(#trDfSh)"/>
+          <text x="280" y="89" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">SDK EXPORT LAYER</text>
+          <text x="280" y="108" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">OpenTelemetry</text>
+          <text x="280" y="124" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">BatchSpanProcessor</text>
+
+          <rect x="516" y="64" width="180" height="76" rx="9" fill="url(#trDfCard)" stroke="#22c07a" stroke-opacity="0.7" stroke-width="1.2" filter="url(#trDfSh)"/>
+          <text x="536" y="89" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">INGEST API</text>
+          <text x="536" y="108" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="12" font-weight="600">EasyObs API Server</text>
+          <text x="536" y="126" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">accepts OTLP proto/JSON</text>
+
+          <line x1="224" y1="102" x2="260" y2="102" stroke="#22c07a" stroke-width="2" marker-end="url(#trDfArr)"/>
+          <line x1="480" y1="102" x2="516" y2="102" stroke="#22c07a" stroke-width="2" marker-end="url(#trDfArr)"/>
+          <text x="498" y="88" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">POST /v1/traces</text>
+          <line x1="516" y1="116" x2="486" y2="116" stroke="#22c07a" stroke-width="1.5" marker-end="url(#trDfArr)"/>
+          <text x="500" y="129" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">200 OK</text>
+
+          <line x1="606" y1="140" x2="606" y2="170" stroke="#22c07a" stroke-width="2" marker-end="url(#trDfArr)"/>
+
+          <rect x="28" y="184" width="206" height="64" rx="8" fill="url(#trDfCard)" stroke="#30363d" stroke-width="1" filter="url(#trDfSh)"/>
+          <text x="46" y="210" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Parse + flatten</text>
+          <text x="46" y="228" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">resource/span attrs -&gt; row model</text>
+
+          <rect x="257" y="184" width="206" height="64" rx="8" fill="url(#trDfCard)" stroke="#30363d" stroke-width="1" filter="url(#trDfSh)"/>
+          <text x="275" y="210" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Enrich</text>
+          <text x="275" y="228" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">model detect, token/cost compute</text>
+
+          <rect x="486" y="184" width="210" height="64" rx="8" fill="url(#trDfCard)" stroke="#30363d" stroke-width="1" filter="url(#trDfSh)"/>
+          <text x="504" y="210" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="11" font-weight="600">Persist</text>
+          <text x="504" y="228" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">catalog DB metadata + blob raw</text>
+
+          <line x1="234" y1="216" x2="257" y2="216" stroke="#22c07a" stroke-width="1.7" marker-end="url(#trDfArr)"/>
+          <line x1="463" y1="216" x2="486" y2="216" stroke="#22c07a" stroke-width="1.7" marker-end="url(#trDfArr)"/>
+
+          <rect x="28" y="274" width="320" height="76" rx="9" fill="#0d1117" stroke="#58a6ff" stroke-width="1.2" stroke-dasharray="6 4" filter="url(#trDfSh)"/>
+          <text x="48" y="300" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="10" font-weight="700">ASYNC SIDE FLOW (optional)</text>
+          <text x="48" y="319" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10">Auto-rule evaluation runs fire-and-forget</text>
+          <text x="48" y="337" fill="#8b949e" font-family="system-ui,sans-serif" font-size="8">does not block ingest response</text>
+
+          <line x1="590" y1="248" x2="590" y2="290" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#trDfArr)"/>
+          <path d="M 590 312 C 515 312, 430 312, 348 312" fill="none" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#trDfArr)"/>
+
+          <rect x="370" y="368" width="326" height="58" rx="9" fill="url(#trDfCard)" stroke="#22c07a" stroke-opacity="0.45" stroke-width="1" filter="url(#trDfSh)"/>
+          <text x="388" y="391" fill="#22c07a" font-family="system-ui,sans-serif" font-size="10" font-weight="700">OPERATOR EXPERIENCE</text>
+          <text x="388" y="409" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="10">Tracing table, filters, drawer, and Full View read from persisted/enriched data.</text>
+        </svg>
+      </div>
+
+      <h2>키보드 단축키</h2>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>키</th><th>동작</th></tr></thead>
+        <tbody>
+          <tr><td><code>/</code></td><td>전역 검색 입력에 포커스</td></tr>
+          <tr><td><code>Escape</code></td><td>인스펙터 드로어 또는 모달 닫기</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="docs-next-grid">
+        <a href="sessions.html" class="docs-next-card"><strong>세션</strong><span>멀티턴 대화 추적</span></a>
+        <a href="sdk-python.html" class="docs-next-card"><strong>Python SDK</strong><span>코드 계측 방법</span></a>
+        <a href="eval-overview.html" class="docs-next-card"><strong>품질 평가</strong><span>트레이스 품질 평가</span></a>
+      </div>
+    </article>
+    <footer class="docs-footer"><p>EasyObs v0.1.0</p></footer>
+  </main>
+</div>
+<script src="docs.js"></script>
+</body>
+</html>

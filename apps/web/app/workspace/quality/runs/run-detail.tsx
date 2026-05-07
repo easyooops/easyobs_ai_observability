@@ -20,6 +20,7 @@ import {
 } from "@/lib/api";
 import { fmtInt, fmtPct, fmtPrice, fmtRel, fmtScore, truncate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/context";
+import { buildCsv, triggerCsvDownload, fetchTraceEnrichments, TRACE_ENRICHMENT_HEADERS, traceEnrichmentToRow } from "@/lib/csv-export";
 
 type TabId =
   | "summary"
@@ -955,37 +956,26 @@ function ResultRow({ r }: { r: EvalResult }) {
 // CSV/JSON download
 // ---------------------------------------------------------------------------
 
-function downloadResults(run: EvalRun, results: EvalResult[]) {
+async function downloadResults(run: EvalRun, results: EvalResult[]) {
+  const traceIds = results.map((r) => r.traceId);
+  const enrichments = await fetchTraceEnrichments(traceIds);
   const header = [
-    "trace_id",
-    "session_id",
-    "verdict",
-    "score",
-    "rule_score",
-    "judge_score",
-    "judge_disagreement",
-    "judge_cost_usd",
+    "trace_id", "session_id", "verdict", "score", "rule_score", "judge_score",
+    "judge_disagreement", "judge_cost_usd", "judge_input_tokens", "judge_output_tokens",
     "findings",
+    ...TRACE_ENRICHMENT_HEADERS,
   ];
-  const csv = [header.join(",")].concat(
-    results.map((r) =>
-      [
-        r.traceId,
-        r.sessionId ?? "",
-        r.verdict,
-        r.score,
-        r.ruleScore,
-        r.judgeScore ?? "",
-        r.judgeDisagreement ?? "",
-        r.judgeCostUsd,
-        `"${r.findings
-          .map((f) => `${f.evaluatorId}:${f.verdict}`)
-          .join(";")
-          .replace(/"/g, "'")}"`,
-      ].join(","),
-    ),
-  );
-  triggerDownload(`eval-run-${run.id.slice(0, 8)}.csv`, csv.join("\n"), "text/csv");
+  const rows = results.map((r) => {
+    const te = enrichments.get(r.traceId);
+    return [
+      r.traceId, r.sessionId ?? "", r.verdict, r.score, r.ruleScore,
+      r.judgeScore ?? "", r.judgeDisagreement ?? "", r.judgeCostUsd,
+      r.judgeInputTokens, r.judgeOutputTokens,
+      r.findings.map((f) => `${f.evaluatorId}:${f.verdict}(${f.score})`).join(";"),
+      ...traceEnrichmentToRow(te),
+    ];
+  });
+  triggerCsvDownload(`eval-run-${run.id.slice(0, 8)}.csv`, buildCsv(header, rows));
 }
 
 function downloadResultsJson(run: EvalRun, results: EvalResult[]) {
