@@ -17,6 +17,8 @@
         <tbody>
           <tr><td><code>EASYOBS_DATA_DIR</code></td><td><code>./data</code></td><td>Directory for SQLite catalog, JWT secret, and trace blobs. Wiped by <code>easyobs reset-data</code>.</td></tr>
           <tr><td><code>EASYOBS_DATABASE_URL</code></td><td>(auto)</td><td>Leave blank &rarr; <code>&lt;DATA_DIR&gt;/catalog.sqlite3</code>. Production: <code>postgresql+asyncpg://user:pw@host:5432/easyobs</code></td></tr>
+          <tr><td><code>EASYOBS_STORAGE_FORMAT</code></td><td><code>parquet</code></td><td>Trace span storage format. <code>parquet</code>: columnar with DuckDB acceleration (recommended). <code>ndjson</code>: legacy JSON-lines.</td></tr>
+          <tr><td><code>EASYOBS_QUERY_ENGINE</code></td><td><code>duckdb</code></td><td>Analytics query engine. <code>duckdb</code>: vectorized SQL over Parquet (scales to millions). <code>legacy</code>: Python loops (small deployments only).</td></tr>
         </tbody>
       </table></div>
 
@@ -109,13 +111,17 @@
 EASYOBS_DATA_DIR=./data
 EASYOBS_API_HOST=127.0.0.1
 EASYOBS_API_PORT=8787
+EASYOBS_STORAGE_FORMAT=parquet
+EASYOBS_QUERY_ENGINE=duckdb
 EASYOBS_LOG_LEVEL=INFO
 EASYOBS_LOG_FORMAT=console
 EASYOBS_SEED_MOCK_DATA=true
 EASYOBS_SEED_MOCK_TRACES=1000
 
-# === Production ===
+# === Production (S3 + DuckDB) ===
 # EASYOBS_DATABASE_URL=postgresql+asyncpg://user:pw@db:5432/easyobs
+# EASYOBS_STORAGE_FORMAT=parquet
+# EASYOBS_QUERY_ENGINE=duckdb
 # EASYOBS_API_HOST=0.0.0.0
 # EASYOBS_JWT_SECRET=your-strong-secret-here
 # EASYOBS_LOG_FORMAT=json

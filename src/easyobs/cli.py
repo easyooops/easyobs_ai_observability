@@ -287,6 +287,87 @@ def _stop_easyobs_servers(api_port: int | None = None) -> int:
     return len(killed)
 
 
+def _run_migrate_parquet(args) -> None:
+    """Convert NDJSON blobs to Parquet format."""
+    import json
+
+    try:
+        import pyarrow.parquet as pq
+    except ImportError:
+        print(
+            "[easyobs] pyarrow is required for migration. "
+            "Install with: pip install easyobs[analytics]",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    from easyobs.ingest.parquet_schema import span_dicts_to_arrow_table
+
+    s = get_settings()
+    if args.data_dir:
+        blob_root = Path(args.data_dir) / "blob"
+    else:
+        blob_root = s.blob_root
+
+    if not blob_root.exists():
+        print(f"[easyobs] blob root does not exist: {blob_root}")
+        return
+
+    jsonl_files = list(blob_root.rglob("*.jsonl"))
+    if not jsonl_files:
+        print(f"[easyobs] no .jsonl files found under {blob_root}")
+        return
+
+    print(f"[easyobs] found {len(jsonl_files)} NDJSON files to convert")
+    converted = 0
+    failed = 0
+
+    for jsonl_path in jsonl_files:
+        try:
+            lines: list[dict] = []
+            with jsonl_path.open(encoding="utf-8") as f:
+                for raw in f:
+                    raw = raw.strip()
+                    if raw:
+                        lines.append(json.loads(raw))
+
+            if not lines:
+                if args.delete_source:
+                    jsonl_path.unlink()
+                continue
+
+            # Derive date partition from span start times or file modification
+            first_span = lines[0]
+            start_ns = first_span.get("startTimeUnixNano")
+            if start_ns and isinstance(start_ns, int):
+                from datetime import datetime, timezone as tz
+                dt = datetime.fromtimestamp(start_ns / 1e9, tz=tz.utc).strftime("%Y-%m-%d")
+            else:
+                mtime = jsonl_path.stat().st_mtime
+                from datetime import datetime, timezone as tz
+                dt = datetime.fromtimestamp(mtime, tz=tz.utc).strftime("%Y-%m-%d")
+
+            table = span_dicts_to_arrow_table(lines, dt=dt)
+
+            parquet_path = jsonl_path.with_suffix(".parquet")
+            pq.write_table(table, str(parquet_path), compression="snappy")
+
+            if args.delete_source:
+                jsonl_path.unlink()
+
+            converted += 1
+            if converted % 100 == 0:
+                print(f"[easyobs] progress: {converted}/{len(jsonl_files)} converted")
+
+        except Exception as e:
+            failed += 1
+            print(f"[easyobs] FAILED {jsonl_path.name}: {e}", file=sys.stderr)
+
+    print(f"[easyobs] migration complete: {converted} converted, {failed} failed")
+    if not args.delete_source:
+        print("[easyobs] hint: re-run with --delete-source to remove original .jsonl files")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="easyobs")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -311,6 +392,27 @@ def main() -> None:
             "multiprocessing children) before deleting the files. Use this "
             "when run-dev.ps1 / `easyobs serve` is currently up."
         ),
+    )
+
+    p_migrate = sub.add_parser(
+        "migrate-parquet",
+        help=(
+            "Convert existing NDJSON blob data to Parquet format. "
+            "Reads all .jsonl files under the blob root, converts them "
+            "to Parquet with the standard span schema, and writes the "
+            "output to the same directory structure."
+        ),
+    )
+    p_migrate.add_argument(
+        "--delete-source",
+        action="store_true",
+        help="Delete original .jsonl files after successful conversion.",
+    )
+    p_migrate.add_argument(
+        "--data-dir",
+        type=str,
+        default=None,
+        help="Override the data directory (defaults to EASYOBS_DATA_DIR).",
     )
 
     args = parser.parse_args()
@@ -390,6 +492,9 @@ def main() -> None:
                 )
                 sys.exit(2)
             print(f"[easyobs] removed {p}")
+
+    elif args.cmd == "migrate-parquet":
+        _run_migrate_parquet(args)
 
 
 if __name__ == "__main__":

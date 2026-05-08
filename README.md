@@ -84,6 +84,8 @@ Defaults: `src/easyobs/settings.py`. Use `.env` or real env in containers. Templ
 |----------|---------|-------|
 | `EASYOBS_DATA_DIR` | `./data` | SQLite catalog, JWT file, trace blobs; `easyobs reset-data` clears this |
 | `EASYOBS_DATABASE_URL` | (derived) | Empty → `<DATA_DIR>/catalog.sqlite3`. Prod: `postgresql+asyncpg://...` |
+| `EASYOBS_STORAGE_FORMAT` | `parquet` | `parquet` (columnar, DuckDB acceleration) or `ndjson` (legacy JSON-lines) |
+| `EASYOBS_QUERY_ENGINE` | `duckdb` | `duckdb` (vectorized SQL over Parquet) or `legacy` (Python loops, small scale only) |
 
 ### HTTP
 
@@ -138,7 +140,68 @@ Defaults: `src/easyobs/settings.py`. Use `.env` or real env in containers. Templ
 
 ---
 
-## 3. Quality (eval) module — overview
+## 3. Analytics engine (DuckDB + Parquet + S3)
+
+EasyObs uses a **ClickHouse-class analytical engine** powered by DuckDB, Parquet, and Polars:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        OTLP/HTTP Ingest                          │
+└───────────────────────────┬─────────────────────────────────────┘
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  Parquet Writer (columnar)                        │
+│  hive-partitioned: dt=YYYY-MM-DD / shard=XX / batch_*.parquet   │
+└────────────┬──────────────────────────────────┬─────────────────┘
+             │ local dev                        │ production
+             ▼                                  ▼
+┌────────────────────────┐        ┌──────────────────────────────┐
+│  Local Filesystem      │        │  S3 / Azure Blob / GCS       │
+│  (data/blob/**/*.pq)   │        │  (cloud object storage)      │
+└────────────┬───────────┘        └──────────────┬───────────────┘
+             │                                   │
+             └───────────────┬───────────────────┘
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│            DuckDB (in-process, zero-install OLAP)                │
+│  • Column pruning & predicate pushdown on Parquet               │
+│  • S3 direct scan via httpfs extension                          │
+│  • Vectorized SQL: percentiles, GROUP BY, time-series           │
+└───────────────────────────┬─────────────────────────────────────┘
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  Polars DataFrame (Rust-based)                    │
+│  Post-processing, formatting, API response construction          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Performance
+
+| Scenario | Legacy (NDJSON + Python) | DuckDB + Parquet |
+|----------|--------------------------|------------------|
+| 1K traces aggregation | ~3-5s | ~50ms |
+| 100K traces P95 | OOM | ~500ms |
+| 1M traces time-series | impossible | ~2s |
+| S3 direct query | not supported | supported |
+
+### Install analytics dependencies
+
+```bash
+pip install -e ".[analytics]"       # DuckDB + Polars + PyArrow
+pip install -e ".[cloud]"           # boto3, azure-storage-blob, google-cloud-storage
+pip install -e ".[analytics,cloud]" # both
+```
+
+### Migrate existing NDJSON data
+
+```bash
+easyobs migrate-parquet                  # convert in-place
+easyobs migrate-parquet --delete-source  # remove originals after conversion
+```
+
+---
+
+## 4. Quality (eval) module — overview
 
 - **Profiles:** Combine rule-based eval, multi-LLM judges (consensus policies), and human/golden labels in one run.
 - **Cost guard:** Per-run / per-subject / monthly budgets on judge spend.
@@ -172,7 +235,7 @@ apps/web/app/workspace/quality/   # UI
 
 ---
 
-## 4. `easyobs_agent` SDK
+## 5. `easyobs_agent` SDK
 
 Lightweight client (~15KB) + OpenTelemetry deps; sends traces to EasyObs via OTLP/HTTP.
 
@@ -228,7 +291,7 @@ def do_something(query: str) -> str:
 
 ---
 
-## 5. License
+## 6. License
 
 EasyObs is **source-available** under the **PolyForm Noncommercial License 1.0.0**. Full text: [`LICENSE`](./LICENSE).
 

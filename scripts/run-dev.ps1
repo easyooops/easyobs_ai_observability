@@ -53,6 +53,16 @@ if (-not $SkipInstall) {
         Write-Host "[easyobs] pip install -e '.[agent]'"
         & $pip install -e ".[agent]"
     }
+    # Ensure the editable .pth file points to THIS project's src/ directory.
+    $pthFile = Join-Path $RepoRoot ".venv\Lib\site-packages\_editable_impl_easyobs.pth"
+    $expectedSrc = Join-Path $RepoRoot "src"
+    if (Test-Path $pthFile) {
+        $currentContent = Get-Content $pthFile -Raw
+        if ($currentContent -notmatch [regex]::Escape($expectedSrc)) {
+            Write-Host "[easyobs] fixing editable .pth -> $expectedSrc"
+            @($expectedSrc, $expectedSrc) | Set-Content $pthFile -Encoding UTF8
+        }
+    }
 }
 
 $python = Join-Path $RepoRoot ".venv\Scripts\python.exe"

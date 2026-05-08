@@ -1327,6 +1327,7 @@ pre,
   padding: 12px;
   display: grid;
   gap: 10px;
+  align-content: start;
 }
 
 .eo-kv-list {

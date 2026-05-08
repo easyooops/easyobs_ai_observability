@@ -17,6 +17,8 @@
         <tbody>
           <tr><td><code>EASYOBS_DATA_DIR</code></td><td><code>./data</code></td><td>SQLite 카탈로그, JWT 시크릿, 트레이스 블롭이 저장되는 디렉터리. <code>easyobs reset-data</code> 실행 시 비워집니다.</td></tr>
           <tr><td><code>EASYOBS_DATABASE_URL</code></td><td>(자동)</td><td>비워두면 <code>&lt;DATA_DIR&gt;/catalog.sqlite3</code>이 사용됩니다. 프로덕션 예시: <code>postgresql+asyncpg://user:pw@host:5432/easyobs</code></td></tr>
+          <tr><td><code>EASYOBS_STORAGE_FORMAT</code></td><td><code>parquet</code></td><td>트레이스 스팬 저장 형식. <code>parquet</code>: DuckDB 가속 지원 컬럼 형식 (권장). <code>ndjson</code>: 레거시 JSON-lines 형식.</td></tr>
+          <tr><td><code>EASYOBS_QUERY_ENGINE</code></td><td><code>duckdb</code></td><td>분석 쿼리 엔진. <code>duckdb</code>: Parquet 기반 벡터화 SQL (대규모 트래픽 대응). <code>legacy</code>: Python 루프 기반 (소규모 전용).</td></tr>
         </tbody>
       </table></div>
 
@@ -109,13 +111,17 @@
 EASYOBS_DATA_DIR=./data
 EASYOBS_API_HOST=127.0.0.1
 EASYOBS_API_PORT=8787
+EASYOBS_STORAGE_FORMAT=parquet
+EASYOBS_QUERY_ENGINE=duckdb
 EASYOBS_LOG_LEVEL=INFO
 EASYOBS_LOG_FORMAT=console
 EASYOBS_SEED_MOCK_DATA=true
 EASYOBS_SEED_MOCK_TRACES=1000
 
-# === 프로덕션 ===
+# === 프로덕션 (S3 + DuckDB) ===
 # EASYOBS_DATABASE_URL=postgresql+asyncpg://user:pw@db:5432/easyobs
+# EASYOBS_STORAGE_FORMAT=parquet
+# EASYOBS_QUERY_ENGINE=duckdb
 # EASYOBS_API_HOST=0.0.0.0
 # EASYOBS_JWT_SECRET=your-strong-secret-here
 # EASYOBS_LOG_FORMAT=json

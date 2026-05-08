@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from easyobs.db.models import TraceIndexRow
+from easyobs.db.models import ServiceRow, TraceIndexRow
 from easyobs.ports.catalog import TraceCatalog, TraceSummaryRecord
 
 
@@ -108,3 +108,14 @@ class SqliteTraceCatalog(TraceCatalog):
                 span_count=r.span_count,
                 batch_relpath=r.batch_relpath,
             )
+
+    async def get_service_names_by_ids(self, service_ids: list[str]) -> list[str]:
+        if not service_ids:
+            return []
+        async with self._sf() as session:
+            rows = (
+                await session.execute(
+                    select(ServiceRow.name).where(ServiceRow.id.in_(service_ids))
+                )
+            ).scalars().all()
+            return list(rows)

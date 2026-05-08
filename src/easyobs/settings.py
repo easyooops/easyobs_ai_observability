@@ -44,6 +44,25 @@ class Settings(BaseSettings):
         ),
     )
 
+    # --- storage & query engine --------------------------------------------
+    storage_format: Literal["ndjson", "parquet"] = Field(
+        default="parquet",
+        description=(
+            "Storage format for trace span blobs. 'parquet' enables columnar "
+            "storage with DuckDB query acceleration. 'ndjson' uses the legacy "
+            "JSON-lines format (no DuckDB). New deployments should use 'parquet'."
+        ),
+    )
+    query_engine: Literal["legacy", "duckdb"] = Field(
+        default="duckdb",
+        description=(
+            "Analytics query engine. 'duckdb' uses the DuckDB vectorized SQL "
+            "engine for sub-second aggregations over Parquet files. 'legacy' "
+            "uses the original Python-loop analytics (suitable only for small "
+            "deployments or when pyarrow/duckdb are not installed)."
+        ),
+    )
+
     # --- auth -------------------------------------------------------------
     jwt_secret: str = Field(
         default="",

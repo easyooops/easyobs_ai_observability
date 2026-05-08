@@ -347,7 +347,7 @@ function SessionsTab({
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 4 }}>
               {(drawerTracesQ.data ?? [])
                 .slice()
-                .sort((a, b) => +new Date(a.startedAt) - +new Date(b.startedAt))
+                .sort((a, b) => +new Date(b.startedAt) - +new Date(a.startedAt))
                 .map((tr, idx) => (
                   <li key={tr.traceId}>
                     <Link

@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from easyobs.adapters.blob_local import LocalFilesystemBlobStore
+from easyobs.adapters.blob_parquet import LocalParquetBlobStore
 from easyobs.adapters.catalog_sqlite import SqliteTraceCatalog
 from easyobs.alarms import (
     AlarmChannelService,
@@ -91,14 +92,41 @@ def _resolve_storage(
     blob_root = settings.blob_root
     if saved.blob.provider == "local" and saved.blob.path:
         blob_root = Path(saved.blob.path)
-    elif saved.blob.provider in ("s3", "azure", "gcs"):
-        log.warning(
-            "cloud blob backend persisted but not yet activated; "
-            "falling back to local store. Wire the cloud writer to enable.",
-            extra={"saved_provider": saved.blob.provider},
-        )
 
     return db_url, blob_root, app_settings, saved
+
+
+def _create_blob_store(settings, saved: StorageConfig, blob_root: Path, log: logging.Logger):
+    """Create the appropriate blob store based on provider and storage format."""
+    provider = saved.blob.provider
+    use_parquet = settings.storage_format == "parquet"
+
+    if provider == "s3":
+        from easyobs.adapters.blob_s3 import S3ParquetBlobStore
+
+        log.info("blob store: S3 Parquet", extra={"bucket": saved.blob.bucket})
+        return S3ParquetBlobStore(cfg=saved.blob)
+
+    elif provider == "azure":
+        from easyobs.adapters.blob_azure import AzureParquetBlobStore
+
+        log.info("blob store: Azure Parquet", extra={"container": saved.blob.azure_container})
+        return AzureParquetBlobStore(cfg=saved.blob)
+
+    elif provider == "gcs":
+        from easyobs.adapters.blob_gcs import GCSParquetBlobStore
+
+        log.info("blob store: GCS Parquet", extra={"bucket": saved.blob.bucket})
+        return GCSParquetBlobStore(cfg=saved.blob)
+
+    else:
+        # Local filesystem
+        if use_parquet:
+            log.info("blob store: Local Parquet", extra={"root": str(blob_root)})
+            return LocalParquetBlobStore(blob_root)
+        else:
+            log.info("blob store: Local NDJSON (legacy)", extra={"root": str(blob_root)})
+            return LocalFilesystemBlobStore(blob_root)
 
 
 @asynccontextmanager
@@ -122,7 +150,7 @@ async def lifespan(app: FastAPI):
     await init_db(db_models.Base.metadata)
 
     blob_root.mkdir(parents=True, exist_ok=True)
-    blob = LocalFilesystemBlobStore(blob_root)
+    blob = _create_blob_store(settings, _saved, blob_root, log)
     catalog = SqliteTraceCatalog(session_scope())
     token_svc = TokenService(session_scope())
     directory = DirectoryService(session_scope())
@@ -144,6 +172,51 @@ async def lifespan(app: FastAPI):
     app.state.trace_ingest = trace_ingest
     app.state.trace_query = trace_query
     app.state.analytics = AnalyticsService(blob=blob, catalog=catalog)
+
+    # ------------------------------------------------------------------
+    # DuckDB Query Engine — opt-in via EASYOBS_QUERY_ENGINE=duckdb
+    # When active, replaces the legacy Python-loop analytics and trace
+    # query services with DuckDB-powered equivalents for sub-second
+    # aggregation over Parquet data at any scale.
+    # ------------------------------------------------------------------
+    query_engine = None
+    if settings.query_engine == "duckdb" and settings.storage_format == "parquet":
+        try:
+            from easyobs.services.analytics_duckdb import DuckDBAnalyticsService
+            from easyobs.services.query_engine import QueryEngine
+            from easyobs.services.trace_query_duckdb import DuckDBTraceQueryService
+
+            scan_uri = blob.scan_uri() if hasattr(blob, "scan_uri") else ""
+            if scan_uri:
+                query_engine = QueryEngine(blob_cfg=_saved.blob, scan_base_uri=scan_uri)
+                app.state.trace_query = DuckDBTraceQueryService(
+                    engine=query_engine, blob=blob, catalog=catalog
+                )
+                app.state.analytics = DuckDBAnalyticsService(
+                    engine=query_engine, blob=blob, catalog=catalog
+                )
+                log.info(
+                    "DuckDB query engine active",
+                    extra={"scan_uri": scan_uri, "storage_format": "parquet"},
+                )
+            else:
+                log.warning("DuckDB requested but scan_uri is empty; falling back to legacy")
+        except ImportError as e:
+            log.warning(
+                "DuckDB query engine requested but dependencies missing; "
+                "falling back to legacy analytics. Install with: "
+                "pip install easyobs[analytics]",
+                extra={"error": str(e)},
+            )
+    else:
+        log.info(
+            "using legacy query engine",
+            extra={
+                "query_engine": settings.query_engine,
+                "storage_format": settings.storage_format,
+            },
+        )
+    app.state.query_engine = query_engine
 
     # ------------------------------------------------------------------
     # Evaluation (Quality) module wiring — strictly opt-in and fully
@@ -337,6 +410,11 @@ async def lifespan(app: FastAPI):
     log.info("api ready")
     yield
     log.info("api shutting down")
+    if query_engine is not None:
+        try:
+            query_engine.close()
+        except Exception:  # noqa: BLE001
+            log.exception("query engine shutdown failed")
     if alarm_evaluator is not None:
         try:
             await alarm_evaluator.stop()
