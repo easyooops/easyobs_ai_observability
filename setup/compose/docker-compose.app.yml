@@ -16,6 +16,8 @@ services:
       - .env
     environment:
       EASYOBS_DATA_DIR: /var/lib/easyobs
+      EASYOBS_STORAGE_FORMAT: "${EASYOBS_STORAGE_FORMAT:-parquet}"
+      EASYOBS_QUERY_ENGINE: "${EASYOBS_QUERY_ENGINE:-duckdb}"
       # 단일 노드에서는 alarm evaluator 를 그대로 한 인스턴스에서 돌린다.
       EASYOBS_ALARM_ENABLED: "${EASYOBS_ALARM_ENABLED:-true}"
     depends_on:

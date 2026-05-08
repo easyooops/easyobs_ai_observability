@@ -217,9 +217,43 @@ cd /path/to/easyobs-bundle
 
 Multi-host offline: shared NFS/EFS blob, external Postgres, internal LB; scripts take `EASYOBS_DATABASE_URL`, `EASYOBS_JWT_SECRET`, `EASYOBS_BLOB_HOST_DIR`, etc.
 
+> **DuckDB + Parquet (v0.2+):** 모든 배포 모드에서 아래 두 환경 변수를 `.env`에 추가해야 한다.
+>
+> ```bash
+> EASYOBS_STORAGE_FORMAT=parquet   # 권장. ndjson=레거시
+> EASYOBS_QUERY_ENGINE=duckdb      # 권장. legacy=Python 루프
+> ```
+>
+> S3/Azure/GCS blob 사용 시 `EASYOBS_BLOB_PROVIDER`, `EASYOBS_BLOB_BUCKET` 등을 `setup/compose/env.sample` 참조하여 설정.
+
 ---
 
-## 5. Destroy notes
+## 5. LLM Judge — AWS Bedrock IAM 구성
+
+EC2 인스턴스에서 AWS Bedrock Judge 를 사용하려면:
+
+1. **IAM Instance Profile** 에 `bedrock:InvokeModel` 권한을 부여:
+   ```json
+   {
+     "Effect": "Allow",
+     "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
+     "Resource": "arn:aws:bedrock:*::foundation-model/*"
+   }
+   ```
+2. Terraform `cluster/` 에서 EC2 role 에 위 정책을 추가하면,
+   컨테이너 내에서 `AWS_PROFILE`/`AWS_ACCESS_KEY_ID` **없이도** boto3 가
+   Instance Metadata Service(IMDS) 를 통해 자동 인증됨.
+3. 로컬/docker 환경에서는 `.env` 에 `AWS_PROFILE=default` (named profile) 또는
+   `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` 를 설정.
+4. 리전은 Judge Model 등록 시 `connection.aws_region` 으로 지정 (기본 `us-east-1`).
+
+> **기타 Provider (OpenAI/Anthropic/Google/Azure):**
+> `.env` 에 `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `AZURE_OPENAI_API_KEY` 등을 설정.
+> 자세한 목록은 `setup/compose/env.sample` 의 "LLM Judge" 섹션 참조.
+
+---
+
+## 6. Destroy notes
 
 - Prefer **Terraform destroy** for the stack; deleting only EC2 in the console can orphan VPC/EIP/ALB/ASG/EFS.
 - **State:** destroy uses resources in the current dir’s `terraform.tfstate`. Lost state → manual cleanup in AWS.

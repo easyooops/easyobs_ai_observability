@@ -92,6 +92,8 @@ Rules for multi-instance:
 - [ ] Backup `POSTGRES_PASSWORD` / RDS password.
 - [ ] Keep `EASYOBS_LOG_REQUEST_BODY=false` in prod.
 - [ ] `EASYOBS_SEED_MOCK_DATA=false` in prod.
+- [ ] `EASYOBS_STORAGE_FORMAT=parquet` + `EASYOBS_QUERY_ENGINE=duckdb` (v0.2+ 기본값, 권장).
+- [ ] S3/Azure/GCS blob 사용 시 `env.sample`의 클라우드 Blob 섹션 참고.
 - [ ] HTTPS: default is HTTP; use ALB + ACM (or equivalent) in prod.
 - [ ] Set `EASYOBS_CORS_ORIGINS` to real console origins.
 - [ ] Backup Postgres + blob storage on a schedule.

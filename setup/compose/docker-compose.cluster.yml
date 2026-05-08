@@ -27,6 +27,8 @@ services:
       - .env
     environment:
       EASYOBS_DATA_DIR: /var/lib/easyobs
+      EASYOBS_STORAGE_FORMAT: "${EASYOBS_STORAGE_FORMAT:-parquet}"
+      EASYOBS_QUERY_ENGINE: "${EASYOBS_QUERY_ENGINE:-duckdb}"
       EASYOBS_ALARM_ENABLED: "true"
     depends_on:
       postgres:
@@ -50,6 +52,8 @@ services:
       - .env
     environment:
       EASYOBS_DATA_DIR: /var/lib/easyobs
+      EASYOBS_STORAGE_FORMAT: "${EASYOBS_STORAGE_FORMAT:-parquet}"
+      EASYOBS_QUERY_ENGINE: "${EASYOBS_QUERY_ENGINE:-duckdb}"
       # 워커는 ingest / HTTP API / auto-rule eval 만. alarm 평가자는 끔.
       EASYOBS_ALARM_ENABLED: "false"
     depends_on:
