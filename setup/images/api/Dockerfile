@@ -32,7 +32,7 @@ COPY src/ ./src/
 # venv 에 패키지 + Postgres 드라이버 설치
 RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install --upgrade pip wheel \
- && /opt/venv/bin/pip install ".[agent,pricing]" "asyncpg>=0.30" "psycopg2-binary>=2.9"
+ && /opt/venv/bin/pip install ".[agent,pricing,analytics]" "asyncpg>=0.30" "psycopg2-binary>=2.9"
 
 # ---- Stage 2: runtime -------------------------------------------------------
 FROM python:3.12-slim AS runtime
