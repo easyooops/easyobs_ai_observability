@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 530" preserveAspectRatio="xMidYMid meet">
+  <title>EasyObs Production Architecture (DuckDB + Parquet + S3)</title>
+  <desc>Load balancer routes web and API traffic. API uses DuckDB to query Parquet files on S3. Metadata in PostgreSQL.</desc>
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#22c07a"/></marker>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#21262d"/><stop offset="100%" stop-color="#1a1f26"/></linearGradient>
+    <filter id="sh" x="-6%" y="-6%" width="112%" height="112%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.3"/></filter>
+  </defs>
+  <rect width="720" height="530" fill="#0d1117" rx="10"/>
+  <text x="360" y="28" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="12">Production Runtime Topology (DuckDB + Parquet + S3)</text>
+
+  <!-- Load Balancer -->
+  <rect x="210" y="48" width="300" height="68" rx="10" fill="url(#card)" stroke="#22c07a" stroke-width="1.3" filter="url(#sh)"/>
+  <text x="360" y="75" text-anchor="middle" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">PUBLIC ENTRYPOINT</text>
+  <text x="360" y="93" text-anchor="middle" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Load Balancer / Reverse Proxy</text>
+  <text x="360" y="109" text-anchor="middle" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">Nginx, ALB, Traefik</text>
+
+  <!-- Arrows from LB -->
+  <line x1="360" y1="116" x2="230" y2="160" stroke="#22c07a" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="360" y1="116" x2="490" y2="160" stroke="#22c07a" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="252" y="141" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">/ and static assets</text>
+  <text x="432" y="141" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">/v1, /otlp, /healthz</text>
+
+  <!-- Web Tier -->
+  <rect x="58" y="164" width="260" height="78" rx="10" fill="url(#card)" stroke="#30363d" stroke-width="1.2" filter="url(#sh)"/>
+  <text x="78" y="192" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">WEB TIER</text>
+  <text x="78" y="212" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Web Console (Next.js)</text>
+  <text x="78" y="228" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">stateless, horizontally scalable</text>
+
+  <!-- API Tier -->
+  <rect x="402" y="164" width="260" height="78" rx="10" fill="url(#card)" stroke="#22c07a" stroke-opacity="0.7" stroke-width="1.2" filter="url(#sh)"/>
+  <text x="422" y="192" fill="#22c07a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">API TIER</text>
+  <text x="422" y="212" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">API Server (FastAPI / Uvicorn)</text>
+  <text x="422" y="228" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">auth + OTLP ingest + Parquet write</text>
+
+  <!-- Arrow API ’ Query Engine -->
+  <line x1="532" y1="242" x2="532" y2="270" stroke="#22c07a" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Query Engine -->
+  <rect x="370" y="274" width="292" height="68" rx="10" fill="url(#card)" stroke="#f0883e" stroke-width="1.3" filter="url(#sh)"/>
+  <text x="390" y="298" fill="#f0883e" font-family="system-ui,sans-serif" font-size="11" font-weight="700">QUERY ENGINE</text>
+  <text x="390" y="316" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">DuckDB (in-process) + Polars</text>
+  <text x="390" y="332" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">vectorized SQL, S3 direct scan via httpfs</text>
+
+  <!-- Arrows Query Engine ’ Stores -->
+  <line x1="470" y1="342" x2="300" y2="386" stroke="#22c07a" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="570" y1="342" x2="570" y2="386" stroke="#22c07a" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- PostgreSQL -->
+  <rect x="148" y="390" width="244" height="82" rx="10" fill="url(#card)" stroke="#30363d" stroke-width="1.2" filter="url(#sh)"/>
+  <text x="168" y="416" fill="#58a6ff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">CATALOG STORE</text>
+  <text x="168" y="436" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">PostgreSQL</text>
+  <text x="168" y="452" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">users, orgs, trace_index metadata</text>
+  <text x="168" y="464" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">dev: SQLite  |  prod: managed RDS / CloudSQL</text>
+
+  <!-- S3 / Parquet Store -->
+  <rect x="432" y="390" width="244" height="82" rx="10" fill="url(#card)" stroke="#f0883e" stroke-opacity="0.7" stroke-width="1.2" filter="url(#sh)"/>
+  <text x="452" y="416" fill="#f0883e" font-family="system-ui,sans-serif" font-size="11" font-weight="700">PARQUET STORE</text>
+  <text x="452" y="436" fill="#e6edf3" font-family="system-ui,sans-serif" font-size="13" font-weight="600">S3 / Azure Blob / GCS</text>
+  <text x="452" y="452" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">dt=YYYY-MM-DD / shard=XX / *.parquet</text>
+  <text x="452" y="464" fill="#8b949e" font-family="system-ui,sans-serif" font-size="9">hive-partitioned, snappy compressed</text>
+
+  <!-- Footer -->
+  <text x="360" y="506" text-anchor="middle" fill="#6e7681" font-family="system-ui,sans-serif" font-size="10">DuckDB scans S3 Parquet directly  no ETL pipeline needed. ClickHouse-class analytical performance.</text>
+</svg>

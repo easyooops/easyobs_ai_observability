@@ -1,18 +1,105 @@
 # EasyObs
 
-Lightweight AI observability: **OpenAPI**, **SQLite or Postgres**, **object-first blob** (local / S3·Azure·GCS), **OTLP/HTTP** ingest.
+**AI Observability & Evaluation Platform** — Trace every LLM call, evaluate output quality at scale, and ship reliable AI products with confidence.
+
+OpenAPI · SQLite / Postgres · Object-first Blob (Local / S3 · Azure · GCS) · OTLP/HTTP ingest
+
+Free and open-source under the **MIT License** — use freely for personal projects, startups, and enterprises alike.
 
 ---
 
-## 1. Run locally
+## Key Features
+
+### Dashboard & Metrics
+
+Monitor request volume, token usage, cost, and latency across all AI services at a glance.
+
+![Overview Dashboard](apps/web/public/images/overview-dashboard.png)
+
+![Metrics Overview](apps/web/public/images/metrics-overview-dashboard.png)
+
+### Tracing
+
+Track the full lifecycle of LLM calls and inspect input/output/metadata at the individual span level.
+
+![Tracing Full Layout](apps/web/public/images/tracing-full-layout.png)
+
+![Tracing Inspector](apps/web/public/images/tracing-inspector-summary.png)
+
+### Quality & Evaluation
+
+Production-grade AI evaluation framework built directly into your observability stack. No separate tools needed.
+
+**Evaluation Profiles** — Combine rule-based checks, multi-LLM judge panels, and human-labeled golden sets into a single evaluation profile. Run them on-demand or automatically on every ingest.
+
+![Quality Overview](apps/web/public/images/eval-quality-overview.png)
+
+![Eval Profiles](apps/web/public/images/eval-profiles.png)
+
+**Multi-LLM Judge Consensus** — Use multiple LLM providers (OpenAI, Anthropic, Google) as judges with configurable consensus policies (majority vote, unanimous, weighted). Built-in cost guards prevent budget overruns with per-run, per-subject, and monthly spending limits.
+
+![Eval Judges](apps/web/public/images/eval-judges-page.png)
+
+**Evaluation Runs** — Launch evaluations against live traces or golden sets. Track pass/fail rates, score distributions, and cost per evaluation run. Compare runs over time to detect quality regressions.
+
+![Eval Runs](apps/web/public/images/eval-runs-launch-source-cards.png)
+
+![Eval Run Detail](apps/web/public/images/eval-runs-detail-summary.png)
+
+**Golden Sets** — Curate ground-truth datasets from manual labels, generated candidates, or trace captures. Upload via UI (Excel/CSV) or API. Use for regression testing and judge calibration.
+
+![Golden Sets](apps/web/public/images/eval-golden-sets.png)
+
+![Golden Set Detail](apps/web/public/images/eval-golden-sets-detail.png)
+
+**Improvement Recommendations** — Low scores are automatically mapped to a catalogued set of metrics and categories with effort hints, so teams know exactly what to fix and how hard it is.
+
+![Improvements](apps/web/public/images/eval-improvements-page.png)
+
+| Capability | Description |
+|------------|-------------|
+| Auto-rule on ingest | Fire-and-forget rule evaluation on every incoming trace |
+| Multi-provider judges | OpenAI, Anthropic, Google Gemini, AWS Bedrock |
+| Consensus policies | Majority vote, unanimous, weighted, custom threshold |
+| Cost guard | Per-run / per-subject / monthly budget limits |
+| Golden set management | Manual, generated, trace-labeled entries with Excel upload |
+| Improvement catalog | Metrics → categories → effort hints for actionable fixes |
+
+### Interactions & Sessions
+
+Track per-user sessions and interaction history to analyze usage patterns.
+
+![Interactions & Sessions](apps/web/public/images/interactions-sessions-users.png)
+
+### Alarms & Channels
+
+Configure anomaly detection alerts and deliver notifications via Slack, Webhook, and more.
+
+![Alarms & Channels](apps/web/public/images/alarms-channels.png)
+
+### Organizations & Members
+
+Multi-tenant organization management with role-based access control (RBAC).
+
+![Organizations & Members](apps/web/public/images/organizations-members.png)
+
+---
+
+## Production Architecture
+
+<p align="center">
+  <img src="apps/web/public/images/architecture-production.svg" alt="EasyObs Production Architecture" width="720"/>
+</p>
+
+---
+
+## Quick Start
 
 ### Requirements
 
 - Python **3.11+**
 - Node.js **20+** and npm
 - Optional: [uv](https://docs.astral.sh/uv/) for venvs
-
-Commands assume **repository root**.
 
 ### Windows (PowerShell)
 
@@ -21,43 +108,11 @@ Copy-Item .env.sample .env
 .\scripts\run-dev.ps1
 ```
 
-Options:
-
-```powershell
-.\scripts\run-dev.ps1 -ApiPort 8787 -WebPort 3000
-.\scripts\run-dev.ps1 -SkipInstall
-.\scripts\run-dev.ps1 -LogFormat json -LogLevel DEBUG
-```
-
-Starts API in the background, Next.js in the foreground; **Ctrl+C** stops both. API logs: `data/api.log` + terminal.
-
-Reset local data:
-
-```powershell
-.\.venv\Scripts\easyobs.exe reset-data --force --yes
-.\scripts\run-dev.ps1
-```
-
 ### Linux / macOS
 
 ```bash
 chmod +x scripts/run-dev.sh
 cp .env.sample .env
-./scripts/run-dev.sh
-```
-
-Options:
-
-```bash
-API_PORT=8787 WEB_PORT=3000 ./scripts/run-dev.sh
-./scripts/run-dev.sh --skip-install
-EASYOBS_LOG_FORMAT=json EASYOBS_LOG_LEVEL=DEBUG ./scripts/run-dev.sh
-```
-
-Reset:
-
-```bash
-./.venv/bin/easyobs reset-data --force --yes
 ./scripts/run-dev.sh
 ```
 
@@ -70,208 +125,44 @@ Reset:
 | OpenAPI | http://127.0.0.1:8787/docs |
 | Health | http://127.0.0.1:8787/healthz |
 
-First signup → super admin on org `administrator`. With `EASYOBS_SEED_MOCK_DATA=true`, first boot seeds demo traces (skipped if any traces already exist).
+![Quick Start Terminal](apps/web/public/images/quickstart-run-dev-terminal.png)
 
 ---
 
-## 2. Environment variables
+## Environment Variables
 
-Defaults: `src/easyobs/settings.py`. Use `.env` or real env in containers. Template: [`.env.sample`](.env.sample).
+Copy `.env.sample` to `.env`. Key variables:
 
-### Storage
+```bash
+# Storage
+EASYOBS_DATA_DIR=./data
+EASYOBS_DATABASE_URL=                   # empty → SQLite, prod: postgresql+asyncpg://...
 
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `EASYOBS_DATA_DIR` | `./data` | SQLite catalog, JWT file, trace blobs; `easyobs reset-data` clears this |
-| `EASYOBS_DATABASE_URL` | (derived) | Empty → `<DATA_DIR>/catalog.sqlite3`. Prod: `postgresql+asyncpg://...` |
-| `EASYOBS_STORAGE_FORMAT` | `parquet` | `parquet` (columnar, DuckDB acceleration) or `ndjson` (legacy JSON-lines) |
-| `EASYOBS_QUERY_ENGINE` | `duckdb` | `duckdb` (vectorized SQL over Parquet) or `legacy` (Python loops, small scale only) |
+# HTTP
+EASYOBS_API_HOST=127.0.0.1
+EASYOBS_API_PORT=8787
 
-### HTTP
+# Auth
+EASYOBS_JWT_SECRET=                     # empty → auto-generated
 
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `EASYOBS_API_HOST` | `127.0.0.1` | Use `0.0.0.0` in containers |
-| `EASYOBS_API_PORT` | `8787` | API + OTLP |
-| `EASYOBS_CORS_ORIGINS` | localhost dev origins | Comma-separated; add non-local origins explicitly |
+# Frontend
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8787
 
-### Auth
+# Demo seed (first boot only)
+EASYOBS_SEED_MOCK_DATA=false
+```
 
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `EASYOBS_JWT_SECRET` | auto | HS256; empty → created under `<DATA_DIR>/jwt.secret` |
-| `EASYOBS_JWT_TTL_HOURS` | `12` | |
-
-### LLM pricing (ingest)
-
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `EASYOBS_PRICING_SOURCE` | `auto` | `tokencost` → `litellm` → builtin; or force one of those |
-
-### Logging
-
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `EASYOBS_LOG_LEVEL` | `INFO` | |
-| `EASYOBS_LOG_FORMAT` | `console` | `json` for log stacks |
-| `EASYOBS_LOG_FILE` | (none) | Mirror to file |
-| `EASYOBS_LOG_REQUEST_BODY` | `false` | `true` logs JSON bodies (PII risk) |
-
-### Demo seed (first boot only)
-
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `EASYOBS_SEED_MOCK_DATA` | `false` | Skipped if catalog already has traces |
-| `EASYOBS_SEED_MOCK_TRACES` | `100` | |
-| `EASYOBS_SEED_MOCK_WINDOW_HOURS` | `24` | |
-
-### Frontend (`apps/web`)
-
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `NEXT_PUBLIC_API_URL` | `http://127.0.0.1:8787` | Browser-visible API base |
-
-### Quality / eval feature flags
-
-| Variable | Default | Notes |
-|----------|---------|-------|
-| `EASYOBS_EVAL_ENABLED` | `true` | `false` disables `/v1/evaluations/*` and Quality UI |
-| `EASYOBS_EVAL_AUTO_RULE_ON_INGEST` | `true` | Fire-and-forget rule eval after ingest; failures don’t fail ingest |
+Full list: [`src/easyobs/settings.py`](src/easyobs/settings.py) | [`.env.sample`](.env.sample)
 
 ---
 
-## 3. Analytics engine (DuckDB + Parquet + S3)
+## `easyobs_agent` SDK
 
-EasyObs uses a **ClickHouse-class analytical engine** powered by DuckDB, Parquet, and Polars:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        OTLP/HTTP Ingest                          │
-└───────────────────────────┬─────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  Parquet Writer (columnar)                        │
-│  hive-partitioned: dt=YYYY-MM-DD / shard=XX / batch_*.parquet   │
-└────────────┬──────────────────────────────────┬─────────────────┘
-             │ local dev                        │ production
-             ▼                                  ▼
-┌────────────────────────┐        ┌──────────────────────────────┐
-│  Local Filesystem      │        │  S3 / Azure Blob / GCS       │
-│  (data/blob/**/*.pq)   │        │  (cloud object storage)      │
-└────────────┬───────────┘        └──────────────┬───────────────┘
-             │                                   │
-             └───────────────┬───────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│            DuckDB (in-process, zero-install OLAP)                │
-│  • Column pruning & predicate pushdown on Parquet               │
-│  • S3 direct scan via httpfs extension                          │
-│  • Vectorized SQL: percentiles, GROUP BY, time-series           │
-└───────────────────────────┬─────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  Polars DataFrame (Rust-based)                    │
-│  Post-processing, formatting, API response construction          │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Performance
-
-| Scenario | Legacy (NDJSON + Python) | DuckDB + Parquet |
-|----------|--------------------------|------------------|
-| 1K traces aggregation | ~3-5s | ~50ms |
-| 100K traces P95 | OOM | ~500ms |
-| 1M traces time-series | impossible | ~2s |
-| S3 direct query | not supported | supported |
-
-### Install analytics dependencies
+Lightweight client (~15KB) + OpenTelemetry deps; sends traces via OTLP/HTTP.
 
 ```bash
-pip install -e ".[analytics]"       # DuckDB + Polars + PyArrow
-pip install -e ".[cloud]"           # boto3, azure-storage-blob, google-cloud-storage
-pip install -e ".[analytics,cloud]" # both
+pip install easyobs-agent
 ```
-
-### Migrate existing NDJSON data
-
-```bash
-easyobs migrate-parquet                  # convert in-place
-easyobs migrate-parquet --delete-source  # remove originals after conversion
-```
-
----
-
-## 4. Quality (eval) module — overview
-
-- **Profiles:** Combine rule-based eval, multi-LLM judges (consensus policies), and human/golden labels in one run.
-- **Cost guard:** Per-run / per-subject / monthly budgets on judge spend.
-- **Golden sets:** Multiple entry paths (manual, generated candidates, trace labeling).
-- **Improvement Pack:** Maps low scores to catalogued metrics/categories with `effort` hints; catalog source: `easyobs.eval.services.improvement_catalog`.
-- **Security-oriented catalog extensions:** Extra safety/supply dimensions and cause codes wired for future rules; see `src/easyobs/eval/` for implementation.
-- **Auto-rule vs judges:** Rules can run on ingest; LLM judges are typically on-demand for cost/latency.
-
-### Permissions (org × service)
-
-| Permission | Scope |
-|------------|--------|
-| `evaluations:read` | View Quality / runs / catalog |
-| `evaluations:write` | Mutate profiles, runs, schedules, improvements |
-| `goldensets:write` | Golden sets and labels |
-| `cost_admin` | Cost overview and `cost_guard` |
-
-### Layout
-
-```
-src/easyobs/eval/          # types, rules, judge, services, auto_rule hook
-src/easyobs/api/routers/evaluations.py
-apps/web/app/workspace/quality/   # UI
-```
-
-### Checks (maintainer notes)
-
-- Backend: `pytest -q` → **50 passed** (rules, consensus, cost guard, HTTP auth).
-- Frontend: `npm run build` in `apps/web` → **22/22** static pages OK.
-- With `EASYOBS_EVAL_ENABLED=false`, eval routes are not registered.
-
----
-
-## 5. `easyobs_agent` SDK
-
-Lightweight client (~15KB) + OpenTelemetry deps; sends traces to EasyObs via OTLP/HTTP.
-
-### Online
-
-```bash
-pip install -e ".[agent]"
-```
-
-### Offline wheels
-
-From repo root (online build machine):
-
-```powershell
-.\scripts\build-agent-sdk.ps1 -IncludeDeps
-```
-
-Output:
-
-```
-dist/agent/
-├─ easyobs_agent-0.1.0-py3-none-any.whl
-└─ deps/   # OpenTelemetry wheels
-```
-
-### Install on target
-
-```powershell
-pip install --no-index --find-links .\deps .\easyobs_agent-0.1.0-py3-none-any.whl
-```
-
-```bash
-pip install --no-index --find-links ./deps ./easyobs_agent-0.1.0-py3-none-any.whl
-```
-
-### Usage
 
 ```python
 from easyobs_agent import init, traced
@@ -287,29 +178,56 @@ def do_something(query: str) -> str:
     ...
 ```
 
-`@traced` creates spans; `init()` configures the OTLP/HTTP exporter.
+---
+
+## Open Source Acknowledgements
+
+EasyObs is built on the shoulders of these open-source projects. Thank you.
+
+### Backend (Python)
+
+| Project | License | Link |
+|---------|---------|------|
+| FastAPI | MIT | https://github.com/fastapi/fastapi |
+| Uvicorn | BSD-3 | https://github.com/encode/uvicorn |
+| SQLAlchemy | MIT | https://github.com/sqlalchemy/sqlalchemy |
+| Pydantic | MIT | https://github.com/pydantic/pydantic |
+| DuckDB | MIT | https://github.com/duckdb/duckdb |
+| Polars | MIT | https://github.com/pola-rs/polars |
+| PyArrow (Apache Arrow) | Apache-2.0 | https://github.com/apache/arrow |
+| OpenTelemetry Python | Apache-2.0 | https://github.com/open-telemetry/opentelemetry-python |
+| HTTPX | BSD-3 | https://github.com/encode/httpx |
+| PyJWT | MIT | https://github.com/jpadilla/pyjwt |
+| Argon2-cffi | MIT | https://github.com/hynek/argon2-cffi |
+| openpyxl | MIT | https://github.com/theorchard/openpyxl |
+
+### Frontend (TypeScript)
+
+| Project | License | Link |
+|---------|---------|------|
+| Next.js | MIT | https://github.com/vercel/next.js |
+| React | MIT | https://github.com/facebook/react |
+| TanStack Query | MIT | https://github.com/TanStack/query |
+| TypeScript | Apache-2.0 | https://github.com/microsoft/TypeScript |
+
+### Cloud & LLM Integrations
+
+| Project | License | Link |
+|---------|---------|------|
+| Boto3 (AWS SDK) | Apache-2.0 | https://github.com/boto/boto3 |
+| Azure Storage Blob | MIT | https://github.com/Azure/azure-sdk-for-python |
+| Google Cloud Storage | Apache-2.0 | https://github.com/googleapis/python-storage |
+| OpenAI Python | MIT | https://github.com/openai/openai-python |
+| Anthropic Python | MIT | https://github.com/anthropics/anthropic-sdk-python |
 
 ---
 
-## 6. License
+## License
 
-EasyObs is **source-available** under the **PolyForm Noncommercial License 1.0.0**. Full text: [`LICENSE`](./LICENSE).
+MIT License — free for personal, commercial, and enterprise use without restriction.
 
-Summary:
-
-| Use case | Allowed |
-|----------|---------|
-| Personal learning, research, hobby | Yes |
-| Nonprofit / education / noncommercial government use | Yes |
-| Citing or demoing in noncommercial blogs | Yes |
-| Noncommercial forks / PRs | Yes |
-| Commercial product or service | **No** |
-| Commercial derivatives | **No** |
-| Always-on internal commercial operations | **No** |
-| Removing license / copyright notices | **No** |
-
-Not OSI “Open Source.” Commercial use needs a separate commercial license from the rights holder.
+See [`LICENSE`](./LICENSE) for details.
 
 ---
 
-Production deploy: see [`setup/README.md`](setup/README.md) (Terraform, Compose, air-gapped).
+Production deployment: see [`setup/README.md`](setup/README.md) (Terraform, Compose, air-gapped).
