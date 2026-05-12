@@ -1,5 +1,7 @@
 # EasyObs — air-gapped (offline) deployment
 
+**Korean:** [`README.ko.md`](README.ko.md)
+
 **Build machine (online):** produce a bundle. **Target host(s) (offline):** load images and run scripts.
 
 Bundle: Docker image tars + `easyobs-source.tar.gz` + `easyobs-product.tar.gz` + deploy scripts. Works without a private registry.

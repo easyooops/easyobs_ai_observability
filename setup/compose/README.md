@@ -1,5 +1,7 @@
 # EasyObs — Docker Compose (production-style)
 
+**Korean:** [`README.ko.md`](README.ko.md)
+
 | File | Role |
 |------|------|
 | `docker-compose.deps.yml` | Postgres |
@@ -88,15 +90,15 @@ docker compose -f docker-compose.cluster.yml --env-file .env up -d \
 
 ## 4. DuckDB + Parquet (v0.2+)
 
-기본값이 `parquet` + `duckdb` 이므로 신규 배포 시 별도 설정 불필요.
-레거시 NDJSON 모드로 전환하려면 `.env`에서:
+Defaults are `parquet` and `duckdb`, so new deployments need no extra configuration.
+To switch to legacy NDJSON mode, set in `.env`:
 
 ```bash
 EASYOBS_STORAGE_FORMAT=ndjson
 EASYOBS_QUERY_ENGINE=legacy
 ```
 
-**클라우드 Blob 스토리지 (S3 / Azure / GCS):**
+**Cloud blob storage (S3 / Azure / GCS):**
 
-`.env`에서 주석 해제 후 값 입력, 또는 UI Settings > Storage 에서 설정.
-자세한 환경 변수는 `env.sample`의 `클라우드 Blob 스토리지` 섹션 참조.
+Uncomment and set values in `.env`, or configure via the UI (**Settings > Storage**).
+For all related variables, see the blob-storage block in `env.sample` (comments for S3, Azure, and GCS).

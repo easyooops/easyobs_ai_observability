@@ -1,5 +1,7 @@
 # easyobs-agent
 
+**Korean:** [`README.ko.md`](README.ko.md)
+
 Lightweight LLM/Agent observability SDK built on OpenTelemetry.
 
 Install `easyobs-agent` in your agent service to send spans to the EasyObs console with minimal boilerplate.

@@ -1,5 +1,7 @@
 # Publishing to PyPI (easyobs-agent)
 
+**Korean:** [`PUBLISHING.ko.md`](PUBLISHING.ko.md)
+
 ## Prerequisites
 
 ### 1. Install Build Tools

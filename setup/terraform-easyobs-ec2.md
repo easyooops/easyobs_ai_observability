@@ -1,5 +1,7 @@
 # EasyObs on EC2 (Terraform)
 
+**Korean:** [`setup/terraform-easyobs-ec2.ko.md`](terraform-easyobs-ec2.ko.md)
+
 Run from the **repository root**. Two topologies:
 
 | Topology | Purpose | Terraform dir |
@@ -217,22 +219,22 @@ cd /path/to/easyobs-bundle
 
 Multi-host offline: shared NFS/EFS blob, external Postgres, internal LB; scripts take `EASYOBS_DATABASE_URL`, `EASYOBS_JWT_SECRET`, `EASYOBS_BLOB_HOST_DIR`, etc.
 
-> **DuckDB + Parquet (v0.2+):** 모든 배포 모드에서 아래 두 환경 변수를 `.env`에 추가해야 한다.
+> **DuckDB + Parquet (v0.2+):** In every deployment mode, add the following two variables to `.env`.
 >
 > ```bash
-> EASYOBS_STORAGE_FORMAT=parquet   # 권장. ndjson=레거시
-> EASYOBS_QUERY_ENGINE=duckdb      # 권장. legacy=Python 루프
+> EASYOBS_STORAGE_FORMAT=parquet   # Recommended. ndjson=legacy
+> EASYOBS_QUERY_ENGINE=duckdb      # Recommended. legacy=Python loop
 > ```
 >
-> S3/Azure/GCS blob 사용 시 `EASYOBS_BLOB_PROVIDER`, `EASYOBS_BLOB_BUCKET` 등을 `setup/compose/env.sample` 참조하여 설정.
+> For S3/Azure/GCS blob storage, set `EASYOBS_BLOB_PROVIDER`, `EASYOBS_BLOB_BUCKET`, and related variables per `setup/compose/env.sample`.
 
 ---
 
-## 5. LLM Judge — AWS Bedrock IAM 구성
+## 5. LLM Judge — AWS Bedrock IAM setup
 
-EC2 인스턴스에서 AWS Bedrock Judge 를 사용하려면:
+To use AWS Bedrock Judge from EC2 instances:
 
-1. **IAM Instance Profile** 에 `bedrock:InvokeModel` 권한을 부여:
+1. Grant `bedrock:InvokeModel` on the **IAM instance profile**:
    ```json
    {
      "Effect": "Allow",
@@ -240,16 +242,13 @@ EC2 인스턴스에서 AWS Bedrock Judge 를 사용하려면:
      "Resource": "arn:aws:bedrock:*::foundation-model/*"
    }
    ```
-2. Terraform `cluster/` 에서 EC2 role 에 위 정책을 추가하면,
-   컨테이너 내에서 `AWS_PROFILE`/`AWS_ACCESS_KEY_ID` **없이도** boto3 가
-   Instance Metadata Service(IMDS) 를 통해 자동 인증됨.
-3. 로컬/docker 환경에서는 `.env` 에 `AWS_PROFILE=default` (named profile) 또는
-   `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` 를 설정.
-4. 리전은 Judge Model 등록 시 `connection.aws_region` 으로 지정 (기본 `us-east-1`).
+2. If you attach the above policy to the EC2 role in Terraform `cluster/`, boto3 authenticates automatically via Instance Metadata Service (IMDS) inside the container **without** `AWS_PROFILE` or `AWS_ACCESS_KEY_ID`.
+3. For local or Docker environments, set `AWS_PROFILE=default` (named profile) or `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` in `.env`.
+4. Set the region when registering the Judge model as `connection.aws_region` (default `us-east-1`).
 
-> **기타 Provider (OpenAI/Anthropic/Google/Azure):**
-> `.env` 에 `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `AZURE_OPENAI_API_KEY` 등을 설정.
-> 자세한 목록은 `setup/compose/env.sample` 의 "LLM Judge" 섹션 참조.
+> **Other providers (OpenAI/Anthropic/Google/Azure):**  
+> Set `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `AZURE_OPENAI_API_KEY`, and so on in `.env`.  
+> See the "LLM Judge" section in `setup/compose/env.sample` for the full list.
 
 ---
 
