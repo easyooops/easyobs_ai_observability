@@ -88,7 +88,7 @@ Multi-tenant organization management with role-based access control (RBAC).
 ## Production Architecture
 
 <p align="center">
-  <img src="apps/web/public/images/architecture-production.svg" alt="EasyObs Production Architecture" width="720"/>
+  <img src="apps/web/public/images/architecture-production.png" alt="EasyObs Production Architecture" width="720"/>
 </p>
 
 ---

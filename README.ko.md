@@ -88,7 +88,7 @@ Observability 스택에 직접 통합된 프로덕션 수준의 AI 평가 프레
 ## 프로덕션 아키텍처
 
 <p align="center">
-  <img src="apps/web/public/images/architecture-production.svg" alt="EasyObs Production Architecture" width="720"/>
+  <img src="apps/web/public/images/architecture-production.png" alt="EasyObs Production Architecture" width="720"/>
 </p>
 
 ---
