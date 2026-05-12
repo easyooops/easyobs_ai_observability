@@ -244,4 +244,10 @@ See [`LICENSE`](./LICENSE) for details.
 
 ---
 
+## Contact
+
+**Suyeong Yoo** — ssu0416@gmail.com
+
+---
+
 Production deployment: see [`setup/README.md`](setup/README.md) (Terraform, Compose, air-gapped).
