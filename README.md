@@ -91,6 +91,20 @@ Multi-tenant organization management with role-based access control (RBAC).
   <img src="apps/web/public/images/architecture-production.png" alt="EasyObs Production Architecture" width="720"/>
 </p>
 
+A single public entrypoint (Nginx, ALB, or Traefik) routes browser traffic to the **Web Console** and API paths (`/v1`, `/otlp`, `/healthz`) to the **API Server**.
+
+**Horizontal scalability** — Both the Web tier (Next.js) and API tier (FastAPI/Uvicorn) are stateless. Add instances behind the load balancer to handle increasing transaction volume with no code changes.
+
+**Tiered storage strategy:**
+
+| Tier | Storage | Access Pattern |
+|------|---------|----------------|
+| **Hot** | Local filesystem or attached SSD | Active ingest, real-time queries on today's data |
+| **Warm** | Blob Storage (Azure Blob, GCS) | Recent historical data, fast analytical queries via DuckDB |
+| **Cold** | S3 (or S3-compatible) | Long-term retention, cost-optimized; DuckDB scans directly via httpfs — no ETL needed |
+
+DuckDB operates in-process alongside the API server, scanning Parquet files across all tiers with column pruning and predicate pushdown. This delivers ClickHouse-class analytical performance without a separate data warehouse.
+
 ---
 
 ## Quick Start

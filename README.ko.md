@@ -91,6 +91,20 @@ Observability 스택에 직접 통합된 프로덕션 수준의 AI 평가 프레
   <img src="apps/web/public/images/architecture-production.png" alt="EasyObs Production Architecture" width="720"/>
 </p>
 
+단일 퍼블릭 진입점(Nginx, ALB, Traefik)이 브라우저 트래픽을 **Web Console**로, API 경로(`/v1`, `/otlp`, `/healthz`)를 **API Server**로 라우팅합니다.
+
+**수평 확장 구조** — Web 티어(Next.js)와 API 티어(FastAPI/Uvicorn) 모두 무상태(stateless)입니다. 로드 밸런서 뒤에 인스턴스를 추가하는 것만으로 대규모 트랜잭션을 코드 변경 없이 처리할 수 있습니다.
+
+**계층형 스토리지 전략:**
+
+| 계층 | 스토리지 | 접근 패턴 |
+|------|----------|-----------|
+| **Hot** | 로컬 파일시스템 또는 Attached SSD | 실시간 인제스트, 당일 데이터 즉시 쿼리 |
+| **Warm** | Blob Storage (Azure Blob, GCS) | 최근 이력 데이터, DuckDB를 통한 고속 분석 쿼리 |
+| **Cold** | S3 (또는 S3 호환 스토리지) | 장기 보관, 비용 최적화; DuckDB가 httpfs로 직접 스캔 — ETL 불필요 |
+
+DuckDB는 API 서버와 동일 프로세스에서 동작하며, 모든 계층의 Parquet 파일을 컬럼 프루닝 및 조건 푸시다운으로 스캔합니다. 별도 데이터 웨어하우스 없이 ClickHouse 수준의 분석 성능을 제공합니다.
+
 ---
 
 ## 빠른 시작
