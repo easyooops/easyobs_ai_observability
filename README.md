@@ -48,8 +48,6 @@ Production-grade AI evaluation framework built directly into your observability 
 
 **Golden Sets** — Curate ground-truth datasets from manual labels, generated candidates, or trace captures. Upload via UI (Excel/CSV) or API. Use for regression testing and judge calibration.
 
-![Golden Sets](apps/web/public/images/eval-golden-sets.png)
-
 ![Golden Set Detail](apps/web/public/images/eval-golden-sets-detail.png)
 
 **Improvement Recommendations** — Low scores are automatically mapped to a catalogued set of metrics and categories with effort hints, so teams know exactly what to fix and how hard it is.

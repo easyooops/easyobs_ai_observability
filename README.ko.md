@@ -48,8 +48,6 @@ Observability 스택에 직접 통합된 프로덕션 수준의 AI 평가 프레
 
 **Golden Set** — 수동 라벨, 생성된 후보, 트레이스 캡처로 Ground-truth 데이터셋을 구축합니다. UI(Excel/CSV) 또는 API로 업로드하며, 회귀 테스트와 심사위원 보정에 활용합니다.
 
-![Golden Sets](apps/web/public/images/eval-golden-sets.png)
-
 ![Golden Set Detail](apps/web/public/images/eval-golden-sets-detail.png)
 
 **개선 추천 (Improvement Recommendations)** — 낮은 점수는 자동으로 카탈로그화된 메트릭 및 카테고리에 매핑되며, 노력도 힌트가 함께 제공되어 팀이 무엇을 어떤 난이도로 수정해야 하는지 즉시 파악할 수 있습니다.
