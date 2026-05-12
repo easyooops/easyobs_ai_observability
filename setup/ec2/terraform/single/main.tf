@@ -136,6 +136,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "trace_archive" {
     id     = "glacier-after-90d"
     status = "Enabled"
 
+    # Whole-bucket rule; provider requires filter or prefix (see lifecycle_configuration docs).
+    filter {}
+
     transition {
       days          = 90
       storage_class = "GLACIER"
