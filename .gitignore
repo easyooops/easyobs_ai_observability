@@ -6,6 +6,7 @@ data/
 !.env*.example
 !.env.sample
 !**/.env.sample
+.pypirc
 
 # Python
 .venv/

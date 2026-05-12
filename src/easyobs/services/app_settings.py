@@ -33,7 +33,7 @@ from typing import Any, Literal
 
 SETTINGS_KEY_STORAGE = "storage"
 
-BlobProvider = Literal["local", "s3", "azure", "gcs"]
+BlobProvider = Literal["local", "s3", "azure", "gcs", "hybrid"]
 CatalogProvider = Literal["sqlite", "postgres"]
 
 
@@ -68,6 +68,9 @@ class BlobConfig:
 
     # gcs
     gcs_service_account_json: str = ""
+
+    # hybrid (local + s3)
+    hot_retention_days: int = 7
 
     def public_dict(self) -> dict[str, Any]:
         """Return a JSON-safe dict with secrets masked, for the GET endpoint."""

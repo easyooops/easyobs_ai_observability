@@ -24,7 +24,13 @@ _log = logging.getLogger("easyobs.analytics_duckdb")
 
 
 class DuckDBAnalyticsService:
-    """Analytics powered by DuckDB SQL over Parquet."""
+    """Analytics powered by DuckDB SQL over Parquet.
+
+    In hybrid mode, two engines are available:
+    - ``engine``: local hot store (last N days)
+    - ``archive_engine``: S3 cold archive (all data)
+    Routing follows the same logic as DuckDBTraceQueryService.
+    """
 
     def __init__(
         self,
@@ -32,10 +38,34 @@ class DuckDBAnalyticsService:
         engine: QueryEngine,
         blob: TraceBlobStore,
         catalog: TraceCatalog,
+        archive_engine: QueryEngine | None = None,
+        hot_retention_days: int = 7,
     ) -> None:
         self._engine = engine
+        self._archive_engine = archive_engine
+        self._hot_retention_days = hot_retention_days
         self._blob = blob
         self._catalog = catalog
+
+    def _select_engine(
+        self,
+        window_hours: int | None,
+        from_ts: datetime | None,
+        to_ts: datetime | None,
+    ) -> QueryEngine:
+        if self._archive_engine is None:
+            return self._engine
+        if window_hours is not None:
+            return self._engine
+        if from_ts is not None:
+            cutoff = datetime.now(tz=timezone.utc) - timedelta(days=self._hot_retention_days)
+            if from_ts < cutoff:
+                _log.info(
+                    "analytics: routing to S3 archive engine",
+                    extra={"from_ts": from_ts.isoformat()},
+                )
+                return self._archive_engine
+        return self._engine
 
     async def _resolve_service_names(
         self, service_ids: list[str] | None
@@ -64,13 +94,15 @@ class DuckDBAnalyticsService:
         total_span_sec = max(1.0, (series_end - series_start).total_seconds())
         effective_window_hours = total_span_sec / 3600.0
 
+        engine = self._select_engine(window_hours, lo, hi)
+
         service_names = await self._resolve_service_names(service_ids)
         if service_names is not None and not service_names:
             return self._empty_overview(effective_window_hours, now, series_start, bucket_count)
 
         service_filter = service_names[0] if service_names and len(service_names) == 1 else None
 
-        kpi = self._engine.overview_kpi(
+        kpi = engine.overview_kpi(
             from_ts=series_start, to_ts=series_end,
             service_name=service_filter,
             service_names=service_names if not service_filter else None,
@@ -79,7 +111,7 @@ class DuckDBAnalyticsService:
         total_traces = kpi.get("total_traces", 0) or 0
         error_traces = kpi.get("error_traces", 0) or 0
 
-        series_data = self._engine.time_series(
+        series_data = engine.time_series(
             from_ts=series_start, to_ts=series_end,
             bucket_count=bucket_count, service_name=service_filter,
             service_names=service_names if not service_filter else None,
@@ -97,7 +129,7 @@ class DuckDBAnalyticsService:
 
         bucket_span = max(1, int(total_span_sec // bucket_count))
 
-        services_data = self._engine.top_services(
+        services_data = engine.top_services(
             from_ts=series_start, to_ts=series_end, limit=10
         )
         services = []
@@ -113,7 +145,7 @@ class DuckDBAnalyticsService:
                 "p95": round(svc.get("p95_ms", 0.0) or 0.0, 2),
             })
 
-        models_data = self._engine.top_models(
+        models_data = engine.top_models(
             from_ts=series_start, to_ts=series_end, limit=8
         )
 
@@ -127,14 +159,14 @@ class DuckDBAnalyticsService:
         total_price = kpi.get("total_price", 0.0) or 0.0
 
         # Latency bands via DuckDB
-        latency_bands = self._compute_latency_bands(series_start, series_end, service_filter, service_names if not service_filter else None)
+        latency_bands = self._compute_latency_bands(engine, series_start, series_end, service_filter, service_names if not service_filter else None)
 
         # Top operations (root spans)
-        top_ops = self._compute_top_operations(series_start, series_end, service_filter, service_names if not service_filter else None)
+        top_ops = self._compute_top_operations(engine, series_start, series_end, service_filter, service_names if not service_filter else None)
 
         # Top vendors and steps
-        top_vendors = self._compute_top_vendors(series_start, series_end, service_filter, service_names if not service_filter else None)
-        top_steps = self._compute_top_steps(series_start, series_end, service_filter, service_names if not service_filter else None)
+        top_vendors = self._compute_top_vendors(engine, series_start, series_end, service_filter, service_names if not service_filter else None)
+        top_steps = self._compute_top_steps(engine, series_start, series_end, service_filter, service_names if not service_filter else None)
 
         return {
             "windowHours": round(effective_window_hours, 4),
@@ -216,7 +248,7 @@ class DuckDBAnalyticsService:
         }
 
     def _compute_latency_bands(
-        self, from_ts: datetime, to_ts: datetime, service_name: str | None,
+        self, engine: QueryEngine, from_ts: datetime, to_ts: datetime, service_name: str | None,
         service_names: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         where_clauses = QueryEngine._build_where(
@@ -237,9 +269,9 @@ class DuckDBAnalyticsService:
             FROM read_parquet('{{SCAN}}')
             {where_sql}
         """
-        sql = sql.replace("{SCAN}", self._engine.scan_base_uri)
+        sql = sql.replace("{SCAN}", engine.scan_base_uri)
         try:
-            rows = self._engine.execute_sql(sql).to_dicts()
+            rows = engine.execute_sql(sql).to_dicts()
         except Exception:
             return [{"label": b, "count": 0} for b in
                     ("<100ms", "100-300ms", "300-800ms", "0.8-2s", "2-5s", ">5s")]
@@ -252,7 +284,7 @@ class DuckDBAnalyticsService:
         ]
 
     def _compute_top_operations(
-        self, from_ts: datetime, to_ts: datetime, service_name: str | None,
+        self, engine: QueryEngine, from_ts: datetime, to_ts: datetime, service_name: str | None,
         service_names: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         where_clauses = QueryEngine._build_where(
@@ -274,9 +306,9 @@ class DuckDBAnalyticsService:
             ORDER BY cnt DESC
             LIMIT 8
         """
-        sql = sql.replace("{SCAN}", self._engine.scan_base_uri)
+        sql = sql.replace("{SCAN}", engine.scan_base_uri)
         try:
-            rows = self._engine.execute_sql(sql).to_dicts()
+            rows = engine.execute_sql(sql).to_dicts()
         except Exception:
             return []
 
@@ -291,7 +323,7 @@ class DuckDBAnalyticsService:
         ]
 
     def _compute_top_vendors(
-        self, from_ts: datetime, to_ts: datetime, service_name: str | None,
+        self, engine: QueryEngine, from_ts: datetime, to_ts: datetime, service_name: str | None,
         service_names: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         where_clauses = QueryEngine._build_where(
@@ -309,15 +341,15 @@ class DuckDBAnalyticsService:
             ORDER BY cnt DESC
             LIMIT 8
         """
-        sql = sql.replace("{SCAN}", self._engine.scan_base_uri)
+        sql = sql.replace("{SCAN}", engine.scan_base_uri)
         try:
-            rows = self._engine.execute_sql(sql).to_dicts()
+            rows = engine.execute_sql(sql).to_dicts()
         except Exception:
             return []
         return [{"name": r.get("name", ""), "count": r.get("cnt", 0) or 0} for r in rows]
 
     def _compute_top_steps(
-        self, from_ts: datetime, to_ts: datetime, service_name: str | None,
+        self, engine: QueryEngine, from_ts: datetime, to_ts: datetime, service_name: str | None,
         service_names: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         where_clauses = QueryEngine._build_where(
@@ -335,9 +367,9 @@ class DuckDBAnalyticsService:
             ORDER BY cnt DESC
             LIMIT 8
         """
-        sql = sql.replace("{SCAN}", self._engine.scan_base_uri)
+        sql = sql.replace("{SCAN}", engine.scan_base_uri)
         try:
-            rows = self._engine.execute_sql(sql).to_dicts()
+            rows = engine.execute_sql(sql).to_dicts()
         except Exception:
             return []
         return [{"name": r.get("name", ""), "count": r.get("cnt", 0) or 0} for r in rows]
@@ -356,11 +388,13 @@ class DuckDBAnalyticsService:
         effective_from = lo or (now - timedelta(hours=window_hours or 720))
         effective_to = hi or now
 
+        engine = self._select_engine(window_hours, lo, hi)
+
         service_names = await self._resolve_service_names(service_ids)
         if service_names is not None and not service_names:
             return []
 
-        rows = self._engine.session_aggregates(
+        rows = engine.session_aggregates(
             from_ts=effective_from, to_ts=effective_to, limit=limit
         )
 
@@ -401,11 +435,13 @@ class DuckDBAnalyticsService:
         effective_from = lo or (now - timedelta(hours=window_hours or 720))
         effective_to = hi or now
 
+        engine = self._select_engine(window_hours, lo, hi)
+
         service_names = await self._resolve_service_names(service_ids)
         if service_names is not None and not service_names:
             return []
 
-        rows = self._engine.user_aggregates(
+        rows = engine.user_aggregates(
             from_ts=effective_from, to_ts=effective_to, limit=limit
         )
 
@@ -445,13 +481,15 @@ class DuckDBAnalyticsService:
         effective_from = lo or (now - timedelta(hours=window_hours or 720))
         effective_to = hi or now
 
+        engine = self._select_engine(window_hours, lo, hi)
+
         service_names = await self._resolve_service_names(service_ids)
         if service_names is not None and not service_names:
             return []
 
         service_filter = service_names[0] if service_names and len(service_names) == 1 else None
 
-        rows = self._engine.span_list(
+        rows = engine.span_list(
             from_ts=effective_from, to_ts=effective_to,
             service_name=service_filter, limit=limit,
         )

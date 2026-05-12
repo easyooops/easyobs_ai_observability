@@ -106,6 +106,43 @@ resource "aws_s3_object" "easyobs_product" {
   etag   = data.archive_file.easyobs_product.output_md5
 }
 
+# ---- Trace archive S3 bucket (hybrid storage cold tier) -------------------
+
+resource "aws_s3_bucket" "trace_archive" {
+  bucket_prefix = "${local.name_prefix}-traces-"
+  force_destroy = false
+  tags          = merge(local.tags, { Purpose = "trace-archive" })
+}
+
+resource "aws_s3_bucket_public_access_block" "trace_archive" {
+  bucket                  = aws_s3_bucket.trace_archive.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_versioning" "trace_archive" {
+  bucket = aws_s3_bucket.trace_archive.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "trace_archive" {
+  bucket = aws_s3_bucket.trace_archive.id
+
+  rule {
+    id     = "glacier-after-90d"
+    status = "Enabled"
+
+    transition {
+      days          = 90
+      storage_class = "GLACIER"
+    }
+  }
+}
+
 # ---- Network ---------------------------------------------------------------
 
 data "aws_availability_zones" "available" {
@@ -257,6 +294,35 @@ resource "aws_iam_role_policy" "stage_read" {
   policy = data.aws_iam_policy_document.stage_read.json
 }
 
+data "aws_iam_policy_document" "trace_archive_rw" {
+  statement {
+    sid    = "TraceArchiveReadWrite"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+    resources = [
+      "${aws_s3_bucket.trace_archive.arn}/*",
+    ]
+  }
+  statement {
+    sid     = "TraceArchiveList"
+    effect  = "Allow"
+    actions = ["s3:ListBucket"]
+    resources = [
+      aws_s3_bucket.trace_archive.arn,
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "trace_archive_rw" {
+  name   = "${local.name_prefix}-trace-archive-rw"
+  role   = aws_iam_role.easyobs.id
+  policy = data.aws_iam_policy_document.trace_archive_rw.json
+}
+
 resource "aws_iam_instance_profile" "easyobs" {
   name = "${local.name_prefix}-ec2-profile"
   role = aws_iam_role.easyobs.name
@@ -277,6 +343,7 @@ resource "aws_instance" "easyobs" {
   user_data = base64encode(templatefile("${path.module}/templates/bootstrap.sh.tpl", {
     aws_region            = var.aws_region
     stage_bucket          = aws_s3_bucket.stage.bucket
+    trace_archive_bucket  = aws_s3_bucket.trace_archive.bucket
     source_object_key     = aws_s3_object.easyobs_source.key
     product_object_key    = aws_s3_object.easyobs_product.key
     postgres_password     = random_password.postgres.result
@@ -287,6 +354,7 @@ resource "aws_instance" "easyobs" {
     easyobs_web_image_tag = var.easyobs_web_image_tag
     enable_data_volume    = var.enable_data_volume
     seed_mock_data        = var.seed_mock_data
+    blob_hot_retention_days = var.blob_hot_retention_days
   }))
 
   user_data_replace_on_change = true

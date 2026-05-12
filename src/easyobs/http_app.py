@@ -79,6 +79,23 @@ def _resolve_storage(
     app_settings = AppSettingsService(settings.data_dir)
     saved = app_settings.get_storage_sync()
 
+    # If the blob provider is still at the file-based default ("local") but
+    # the env declares a different provider, prefer the env. This lets
+    # operators bootstrap hybrid/S3 via pure environment variables without
+    # needing a UI save + restart cycle.
+    if saved.blob.provider == "local" and settings.blob_provider != "local":
+        saved.blob.provider = settings.blob_provider
+        saved.blob.bucket = settings.blob_bucket or saved.blob.bucket
+        saved.blob.prefix = settings.blob_prefix or saved.blob.prefix
+        saved.blob.region = settings.blob_region or saved.blob.region
+        saved.blob.s3_access_key_id = settings.blob_s3_access_key_id or saved.blob.s3_access_key_id
+        saved.blob.s3_secret_access_key = settings.blob_s3_secret_access_key or saved.blob.s3_secret_access_key
+        saved.blob.hot_retention_days = settings.blob_hot_retention_days
+        log.info(
+            "applying env-driven blob provider override",
+            extra={"provider": settings.blob_provider},
+        )
+
     db_url = settings.database_url
     if saved.catalog.provider == "postgres" and saved.catalog.pg_host:
         db_url = saved.catalog.to_async_url()
@@ -100,6 +117,23 @@ def _create_blob_store(settings, saved: StorageConfig, blob_root: Path, log: log
     """Create the appropriate blob store based on provider and storage format."""
     provider = saved.blob.provider
     use_parquet = settings.storage_format == "parquet"
+
+    if provider == "hybrid":
+        from easyobs.adapters.blob_hybrid import HybridBlobStore
+
+        log.info(
+            "blob store: Hybrid (Local Parquet + S3)",
+            extra={
+                "local_root": str(blob_root),
+                "s3_bucket": saved.blob.bucket,
+                "hot_retention_days": saved.blob.hot_retention_days,
+            },
+        )
+        return HybridBlobStore(
+            local_root=blob_root,
+            s3_cfg=saved.blob,
+            hot_retention_days=saved.blob.hot_retention_days,
+        )
 
     if provider == "s3":
         from easyobs.adapters.blob_s3 import S3ParquetBlobStore
@@ -180,6 +214,7 @@ async def lifespan(app: FastAPI):
     # aggregation over Parquet data at any scale.
     # ------------------------------------------------------------------
     query_engine = None
+    query_engine_archive = None
     if settings.query_engine == "duckdb" and settings.storage_format == "parquet":
         try:
             from easyobs.services.analytics_duckdb import DuckDBAnalyticsService
@@ -189,11 +224,30 @@ async def lifespan(app: FastAPI):
             scan_uri = blob.scan_uri() if hasattr(blob, "scan_uri") else ""
             if scan_uri:
                 query_engine = QueryEngine(blob_cfg=_saved.blob, scan_base_uri=scan_uri)
+
+                # For hybrid mode, create a second engine pointing at S3 archive
+                from easyobs.adapters.blob_hybrid import HybridBlobStore
+
+                if isinstance(blob, HybridBlobStore):
+                    archive_scan_uri = blob.scan_uri_archive()
+                    s3_cfg = _saved.blob
+                    query_engine_archive = QueryEngine(
+                        blob_cfg=s3_cfg, scan_base_uri=archive_scan_uri,
+                    )
+                    log.info(
+                        "DuckDB archive query engine active (S3)",
+                        extra={"scan_uri": archive_scan_uri},
+                    )
+
                 app.state.trace_query = DuckDBTraceQueryService(
-                    engine=query_engine, blob=blob, catalog=catalog
+                    engine=query_engine, blob=blob, catalog=catalog,
+                    archive_engine=query_engine_archive,
+                    hot_retention_days=getattr(blob, "hot_retention_days", 7),
                 )
                 app.state.analytics = DuckDBAnalyticsService(
-                    engine=query_engine, blob=blob, catalog=catalog
+                    engine=query_engine, blob=blob, catalog=catalog,
+                    archive_engine=query_engine_archive,
+                    hot_retention_days=getattr(blob, "hot_retention_days", 7),
                 )
                 log.info(
                     "DuckDB query engine active",
@@ -217,6 +271,7 @@ async def lifespan(app: FastAPI):
             },
         )
     app.state.query_engine = query_engine
+    app.state.query_engine_archive = query_engine_archive
 
     # ------------------------------------------------------------------
     # Evaluation (Quality) module wiring — strictly opt-in and fully
@@ -415,6 +470,11 @@ async def lifespan(app: FastAPI):
             query_engine.close()
         except Exception:  # noqa: BLE001
             log.exception("query engine shutdown failed")
+    if query_engine_archive is not None:
+        try:
+            query_engine_archive.close()
+        except Exception:  # noqa: BLE001
+            log.exception("archive query engine shutdown failed")
     if alarm_evaluator is not None:
         try:
             await alarm_evaluator.stop()

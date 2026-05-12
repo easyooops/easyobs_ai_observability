@@ -35,6 +35,7 @@ const EMPTY_BLOB: BlobSettings = {
   azure_account_key: "",
   azure_container: "",
   gcs_service_account_json: "",
+  hot_retention_days: 7,
 };
 
 const EMPTY_CATALOG: CatalogSettings = {
@@ -55,6 +56,7 @@ const BLOB_LABELS: Record<BlobProvider, string> = {
   s3: "AWS S3",
   azure: "Azure Blob Storage",
   gcs: "Google Cloud Storage",
+  hybrid: "Hybrid (Local + S3 Archive)",
 };
 
 const CATALOG_LABELS: Record<CatalogProvider, string> = {
@@ -835,13 +837,87 @@ function BlobChangeDialog({
             </Field>
           </>
         )}
+
+        {draft.provider === "hybrid" && (
+          <>
+            <div className="eo-form-row" data-full="1">
+              <span className="eo-hint" style={{ marginTop: 0 }}>
+                <strong>Hybrid 모드:</strong> 로컬 Parquet(최근 N일 실시간) + S3(전체 아카이브) 동시 기록.
+                프리셋 기간(1h/6h/24h/7d)은 로컬 스토어 쿼리, Custom 기간(7일 초과)은 S3 쿼리.
+              </span>
+            </div>
+            <Field label="Hot retention (days)" hint="로컬 보관 일수">
+              <input
+                className="eo-input"
+                type="number"
+                min={1}
+                max={90}
+                value={draft.hot_retention_days ?? 7}
+                onChange={(e) => {
+                  setDraft({ ...draft, hot_retention_days: parseInt(e.target.value, 10) || 7 });
+                  setTest(null);
+                }}
+              />
+            </Field>
+            <Field label="S3 Bucket" required>
+              <input
+                className="eo-input"
+                value={draft.bucket}
+                onChange={(e) => {
+                  setDraft({ ...draft, bucket: e.target.value });
+                  setTest(null);
+                }}
+              />
+            </Field>
+            <Field label="Region">
+              <input
+                className="eo-input"
+                placeholder="ap-northeast-2"
+                value={draft.region}
+                onChange={(e) => {
+                  setDraft({ ...draft, region: e.target.value });
+                  setTest(null);
+                }}
+              />
+            </Field>
+            <Field label="Key prefix" hint="optional, e.g. traces/" full>
+              <input
+                className="eo-input"
+                value={draft.prefix}
+                onChange={(e) => setDraft({ ...draft, prefix: e.target.value })}
+              />
+            </Field>
+            <Field label="Access key ID">
+              <input
+                className="eo-input"
+                placeholder="AKIA…"
+                value={draft.s3_access_key_id}
+                onChange={(e) => {
+                  setDraft({ ...draft, s3_access_key_id: e.target.value });
+                  setTest(null);
+                }}
+              />
+            </Field>
+            <Field label="Secret access key">
+              <input
+                className="eo-input"
+                type="password"
+                placeholder={draft.s3_secret_access_key === SECRET_MASK ? SECRET_MASK : ""}
+                value={draft.s3_secret_access_key === SECRET_MASK ? "" : draft.s3_secret_access_key}
+                onChange={(e) => {
+                  setDraft({ ...draft, s3_secret_access_key: e.target.value });
+                  setTest(null);
+                }}
+              />
+            </Field>
+          </>
+        )}
       </div>
 
       {isCloud && (
         <p className="eo-hint" style={{ marginTop: 12 }}>
-          Cloud writers are pending — config is persisted, but ingest will
-          keep using the local path until a writer for the chosen backend
-          is wired in.
+          설정이 저장된 후 API 서비스를 재시작해야 반영됩니다.
+          {draft.provider === "hybrid" && " Hybrid 모드: 로컬(최근 7일) + S3(전체) 동시 기록이 활성화됩니다."}
         </p>
       )}
 

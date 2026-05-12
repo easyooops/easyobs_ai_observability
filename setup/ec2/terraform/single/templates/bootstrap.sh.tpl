@@ -144,6 +144,12 @@ EASYOBS_ALARM_EVAL_INTERVAL_SECONDS=60
 EASYOBS_SEED_MOCK_DATA=${seed_mock_data}
 EASYOBS_SEED_MOCK_LIVE=${seed_mock_data}
 
+EASYOBS_BLOB_PROVIDER=hybrid
+EASYOBS_BLOB_BUCKET=${trace_archive_bucket}
+EASYOBS_BLOB_PREFIX=traces
+EASYOBS_BLOB_REGION=${aws_region}
+EASYOBS_BLOB_HOT_RETENTION_DAYS=${blob_hot_retention_days}
+
 NEXT_PUBLIC_API_URL=http://$PUBLIC_IP:${easyobs_api_port}
 EOF
 chmod 600 "$DEPLOY_DIR/.env"
@@ -180,9 +186,12 @@ import json, os, datetime
 out = {
   "storage": {
     "blob": {
-      "provider": "local",
+      "provider": "hybrid",
       "path": os.environ.get("EASYOBS_DATA_DIR", "/var/lib/easyobs") + "/blob",
-      "bucket": "", "prefix": "", "region": "",
+      "bucket": os.environ.get("EASYOBS_BLOB_BUCKET", ""),
+      "prefix": os.environ.get("EASYOBS_BLOB_PREFIX", "traces"),
+      "region": os.environ.get("EASYOBS_BLOB_REGION", ""),
+      "hot_retention_days": int(os.environ.get("EASYOBS_BLOB_HOT_RETENTION_DAYS", "7")),
       "s3_access_key_id": "", "s3_secret_access_key": "",
       "azure_account_name": "", "azure_account_key": "", "azure_container": "",
       "gcs_service_account_json": ""

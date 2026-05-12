@@ -46,6 +46,11 @@ output "stage_bucket" {
   description = "S3 stage bucket holding source/product archives"
 }
 
+output "trace_archive_bucket" {
+  value       = aws_s3_bucket.trace_archive.bucket
+  description = "S3 bucket for trace Parquet archive (hybrid storage cold tier)"
+}
+
 output "api_leader_instance_id" {
   value       = aws_instance.api_leader.id
   description = "API leader EC2 (the only one with EASYOBS_ALARM_ENABLED=true)"

@@ -33,6 +33,11 @@ output "stage_bucket" {
   description = "S3 bucket holding the source/product archives the EC2 host downloads on boot"
 }
 
+output "trace_archive_bucket" {
+  value       = aws_s3_bucket.trace_archive.bucket
+  description = "S3 bucket for trace Parquet archive (hybrid storage cold tier)"
+}
+
 output "postgres_password" {
   value       = random_password.postgres.result
   description = "Auto-generated Postgres password (also in Terraform state)"

@@ -63,6 +63,32 @@ class Settings(BaseSettings):
         ),
     )
 
+    # --- blob storage (env-driven, overridden by app_settings.json if set) ---
+    blob_provider: Literal["local", "s3", "azure", "gcs", "hybrid"] = Field(
+        default="local",
+        description=(
+            "Blob storage provider. 'hybrid' enables dual-write to local "
+            "Parquet (hot, last 7d) and S3 (cold archive, all data). "
+            "Defaults to 'local' for safe local development; set to 'hybrid' "
+            "in production via env or Terraform bootstrap."
+        ),
+    )
+    blob_bucket: str = Field(default="", description="S3/GCS bucket name for blob storage.")
+    blob_prefix: str = Field(default="traces", description="Object key prefix inside the bucket.")
+    blob_region: str = Field(default="", description="AWS region for S3.")
+    blob_s3_access_key_id: str = Field(default="", description="AWS access key ID for S3.")
+    blob_s3_secret_access_key: str = Field(default="", description="AWS secret access key for S3.")
+    blob_hot_retention_days: int = Field(
+        default=7,
+        ge=1,
+        le=90,
+        description=(
+            "Days of data kept in the local hot store (hybrid mode). "
+            "Preset windows query the hot store; custom ranges beyond "
+            "this threshold route to the S3 archive."
+        ),
+    )
+
     # --- auth -------------------------------------------------------------
     jwt_secret: str = Field(
         default="",

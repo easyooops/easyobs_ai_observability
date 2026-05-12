@@ -135,3 +135,9 @@ variable "seed_mock_data" {
   description = "true 면 첫 부팅에 데모 트레이스 시드 (운영 환경에서는 false 권장)"
   default     = false
 }
+
+variable "blob_hot_retention_days" {
+  type        = number
+  description = "Hot (local/EFS) blob store retention period in days. Data older than this is only in S3 archive."
+  default     = 7
+}

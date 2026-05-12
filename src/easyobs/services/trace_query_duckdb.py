@@ -26,6 +26,12 @@ class DuckDBTraceQueryService:
 
     Falls back to catalog + blob for trace detail (full span tree) since
     that needs the full attributes/events JSON.
+
+    When a hybrid blob store is active, two engines are available:
+    - ``engine``: local hot store (last N days, default 7)
+    - ``archive_engine``: S3 cold archive (all data)
+    Preset windows (1h/6h/24h/7d) always use the hot engine.
+    Custom ranges that extend beyond the hot window use the archive engine.
     """
 
     def __init__(
@@ -34,10 +40,41 @@ class DuckDBTraceQueryService:
         engine: QueryEngine,
         blob: TraceBlobStore,
         catalog: TraceCatalog,
+        archive_engine: QueryEngine | None = None,
+        hot_retention_days: int = 7,
     ) -> None:
         self._engine = engine
+        self._archive_engine = archive_engine
+        self._hot_retention_days = hot_retention_days
         self._blob = blob
         self._catalog = catalog
+
+    def _select_engine(
+        self,
+        window_hours: int | None,
+        from_ts: datetime | None,
+        to_ts: datetime | None,
+    ) -> QueryEngine:
+        """Pick the appropriate query engine based on time range.
+
+        Rules:
+        - If no archive engine exists, always use primary.
+        - Preset windows (window_hours set) always use primary (hot store).
+        - Custom range: if from_ts is older than hot_retention_days, use archive.
+        """
+        if self._archive_engine is None:
+            return self._engine
+        if window_hours is not None:
+            return self._engine
+        if from_ts is not None:
+            cutoff = datetime.now(tz=timezone.utc) - timedelta(days=self._hot_retention_days)
+            if from_ts < cutoff:
+                _log.info(
+                    "routing query to S3 archive engine (custom range beyond hot window)",
+                    extra={"from_ts": from_ts.isoformat(), "cutoff": cutoff.isoformat()},
+                )
+                return self._archive_engine
+        return self._engine
 
     async def _resolve_service_names(
         self, service_ids: list[str] | None
@@ -70,11 +107,13 @@ class DuckDBTraceQueryService:
         effective_from = lo or (now - timedelta(hours=window_hours or 720))
         effective_to = hi or now
 
+        engine = self._select_engine(window_hours, lo, hi)
+
         service_names = await self._resolve_service_names(service_ids)
         if service_names is not None and not service_names:
             return []
 
-        rows = self._engine.list_traces(
+        rows = engine.list_traces(
             from_ts=effective_from,
             to_ts=effective_to,
             service_names=service_names,

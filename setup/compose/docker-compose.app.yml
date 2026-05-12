@@ -18,6 +18,15 @@ services:
       EASYOBS_DATA_DIR: /var/lib/easyobs
       EASYOBS_STORAGE_FORMAT: "${EASYOBS_STORAGE_FORMAT:-parquet}"
       EASYOBS_QUERY_ENGINE: "${EASYOBS_QUERY_ENGINE:-duckdb}"
+      # Hybrid blob store: 로컬(최근 7일) + S3(전체 아카이브) 동시 기록.
+      # EASYOBS_BLOB_PROVIDER=hybrid 로 설정 시 활성화.
+      EASYOBS_BLOB_PROVIDER: "${EASYOBS_BLOB_PROVIDER:-local}"
+      EASYOBS_BLOB_BUCKET: "${EASYOBS_BLOB_BUCKET:-}"
+      EASYOBS_BLOB_PREFIX: "${EASYOBS_BLOB_PREFIX:-traces}"
+      EASYOBS_BLOB_REGION: "${EASYOBS_BLOB_REGION:-}"
+      EASYOBS_BLOB_S3_ACCESS_KEY_ID: "${EASYOBS_BLOB_S3_ACCESS_KEY_ID:-}"
+      EASYOBS_BLOB_S3_SECRET_ACCESS_KEY: "${EASYOBS_BLOB_S3_SECRET_ACCESS_KEY:-}"
+      EASYOBS_BLOB_HOT_RETENTION_DAYS: "${EASYOBS_BLOB_HOT_RETENTION_DAYS:-7}"
       # 단일 노드에서는 alarm evaluator 를 그대로 한 인스턴스에서 돌린다.
       EASYOBS_ALARM_ENABLED: "${EASYOBS_ALARM_ENABLED:-true}"
     depends_on:

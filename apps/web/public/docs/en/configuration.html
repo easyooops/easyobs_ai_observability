@@ -90,6 +90,26 @@
         </tbody>
       </table></div>
 
+      <h2>Hybrid Storage (Local Blob + S3 Archive)</h2>
+      <div class="docs-info"><strong>New in v0.2:</strong> Set <code>EASYOBS_BLOB_PROVIDER=hybrid</code> to enable dual-write to Local Parquet (hot, last 7 days) and S3 (cold archive, all data).</div>
+      <h3>Query Routing</h3>
+      <ul>
+        <li>Preset windows (<code>1h</code>, <code>6h</code>, <code>24h</code>, <code>7d</code>) → Local Blob Store (fast DuckDB scan)</li>
+        <li><code>Custom</code> range beyond hot window → S3 Archive (DuckDB httpfs)</li>
+      </ul>
+      <div class="docs-table-wrap"><table class="docs-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>EASYOBS_BLOB_PROVIDER</code></td><td><code>local</code></td><td>Set to <code>hybrid</code> for Local+S3 dual-write</td></tr>
+          <tr><td><code>EASYOBS_BLOB_BUCKET</code></td><td>(none)</td><td>S3 bucket name</td></tr>
+          <tr><td><code>EASYOBS_BLOB_PREFIX</code></td><td><code>traces</code></td><td>Object key prefix</td></tr>
+          <tr><td><code>EASYOBS_BLOB_REGION</code></td><td>(none)</td><td>AWS region</td></tr>
+          <tr><td><code>EASYOBS_BLOB_S3_ACCESS_KEY_ID</code></td><td>(none)</td><td>AWS access key (optional if using IAM role)</td></tr>
+          <tr><td><code>EASYOBS_BLOB_S3_SECRET_ACCESS_KEY</code></td><td>(none)</td><td>AWS secret key</td></tr>
+          <tr><td><code>EASYOBS_BLOB_HOT_RETENTION_DAYS</code></td><td><code>7</code></td><td>Days of data in hot store; custom queries beyond this route to S3</td></tr>
+        </tbody>
+      </table></div>
+
       <h2>Frontend (Web Console)</h2>
       <div class="docs-table-wrap"><table class="docs-table">
         <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
@@ -118,10 +138,15 @@ EASYOBS_LOG_FORMAT=console
 EASYOBS_SEED_MOCK_DATA=true
 EASYOBS_SEED_MOCK_TRACES=1000
 
-# === Production (S3 + DuckDB) ===
+# === Production (Hybrid: Local + S3) ===
 # EASYOBS_DATABASE_URL=postgresql+asyncpg://user:pw@db:5432/easyobs
 # EASYOBS_STORAGE_FORMAT=parquet
 # EASYOBS_QUERY_ENGINE=duckdb
+# EASYOBS_BLOB_PROVIDER=hybrid
+# EASYOBS_BLOB_BUCKET=my-easyobs-archive
+# EASYOBS_BLOB_PREFIX=traces
+# EASYOBS_BLOB_REGION=ap-northeast-2
+# EASYOBS_BLOB_HOT_RETENTION_DAYS=7
 # EASYOBS_API_HOST=0.0.0.0
 # EASYOBS_JWT_SECRET=your-strong-secret-here
 # EASYOBS_LOG_FORMAT=json

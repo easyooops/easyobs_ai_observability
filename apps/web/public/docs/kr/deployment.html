@@ -125,11 +125,24 @@ EASYOBS_SEED_MOCK_DATA=false</code></pre>
         <thead><tr><th>구성요소</th><th>저장소</th><th>권장</th></tr></thead>
         <tbody>
           <tr><td>Catalog (metadata)</td><td>PostgreSQL</td><td>백업이 가능한 매니지드 RDS/CloudSQL.</td></tr>
-          <tr><td>Trace spans (Parquet)</td><td>S3 / Azure Blob / GCS</td><td>hive-partitioned Parquet (dt=YYYY-MM-DD). DuckDB가 직접 스캔합니다.</td></tr>
-          <tr><td>Query Engine</td><td>DuckDB (in-process)</td><td>별도 설치 불필요. <code>pip install easyobs[analytics]</code>로 활성화.</td></tr>
+          <tr><td>Trace spans (Parquet)</td><td>Hybrid (Local + S3)</td><td>로컬: 최근 7일 실시간 데이터. S3: 전체 아카이브. <code>EASYOBS_BLOB_PROVIDER=hybrid</code> 설정.</td></tr>
+          <tr><td>Query Engine</td><td>DuckDB (in-process, dual)</td><td>Hot Engine(로컬): 1h/6h/24h/7d 프리셋. Archive Engine(S3): Custom 기간(7일 초과).</td></tr>
           <tr><td>JWT secret</td><td>환경 변수 또는 secrets manager</td><td>운영 환경의 <code>.env</code>에는 절대 저장하지 않음.</td></tr>
         </tbody>
       </table></div>
+
+      <h2>하이브리드 스토리지 아키텍처 (v0.2)</h2>
+      <div class="docs-info">EasyObs v0.2부터 Hybrid 모드를 지원합니다. 로컬 Parquet Blob Store와 S3 아카이브를 동시에 사용하여 실시간 쿼리 성능과 장기 데이터 보관을 모두 충족합니다.</div>
+      <ul>
+        <li><strong>Ingest (수집)</strong>: 모든 트레이스가 로컬 Parquet + S3에 동시 기록됩니다 (dual-write).</li>
+        <li><strong>쿼리 라우팅</strong>:
+          <ul>
+            <li>프리셋 기간 (<code>1h</code>, <code>6h</code>, <code>24h</code>, <code>7d</code>) → 로컬 DuckDB 엔진 (밀리초 응답)</li>
+            <li>Custom 기간 (7일 초과) → S3 DuckDB httpfs 엔진 (초 단위 응답)</li>
+          </ul>
+        </li>
+        <li><strong>운영</strong>: 로컬 스토어는 <code>EASYOBS_BLOB_HOT_RETENTION_DAYS</code>(기본 7일)로 관리. 주기적으로 오래된 파티션을 정리할 수 있습니다.</li>
+      </ul>
 
       <h2>스케일링</h2>
       <ul>
