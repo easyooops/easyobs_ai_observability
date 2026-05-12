@@ -14,8 +14,6 @@ Free and open-source under the **MIT License** — use freely for personal proje
 
 Monitor request volume, token usage, cost, and latency across all AI services at a glance.
 
-![Overview Dashboard](apps/web/public/images/overview-dashboard.png)
-
 ![Metrics Overview](apps/web/public/images/metrics-overview-dashboard.png)
 
 ### Tracing
