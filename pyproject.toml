@@ -22,7 +22,7 @@ dependencies = [
   "opentelemetry-proto>=1.28.0",
   "protobuf>=5.0.0",
   "argon2-cffi>=23.1.0",
-  "pyjwt>=2.9.0",
+  "pyjwt>=2.12.0",
   # Used by `easyobs reset-data --force` to enumerate / kill leftover
   # uvicorn workers (especially Windows --reload orphans whose parent has
   # exited but child still holds the LISTEN socket + catalog handle).
