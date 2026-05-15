@@ -256,7 +256,7 @@ To use AWS Bedrock Judge from EC2 instances:
 
 - Prefer **Terraform destroy** for the stack; deleting only EC2 in the console can orphan VPC/EIP/ALB/ASG/EFS.
 - **State:** destroy uses resources in the current dir’s `terraform.tfstate`. Lost state → manual cleanup in AWS.
-- **S3 stage bucket:** `force_destroy=true` → objects removed on destroy.
+- **S3 buckets:** Stage and trace archive use `force_destroy=true`. Run **`terraform apply` once before `terraform destroy`** so the bucket attribute is updated in AWS/state; destroy-only after an older apply leaves `force_destroy=false` and fails with `BucketNotEmpty`.
 - **EFS / RDS:** back up before destroy. RDS final snapshot when `rds_skip_final_snapshot=false`.
 - Preview: `terraform plan -destroy` in the stack directory.
 

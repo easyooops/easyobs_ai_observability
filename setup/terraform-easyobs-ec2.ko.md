@@ -256,7 +256,7 @@ EC2 인스턴스에서 AWS Bedrock Judge를 쓰려면:
 
 - 스택은 **Terraform destroy**를 권장합니다; 콘솔에서 EC2만 지우면 VPC/EIP/ALB/ASG/EFS 등이 고아 리소스로 남을 수 있습니다.
 - **State:** destroy는 현재 디렉터리의 `terraform.tfstate`에 있는 리소스를 사용합니다. state 분실 시 AWS에서 수동 정리가 필요합니다.
-- **S3 스테이지 버킷:** `force_destroy=true`이면 destroy 시 객체가 제거됩니다.
+- **S3 버킷:** 스테이지·트레이스 아카이브 모두 `force_destroy=true`입니다. **destroy 전에 반드시 `terraform apply`를 한 번 실행**해 state/AWS에 `force_destroy`가 반영되어야 합니다 (`apply` 없이 `destroy`만 하면 기존 `force_destroy=false` 버킷은 `BucketNotEmpty`로 실패합니다).
 - **EFS / RDS:** destroy 전 백업. `rds_skip_final_snapshot=false`일 때 RDS 최종 스냅샷.
 - 미리보기: 스택 디렉터리에서 `terraform plan -destroy`.
 

@@ -110,7 +110,7 @@ resource "aws_s3_object" "easyobs_product" {
 
 resource "aws_s3_bucket" "trace_archive" {
   bucket_prefix = "${local.name_prefix}-traces-"
-  force_destroy = false
+  force_destroy = true
   tags          = merge(local.tags, { Purpose = "trace-archive" })
 }
 
