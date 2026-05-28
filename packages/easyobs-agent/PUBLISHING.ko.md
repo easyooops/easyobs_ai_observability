@@ -118,7 +118,7 @@ dependencies = [
 packages/easyobs-agent/
 ├── pyproject.toml          # 빌드 및 메타데이터
 ├── README.md               # PyPI 프로젝트 페이지에 표시
-├── LICENSE                 # MIT
+├── LICENSE                 # Apache-2.0
 ├── PUBLISHING.md           # 이 문서의 영문판
 └── src/
     └── easyobs_agent/

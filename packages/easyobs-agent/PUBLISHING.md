@@ -117,7 +117,7 @@ dependencies = [
 packages/easyobs-agent/
 ├── pyproject.toml          # Build & metadata config
 ├── README.md               # Displayed on PyPI project page
-├── LICENSE                 # MIT
+├── LICENSE                 # Apache-2.0
 ├── PUBLISHING.md           # This file
 └── src/
     └── easyobs_agent/

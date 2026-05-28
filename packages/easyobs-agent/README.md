@@ -99,4 +99,4 @@ with span_block("search", kind="retrieve") as span:
 
 ## License
 
-MIT
+Apache-2.0

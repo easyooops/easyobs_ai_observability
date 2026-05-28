@@ -4,7 +4,7 @@
 
 OpenAPI · SQLite / Postgres · Object-first Blob (Local / S3 · Azure · GCS) · OTLP/HTTP ingest
 
-Free and open-source under the **MIT License** — use freely for personal projects, startups, and enterprises alike.
+Free and open-source under the **Apache License 2.0** — use freely for personal projects, startups, and enterprises alike.
 
 ---
 
@@ -234,7 +234,7 @@ EasyObs is built on the shoulders of these open-source projects. Thank you.
 
 ## License
 
-MIT License — free for personal, commercial, and enterprise use without restriction.
+Apache License 2.0 — free for personal, commercial, and enterprise use without restriction.
 
 See [`LICENSE`](./LICENSE) for details.
 
