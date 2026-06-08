@@ -242,7 +242,7 @@ See [`LICENSE`](./LICENSE) for details.
 
 ## Contact
 
-**Suyeong Yoo** — ssu0416@gmail.com
+If you have questions, bug reports, or feature suggestions, please open a [GitHub Issue](https://github.com/easyooops/easyobs_ai_observability/issues) or start a [GitHub Discussion](https://github.com/easyooops/easyobs_ai_observability/discussions).
 
 ---
 
